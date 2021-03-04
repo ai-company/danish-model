@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-import model, data, main
+import model, data, train
 
 import sys
 import tensorflow as tf
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
     vocab_len = len(data.read_vocabulary(data.WORD_VOCAB_FILE))
     x_len = vocab_len if vocab_len < data.MAX_WORD_VOCABULARY_SIZE else data.MAX_WORD_VOCABULARY_SIZE + data.MIN_WORD_COUNT_IN_VOCAB
-    x = np.ones((x_len, main.MINIBATCH_SIZE)).astype(int)
+    x = np.ones((x_len, train.MINIBATCH_SIZE)).astype(int)
 
     net, _ = model.load(model_file, x)
 
