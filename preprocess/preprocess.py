@@ -30,7 +30,7 @@ def skip(line):
     return False
 
 def process_line(line):
-    tokens = line.split(" ")#word_tokenize(line)
+    tokens = line.split(" ")
     output_tokens = []
 
     for token in tokens:

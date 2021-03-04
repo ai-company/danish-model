@@ -163,7 +163,7 @@ if __name__ == "__main__":
                 result += '.'
 
         result = hardcode_commas(result)
-        explainations = explain.get_explainations(text)
+        explanations = explain.get_explanations(text)
 
-        json.dumps({ 'result': result, 'explainations': explainations }, separators=(',', ':'))
+        json.dumps({ 'result': result, 'explanations': explanations }, separators=(',', ':'))
         print(result)

@@ -114,10 +114,10 @@ def explain(clauses, types):
     """
     Go through clauses and types in reverse order,
     mapping recurrent and independent types in order
-    to an explainations.
+    to an explanations.
     In reverse to grab listings in one go.
     Return:
-        exes: List of explainations for each comma.
+        exes: List of explanations for each comma.
     """
     exes = []
 
@@ -184,7 +184,7 @@ def explain(clauses, types):
 def is_action_clause(pos):
     return 'VERB' in pos or 'AUX' in pos
 
-def get_explainations(text):
+def get_explanations(text):
     sents = list(nlp(text).sents)
 
     exes   = []
@@ -238,7 +238,7 @@ def get_explainations(text):
 
 if __name__ == '__main__':
     def test_in(exes, text):
-        for i, ex in enumerate(get_explainations(text)):
+        for i, ex in enumerate(get_explanations(text)):
             if len(exes) == i:
                 break
 
@@ -265,5 +265,5 @@ if __name__ == '__main__':
 
     while True:
         text = input('> ')
-        print(get_explainations(text))
+        print(get_explanations(text))
         print()
