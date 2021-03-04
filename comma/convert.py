@@ -28,6 +28,7 @@ def make_tag(t):
 
 def convert(pos, original):
     result   = ''
+
     original = [t for t in nlp(original)]
 
     pos = filter(lambda x: x != '', pos.split())
