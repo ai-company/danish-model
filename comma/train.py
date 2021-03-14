@@ -6,12 +6,14 @@ import model, data
 import pickle5 as pickle
 import sys
 import os.path
-from os import path
-
 import data
+import matplotlib.pyplot as plt
+
+from os import path
 
 import tensorflow as tf
 import numpy as np
+import tqdm
 
 MAX_EPOCHS         = 50
 MINIBATCH_SIZE     = 32
@@ -111,14 +113,15 @@ if __name__ == '__main__':
 
     print('Training ...')
 
-    for epoch in range(starting_epoch, MAX_EPOCHS):
+    for epoch in tqdm.tqdm(range(starting_epoch, MAX_EPOCHS), desc='Epochs'):
         t0 = time()
 
         total_neg_log_likelihood = 0
         total_num_output_samples = 0
         iteration = 0 
 
-        for X, Y in get_minibatch(data.TRAIN_FILE, MINIBATCH_SIZE, shuffle=True):
+        print()
+        for X, Y in tqdm.tqdm(get_minibatch(data.TRAIN_FILE, MINIBATCH_SIZE, shuffle=True), desc='Training'):
             loss = train_step(net, X, Y)
 
             total_neg_log_likelihood += loss
@@ -127,6 +130,14 @@ if __name__ == '__main__':
 
             if iteration % 100 == 0:
                 ppl   = np.exp(total_neg_log_likelihood / total_num_output_samples)
+                validation_ppl_history.append(ppl)
+
+                plt.plot(validation_ppl_history)
+                plt.ylabel('Perplexity')
+                plt.xlabel('Time')
+                plt.title('Danish model - training')
+                plt.savefig('perplexity.png')
+
                 speed = total_num_output_samples / max(time() - t0, 1e-100)
 
                 print(f'At iteration {iteration}, processed sentences in epoch: {iteration * MINIBATCH_SIZE}')
@@ -137,22 +148,19 @@ if __name__ == '__main__':
                 print(f'Saving for good measure')
                 model.save(net, model_file_name, learning_rate=learning_rate, validation_ppl_history=validation_ppl_history, best_validation_ppl=best_ppl, epoch=epoch, random_state=rng.get_state())
 
+        print()
         print(f'Total number of training labels: {total_num_output_samples}')
 
         total_neg_log_likelihood = 0
         total_num_output_samples = 0
 
-        for X, Y in get_minibatch(data.DEV_FILE, MINIBATCH_SIZE, shuffle=False):
+        for X, Y in tqdm.tqdm(get_minibatch(data.DEV_FILE, MINIBATCH_SIZE, shuffle=False), desc='Test'):
             total_neg_log_likelihood += model.cost(net(X, training=True), Y)
-            print(f"Total neg log likelihood in dev iteration {iteration}, epoch {epoch}: {total_neg_log_likelihood}")
-
             total_num_output_samples += np.prod(Y.shape)
-            print(f"Total num output samples in dev iteration {iteration}, epoch {epoch}: {total_num_output_samples}")
 
         print(f"Total number of validation labels: {total_num_output_samples}")
 
         ppl = np.exp(total_neg_log_likelihood / total_num_output_samples)
-        validation_ppl_history.append(ppl)
 
         print(f'Validation perplexity: {np.round(ppl, 4)}')
 

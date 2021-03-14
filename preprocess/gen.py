@@ -1,5 +1,6 @@
 import spacy
 import collections
+import tqdm
 
 from os.path import join, dirname
 from sys     import argv
@@ -36,8 +37,8 @@ def make_tag(t):
     return result
 
 def mask(t):
-    if str(t.pos_) in ['PROPN', 'NOUN', 'SYM', 'ADJ'] and t.text.lower() not in bindings:
-        return t.tag_
+    if (str(t.pos_) in ['PROPN', 'NOUN', 'SYM', 'ADJ']) and (t.text.lower() not in bindings):
+        return make_tag(t.tag_)
 
     return str(t.text)
 
@@ -54,9 +55,8 @@ if __name__ == "__main__":
 
     with open(argv[1], 'r') as in_f, open(argv[2], 'a') as out_f:
         lines = in_f.readlines()
-        for line in lines:
+        for line in tqdm.tqdm(lines):
             doc = nlp(line)
             doc = ' '.join([maybe_comma(t) for t in doc])
 
             out_f.write(f'{doc}\n')
-
