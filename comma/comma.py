@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-import model, data, config
+import model, data
 
 import sys
 import tensorflow as tf
@@ -18,6 +18,7 @@ import json
 from pysbd.utils import PySBDFactory
 
 from os.path import join, dirname
+from config import MINIBATCH_SIZE
 
 def make_tag(t):
     result = ''
