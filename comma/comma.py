@@ -120,7 +120,7 @@ def init():
 
     vocab_len = len(data.read_vocabulary(data.WORD_VOCAB_FILE))
     x_len = vocab_len if vocab_len < data.MAX_WORD_VOCABULARY_SIZE else data.MAX_WORD_VOCABULARY_SIZE + data.MIN_WORD_COUNT_IN_VOCAB
-    x = np.ones((x_len, train.MINIBATCH_SIZE)).astype(int)
+    x = np.ones((x_len, MINIBATCH_SIZE)).astype(int)
 
     net, _ = model.load(model_file, x)
 
