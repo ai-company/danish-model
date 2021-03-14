@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-import model, data, train
+import model, data, config
 
 import sys
 import tensorflow as tf
@@ -113,10 +113,10 @@ def hardcode_commas(text):
     # Also add between multiple adjectives in a row
     return text.replace(' men ', ', men ').replace(',,', ',')
 
-if __name__ == "__main__":
+def init():
     nlp = spacy.load('da_core_news_lg')
 
-    model_file = join(dirname(__file__), 'punctdata/model_dan_128_0.02.pcl')
+    model_file = join(dirname(__file__), 'data/model.pcl')
 
     vocab_len = len(data.read_vocabulary(data.WORD_VOCAB_FILE))
     x_len = vocab_len if vocab_len < data.MAX_WORD_VOCABULARY_SIZE else data.MAX_WORD_VOCABULARY_SIZE + data.MIN_WORD_COUNT_IN_VOCAB
@@ -127,8 +127,6 @@ if __name__ == "__main__":
     word_vocabulary = net.x_vocabulary
     punctuation_vocabulary = net.y_vocabulary
     reverse_punctuation_vocabulary = {v:k for k,v in net.y_vocabulary.items()}
-
-    print(reverse_punctuation_vocabulary)
 
     def commarize_sentence(text):
         if len(text.strip()) == 0:
@@ -148,13 +146,10 @@ if __name__ == "__main__":
     sent_nlp = spacy.load('da_core_news_lg')
     sent_nlp.add_pipe(PySBDFactory(sent_nlp), first=True)
 
-    print('<ready>')
-
-    while True:
-        text = input("").replace('\0', '\n').replace(',', '')
+    def process(text):
         doc = sent_nlp(text)
 
-        result = ''.join([commarize_sentence(sent.string) for sent in doc.sents]).replace('\n', '\0')
+        result = ''.join([commarize_sentence(sent.string) for sent in doc.sents])
 
         if c := result[-1:] not in '.?!':
             if c == ',':
@@ -165,5 +160,6 @@ if __name__ == "__main__":
         result = hardcode_commas(result)
         explanations = explain.get_explanations(text)
 
-        json.dumps({ 'result': result, 'explanations': explanations }, separators=(',', ':'))
-        print(result)
+        return result, explanations
+
+    return process

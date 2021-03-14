@@ -10,20 +10,19 @@ import data
 import matplotlib.pyplot as plt
 
 from os import path
+from config import MINIBATCH_SIZE
 
 import tensorflow as tf
 import numpy as np
 import tqdm
 
 MAX_EPOCHS         = 50
-MINIBATCH_SIZE     = 32
 CLIPPING_THRESHOLD = 2.0
 PATIENCE_EPOCHS    = 1
 
 DATA_LEN = 0
 
 def get_minibatch(file_name, batch_size, shuffle, with_pauses=False):
-
     with open(file_name, 'rb') as f:
         dataset = pickle.load(f)
 

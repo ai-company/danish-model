@@ -10,7 +10,7 @@ import fnmatch
 
 code_dir = os.path.dirname(__file__)
 
-DATA_PATH = os.path.join(code_dir, 'punctdata')
+DATA_PATH = os.path.join(code_dir, 'data')
 
 END   = '</S>'
 UNK   = '<UNK>'
