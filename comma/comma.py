@@ -108,7 +108,7 @@ def punctuate(word_vocabulary, punctuation_vocabulary, reverse_punctuation_vocab
     return result
 
 def predict(x, model):
-    return tf.nn.softmax(net(x))
+    return tf.nn.softmax(model(x))
 
 def hardcode_commas(text):
     # Also add between multiple adjectives in a row
