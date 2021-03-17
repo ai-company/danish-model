@@ -3,14 +3,16 @@ from __future__ import division
 import tensorflow as tf
 from tensorflow.keras import layers
 
-import numpy as np 
-import data
+import numpy as np
+from . import data
+
 
 def _get_shape(i, o, keepdims):
     if (i == 1 or o == 1) and not keepdims:
-        return [max(i,o),]
+        return [max(i, o), ]
     else:
         return [i, o]
+
 
 def _slice(tensor, size, i):
     return tensor[:, i * size:(i + 1) * size]
@@ -23,8 +25,9 @@ def weights_Glorot(i, o, rng, is_logistic_sigmoid=False, keepdims=False):
 
     return tf.Variable(tf.random.uniform(_get_shape(i, o, keepdims), -d, d))
 
+
 def load(file_path, x, p=None):
-    import model
+    from . import model
     import pickle5 as pickle
     import numpy as np
 
@@ -47,6 +50,7 @@ def load(file_path, x, p=None):
 
     return net, (state["learning_rate"], state["validation_ppl_history"], state["epoch"], rng)
 
+
 class GRUCell(layers.Layer):
 
     def __init__(self, rng, n_in, n_out, minibatch_size):
@@ -65,19 +69,23 @@ class GRUCell(layers.Layer):
         self.W_h_h = weights_Glorot(n_out, n_out, rng)
         self.b_h = tf.Variable(tf.zeros([1, n_out]))
 
-        self.params = [self.W_x, self.W_h, self.b, self.W_x_h, self.W_h_h, self.b_h]
+        self.params = [self.W_x, self.W_h, self.b,
+                       self.W_x_h, self.W_h_h, self.b_h]
 
     def call(self, inputs):
 
-        rz = tf.nn.sigmoid(tf.matmul(inputs[0], self.W_x) + tf.matmul(inputs[1], self.W_h) + self.b)
+        rz = tf.nn.sigmoid(
+            tf.matmul(inputs[0], self.W_x) + tf.matmul(inputs[1], self.W_h) + self.b)
         r = _slice(rz, self.n_out, 0)
         z = _slice(rz, self.n_out, 1)
 
-        h = tf.nn.tanh(tf.matmul(inputs[0], self.W_x_h) + tf.matmul(inputs[1] * r, self.W_h_h) + self.b_h)
+        h = tf.nn.tanh(tf.matmul(
+            inputs[0], self.W_x_h) + tf.matmul(inputs[1] * r, self.W_h_h) + self.b_h)
 
         h_t = z * inputs[1] + (1. - z) * h
 
         return h_t
+
 
 class GRU(tf.keras.Model):
 
@@ -95,11 +103,14 @@ class GRU(tf.keras.Model):
 
         # input model
         self.We = weights_Glorot(self.x_vocabulary_size, n_hidden, rng)
-        self.GRU_f = GRUCell(rng=rng, n_in=n_hidden, n_out=n_hidden, minibatch_size=self.minibatch_size)
-        self.GRU_b = GRUCell(rng=rng, n_in=n_hidden, n_out=n_hidden, minibatch_size=self.minibatch_size)
+        self.GRU_f = GRUCell(rng=rng, n_in=n_hidden,
+                             n_out=n_hidden, minibatch_size=self.minibatch_size)
+        self.GRU_b = GRUCell(rng=rng, n_in=n_hidden,
+                             n_out=n_hidden, minibatch_size=self.minibatch_size)
 
         # output model
-        self.GRU = GRUCell(rng=rng, n_in=n_hidden*2, n_out=n_hidden, minibatch_size=self.minibatch_size)
+        self.GRU = GRUCell(rng=rng, n_in=n_hidden*2,
+                           n_out=n_hidden, minibatch_size=self.minibatch_size)
         self.Wy = tf.Variable(tf.zeros([n_hidden, self.y_vocabulary_size]))
         self.by = tf.Variable(tf.zeros([1, self.y_vocabulary_size]))
 
@@ -123,15 +134,17 @@ class GRU(tf.keras.Model):
 
         self.params += self.GRU.params + self.GRU_f.params + self.GRU_b.params
         print([x.shape for x in self.params])
-        
+
     def call(self, inputs, training=None):
 
         def input_recurrence(initializer, elems):
             x_f_t, x_b_t = elems
             h_f_tm1, h_b_tm1 = initializer
 
-            h_f_t = self.GRU_f(inputs=(tf.nn.embedding_lookup(self.We, x_f_t), h_f_tm1))
-            h_b_t = self.GRU_b(inputs=(tf.nn.embedding_lookup(self.We, x_b_t), h_b_tm1))
+            h_f_t = self.GRU_f(
+                inputs=(tf.nn.embedding_lookup(self.We, x_f_t), h_f_tm1))
+            h_b_t = self.GRU_b(
+                inputs=(tf.nn.embedding_lookup(self.We, x_b_t), h_b_tm1))
             return [h_f_t, h_b_t]
 
         [h_f_t, h_b_t] = tf.scan(
@@ -140,24 +153,28 @@ class GRU(tf.keras.Model):
             initializer=[self.GRU_f.h0, self.GRU_b.h0]
         )
 
-        context           = tf.concat([h_f_t, h_b_t[::-1]], axis=2)
-        projected_context = tf.matmul(context, tf.tile(tf.expand_dims(self.Wa_c, 0), tf.stack([tf.shape(context)[0], 1, 1]))) + self.ba
+        context = tf.concat([h_f_t, h_b_t[::-1]], axis=2)
+        projected_context = tf.matmul(context, tf.tile(tf.expand_dims(
+            self.Wa_c, 0), tf.stack([tf.shape(context)[0], 1, 1]))) + self.ba
 
         def output_recurrence(initializer, elems):
             x_t = elems
             h_tm1, _, _ = initializer
 
             # Attention model
-            h_a              = tf.nn.tanh(projected_context + tf.matmul(h_tm1, self.Wa_h))
-            alphas           = tf.exp(tf.reshape(tf.matmul(tf.reshape(h_a, [-1, tf.shape(h_a)[-1]]), tf.expand_dims(self.Wa_y, -1)), tf.shape(h_a)[:2]))
-            alphas          /= tf.reduce_sum(alphas, axis=0, keepdims=True)
-            weighted_context = tf.reduce_sum(context * alphas[:,:,None], axis=0)
-            
+            h_a = tf.nn.tanh(projected_context + tf.matmul(h_tm1, self.Wa_h))
+            alphas = tf.exp(tf.reshape(tf.matmul(tf.reshape(
+                h_a, [-1, tf.shape(h_a)[-1]]), tf.expand_dims(self.Wa_y, -1)), tf.shape(h_a)[:2]))
+            alphas /= tf.reduce_sum(alphas, axis=0, keepdims=True)
+            weighted_context = tf.reduce_sum(
+                context * alphas[:, :, None], axis=0)
+
             h_t = self.GRU(inputs=(x_t, h_tm1))
 
             # Late fusion
             lfc = tf.matmul(weighted_context, self.Wf_c)
-            fw = tf.nn.sigmoid(tf.matmul(lfc, self.Wf_f) + tf.matmul(h_t, self.Wf_h) + self.bf)
+            fw = tf.nn.sigmoid(tf.matmul(lfc, self.Wf_f) +
+                               tf.matmul(h_t, self.Wf_h) + self.bf)
             hf_t = lfc * fw + h_t
 
             z = tf.matmul(hf_t, self.Wy) + self.by
@@ -168,13 +185,16 @@ class GRU(tf.keras.Model):
         [_, self.last_hidden_states, self.y] = tf.scan(
             fn=output_recurrence,
             elems=context[1:],
-            initializer=[self.GRU.h0, self.GRU.h0, tf.zeros([self.minibatch_size, self.y_vocabulary_size])]
+            initializer=[self.GRU.h0, self.GRU.h0, tf.zeros(
+                [self.minibatch_size, self.y_vocabulary_size])]
         )
-        
+
         return self.y
+
 
 def cost(y_pred, y_true):
     return tf.reduce_sum(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=y_pred, labels=y_true))
+
 
 def save(model, file_path, learning_rate=None, validation_ppl_history=None, best_validation_ppl=None, epoch=None, random_state=None):
     import pickle5 as pickle

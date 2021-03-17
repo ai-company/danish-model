@@ -1,24 +1,19 @@
 # coding: utf-8
 
 from __future__ import division
-
-import model, data
-
 import sys
-import tensorflow as tf
-import numpy as np
-
-import spacy
+from os.path import join, dirname
 import collections
-import convert
-
-import explain
 import json
 
+import tensorflow as tf
+import numpy as np
+import spacy
 from pysbd.utils import PySBDFactory
 
-from os.path import join, dirname
-from config import MINIBATCH_SIZE
+from . import convert, explain, model, data
+from .config import MINIBATCH_SIZE
+
 
 def make_tag(t):
     result = ''
@@ -41,8 +36,10 @@ def make_tag(t):
 
     return result
 
+
 def to_array(arr, dtype=np.int32):
     return np.array([arr], dtype=dtype).T
+
 
 def convert_punctuation_to_readable(punct_token):
     if punct_token == data.SPACE:
@@ -50,12 +47,14 @@ def convert_punctuation_to_readable(punct_token):
     else:
         return punct_token[0]
 
+
 def punctuate(word_vocabulary, punctuation_vocabulary, reverse_punctuation_vocabulary, text, model):
     if len(text) == 0:
         return ''
 
-    text = [w for w in text.split() if w not in punctuation_vocabulary] + [data.END]
-    i    = 0
+    text = [w for w in text.split() if w not in punctuation_vocabulary] + \
+        [data.END]
+    i = 0
 
     result = ''
 
@@ -65,7 +64,8 @@ def punctuate(word_vocabulary, punctuation_vocabulary, reverse_punctuation_vocab
         if len(subsequence) == 0:
             break
 
-        converted_subsequence = [word_vocabulary.get(w, word_vocabulary[data.UNK]) for w in subsequence]
+        converted_subsequence = [word_vocabulary.get(
+            w, word_vocabulary[data.UNK]) for w in subsequence]
 
         y = predict(to_array(converted_subsequence), model)
 
@@ -74,7 +74,8 @@ def punctuate(word_vocabulary, punctuation_vocabulary, reverse_punctuation_vocab
         for y_t in y:
             p_i = np.argmax(tf.reshape(y_t, [-1]))
 
-            punctuation = reverse_punctuation_vocabulary[min(p_i, len(reverse_punctuation_vocabulary) - 1)]
+            punctuation = reverse_punctuation_vocabulary[min(
+                p_i, len(reverse_punctuation_vocabulary) - 1)]
 
             punctuations.append(punctuation)
 
@@ -94,7 +95,8 @@ def punctuate(word_vocabulary, punctuation_vocabulary, reverse_punctuation_vocab
             if j > 0:
                 token += ' '
 
-            token = punctuations[j] + " " if punctuations[j] != data.SPACE else " "
+            token = punctuations[j] + \
+                " " if punctuations[j] != data.SPACE else " "
             result += token
 
             if j < step - 1:
@@ -107,12 +109,15 @@ def punctuate(word_vocabulary, punctuation_vocabulary, reverse_punctuation_vocab
 
     return result
 
+
 def predict(x, model):
-    return tf.nn.softmax(net(x))
+    return tf.nn.softmax(model(x))
+
 
 def hardcode_commas(text):
     # Also add between multiple adjectives in a row
     return text.replace(' men ', ', men ').replace(',,', ',')
+
 
 def init():
     nlp = spacy.load('da_core_news_lg')
@@ -120,14 +125,16 @@ def init():
     model_file = join(dirname(__file__), 'data/model.pcl')
 
     vocab_len = len(data.read_vocabulary(data.WORD_VOCAB_FILE))
-    x_len = vocab_len if vocab_len < data.MAX_WORD_VOCABULARY_SIZE else data.MAX_WORD_VOCABULARY_SIZE + data.MIN_WORD_COUNT_IN_VOCAB
+    x_len = vocab_len if vocab_len < data.MAX_WORD_VOCABULARY_SIZE else data.MAX_WORD_VOCABULARY_SIZE + \
+        data.MIN_WORD_COUNT_IN_VOCAB
     x = np.ones((x_len, MINIBATCH_SIZE)).astype(int)
 
     net, _ = model.load(model_file, x)
 
     word_vocabulary = net.x_vocabulary
     punctuation_vocabulary = net.y_vocabulary
-    reverse_punctuation_vocabulary = {v:k for k,v in net.y_vocabulary.items()}
+    reverse_punctuation_vocabulary = {
+        v: k for k, v in net.y_vocabulary.items()}
 
     def commarize_sentence(text):
         if len(text.strip()) == 0:
@@ -135,7 +142,8 @@ def init():
 
         encoded_text = ' '.join([make_tag(t.tag_) for t in nlp(text)]).lower()
 
-        result = punctuate(word_vocabulary, punctuation_vocabulary, reverse_punctuation_vocabulary, encoded_text, net)
+        result = punctuate(word_vocabulary, punctuation_vocabulary,
+                           reverse_punctuation_vocabulary, encoded_text, net)
         result = result.replace('?QUESTIONMARK', '')
 
         result = f'{encoded_text.split(" ")[0]}{result}'
@@ -150,7 +158,8 @@ def init():
     def process(text):
         doc = sent_nlp(text)
 
-        result = ''.join([commarize_sentence(sent.string) for sent in doc.sents])
+        result = ''.join([commarize_sentence(sent.string)
+                          for sent in doc.sents])
 
         if c := result[-1:] not in '.?!':
             if c == ',':
