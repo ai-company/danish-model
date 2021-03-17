@@ -13,10 +13,11 @@ def _get_shape(i, o, keepdims):
         return [i, o]
 
 def _slice(tensor, size, i):
-    return tensor[:, i*size:(i+1)*size]
+    return tensor[:, i * size:(i + 1) * size]
     
-def weights_Glorot(i, o, name, rng, is_logistic_sigmoid=False, keepdims=False):
+def weights_Glorot(i, o, rng, is_logistic_sigmoid=False, keepdims=False):
     d = np.sqrt(6. / (i + o))
+
     if is_logistic_sigmoid:
         d *= 4.
 
@@ -39,7 +40,7 @@ def load(file_path, x, p=None):
         rng=rng,
         x=x,
         n_hidden=state["n_hidden"]
-        )
+    )
 
     for net_param, state_param in zip(net.params, state["params"]):
         net_param.assign(state_param)
@@ -53,16 +54,15 @@ class GRUCell(layers.Layer):
         self.n_in = n_in
         self.n_out = n_out
 
-
         # Initial hidden state
         self.h0 = tf.zeros([minibatch_size, n_out])
 
-        self.W_x = weights_Glorot(n_in, n_out*2, 'W_x', rng)
-        self.W_h = weights_Glorot(n_out, n_out*2, 'W_h', rng)
+        self.W_x = weights_Glorot(n_in, n_out*2, rng)
+        self.W_h = weights_Glorot(n_out, n_out*2, rng)
         self.b = tf.Variable(tf.zeros([1, n_out*2]))
         # Input parameters
-        self.W_x_h = weights_Glorot(n_in, n_out, 'W_x_h', rng)
-        self.W_h_h = weights_Glorot(n_out, n_out, 'W_h_h', rng)
+        self.W_x_h = weights_Glorot(n_in, n_out, rng)
+        self.W_h_h = weights_Glorot(n_out, n_out, rng)
         self.b_h = tf.Variable(tf.zeros([1, n_out]))
 
         self.params = [self.W_x, self.W_h, self.b, self.W_x_h, self.W_h_h, self.b_h]
@@ -94,7 +94,7 @@ class GRU(tf.keras.Model):
         self.y_vocabulary_size = len(self.y_vocabulary)
 
         # input model
-        self.We = weights_Glorot(self.x_vocabulary_size, n_hidden, 'We', rng)
+        self.We = weights_Glorot(self.x_vocabulary_size, n_hidden, rng)
         self.GRU_f = GRUCell(rng=rng, n_in=n_hidden, n_out=n_hidden, minibatch_size=self.minibatch_size)
         self.GRU_b = GRUCell(rng=rng, n_in=n_hidden, n_out=n_hidden, minibatch_size=self.minibatch_size)
 
@@ -105,10 +105,10 @@ class GRU(tf.keras.Model):
 
         # attention model
         n_attention = n_hidden * 2
-        self.Wa_h = weights_Glorot(n_hidden, n_attention, 'Wa_h', rng)
-        self.Wa_c = weights_Glorot(n_attention, n_attention, 'Wa_c', rng)
+        self.Wa_h = weights_Glorot(n_hidden, n_attention, rng)
+        self.Wa_c = weights_Glorot(n_attention, n_attention, rng)
         self.ba = tf.Variable(tf.zeros([1, n_attention]))
-        self.Wa_y = weights_Glorot(n_attention, 1, 'Wa_y', rng)
+        self.Wa_y = weights_Glorot(n_attention, 1, rng)
 
         # Late fusion parameters
         self.Wf_h = tf.Variable(tf.zeros([n_hidden, n_hidden]))
@@ -180,7 +180,7 @@ def save(model, file_path, learning_rate=None, validation_ppl_history=None, best
     import pickle5 as pickle
 
     state = {
-        "type":                   model.__class__.__name__,
+        "type":                   model.__class__.__,
         "n_hidden":               model.n_hidden,
         "params":                 [p for p in model.params],
         "learning_rate":          learning_rate,
