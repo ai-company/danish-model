@@ -44,7 +44,7 @@ class ModelServer:
 PORT = int(os.environ.get("MODEL_PORT_DANISH") or 9000)
 HOST = os.environ.get("HOST") or "localhost"
 
-ai      = init()
+ai = init()
 spellai = spell_init()
 
 
@@ -61,7 +61,7 @@ def process(text: str) -> str:
     spelled_text, changes = spellai(text)
     changes = ai(spelled_text, changes)
 
-    return json.dumps({'changes': changes}, separators=(',', ':'))
+    return json.dumps(changes, separators=(',', ':'))
 
 
-# ModelServer(HOST, PORT).serve(process)
+ModelServer(HOST, PORT).serve(process)
