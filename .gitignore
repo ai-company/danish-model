@@ -130,5 +130,5 @@ dmypy.json
 **/out/*
 out.zip
 bob.zip
-data/*
+**/data/*
 !data/scramble.py

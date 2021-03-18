@@ -1,49 +1,34 @@
 from transformers import pipeline
-from prob_spell   import init
-from nltk.corpus  import words as corpus_words
+from .prob_spell import init
+from nltk.corpus import words as corpus_words
 
-import nltk
-import distance
+from . import explain
+from os.path import join, dirname
 
-nltk.download('words')
+corpus_words = []
 
-corpus_words = corpus_words.words()
+with open(join(dirname(__file__), 'dictionary.txt'), 'r') as f:
+    for line in f:
+        corpus_words.append(line.split()[0])
 
-unmasker = pipeline('fill-mask', model='distilbert-base-uncased')
+unmasker = pipeline('fill-mask', model='Maltehb/danish-bert-botxo')
 prob_spell = init()
 
 # TODO: Move to CSV :)
 letter_mix_map = {
-    'ie': 'ei',
-    'ks': 'x',
-    'k':  'ck',
-    'mm': 'm',
-    'm':  'mm',
+    'rd': 'r',
     'tt': 't',
     't':  'tt',
-    'l':  'll',
-    'll': 'l',
-    'u':  'ou',
-    'ou': 'u',
-    'oy': 'oi',
-    'o':  'ou',
-    'y':  'i',
-    'i':  'y',
-    'dd': 'd',
-    'd':  'dd',
-    'tc': 'tch',
+    'n':  'nd',
+    'nd': 'n',
 }
 
-common_spelling_mistakes = {
-    'can not': 'cannot',
-    'isnt': 'isn\'t',
-    'cant': 'can\'t',
-    'wont': 'won\'t',
-    'arent': 'aren\'t',
-}
+common_spelling_mistakes = dict()
+
 
 def is_real(word):
     return word in corpus_words
+
 
 def low_hanging_fruits(sentence):
     words = sentence.split(' ')
@@ -61,6 +46,7 @@ def low_hanging_fruits(sentence):
 
     return ' '.join(words)
 
+
 def fix_typo(word):
     if not is_real(word):
         if len(word) > 1:
@@ -69,14 +55,15 @@ def fix_typo(word):
 
             if word[-1] == word[-2] and is_real(word[:-1]):
                 return word[:-1]
-    
+
         for i, letter in enumerate(word):
             if c := letter_mix_map.get(letter):
-                maybe = word[:i - 1] + c + word[i:]
+
+                maybe = word[:i] + c + word[i+1:]
 
                 if is_real(maybe):
                     return maybe
-            
+
             if len(word) > 1:
                 if c := letter_mix_map.get(word[i - 1] + letter):
                     maybe = word[:i - 1] + c + word[i + 1:]
@@ -86,11 +73,46 @@ def fix_typo(word):
 
     return word
 
+
+def explain_none(changes, i, change, explain):
+    changes[i]['type'] = 'replace'
+    changes[i]['change'] = changes[i]['origin']
+    changes[i]['origin'] = change
+    changes[i]['explain'] = explain
+
+
 def bake_spelling():
     def fix(text):
-        unks = []
+        """
+        Fixes incorrect spelling and grammatically incorrect sequences.
+
+        Params:
+            - text: The text to be fixed.
+
+        Returns:
+            - result: The fixed text.
+            - changes: An incremental changelog of what and how.
+        """
+
+        # What has been changed and how?
+        changes = []
 
         words = list(map(fix_typo, text.split(' ')))
+        unks = []
+        words = []
+        change_cache = {}
+
+        for i, word in enumerate(text.split(' ')):
+            fixed = fix_typo(word)
+            words.append(fixed)
+
+            if fixed != word:
+                change_cache[i] = (word, 'Dette var nok en tastefejl.')
+
+        sentence = ' '.join(words)
+        sentence = low_hanging_fruits(sentence)
+
+        computed, changes = prob_spell(sentence)
 
         masks = {}
 
@@ -99,18 +121,26 @@ def bake_spelling():
                 unks.append(word)
                 words[i] = word
 
-                mask = prob_spell(' '.join(text))[0].term.split(' ')
+                # We need a somewhat fixed version for the language model to suggest.
+
+                mask = computed.copy()[0].term.split()
                 old = mask[i]
                 mask[i] = '[MASK]'
                 masks[i] = (word, mask, old)
 
-        result   = []
-        sentence = ' '.join(words)
-        sentence = low_hanging_fruits(sentence)
+        for i, change in change_cache.items():
+            # This will always be none. The word was fixed before. :)
+            old = changes[i]
 
-        computed_text = prob_spell(sentence)[0].term
+            # The following will transform none-object into corresponding chonge.
+            # Note: the origin will have been the change made befor correction pass.
+            explain_none(changes, i, change[0], change[1])
 
-        # Yea, I know.
+        computed_text = computed[0].term
+
+        result = []
+
+        # Yea, I know. Nvm, what did I know??
         for i, word in enumerate(computed_text.split(' ')):
             if mask := masks.get(i):
                 tokens = [x['token_str'] for x in unmasker(' '.join(mask[1]))]
@@ -119,6 +149,13 @@ def bake_spelling():
 
                 for token in tokens:
                     if mask[0] in token or token in mask[0] and mask[2] not in corpus_words:
+
+                        if changes[i]['type'] == 'none':
+                            explain_none(changes, i, change[0], change[1])
+                        else:
+                            changes[i]['change'] = token
+                            changes[i]['explain'] = 'Indsættelse af korrekt ord.'
+
                         result.append(token)
                         found_match = True
                         break
@@ -129,17 +166,19 @@ def bake_spelling():
             else:
                 result.append(word)
 
-        return ' '.join(result)
+        return ' '.join(result), changes
 
     return fix
 
-while True:
-    text = input('> ')
-    fix = bake_spelling()
 
-    if text == '@open':
-        with open('test_en.txt', 'r') as f, open('out.txt', 'w+') as out:
-            for line in f:
-                out.write(f'{fix(line)}\n')
+if __name__ == "__main__":
+    while True:
+        text = input('> ')
+        fix = bake_spelling()
 
-    print(fix(text))
+        if text == '@open':
+            with open('test_en.txt', 'r') as f, open('out.txt', 'w+') as out:
+                for line in f:
+                    out.write(f'{fix(line)}\n')
+
+        print(fix(text))

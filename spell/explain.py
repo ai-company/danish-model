@@ -17,6 +17,12 @@ def explain(type, original, correct=None, explanation=None):
     return result
 
 def change(type, change, explanation):
+    if type == 'none':
+        return {
+            'type': 'none',
+            'origin': change,
+        }
+
     result = {
         'type':    type,
         'change':  change,   

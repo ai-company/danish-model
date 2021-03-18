@@ -20,23 +20,27 @@ if __name__ == '__main__':
         bigrams = {}
         dictionary = {}
 
-        with open(sys.argv[1], 'r') as input_f:
+        with open(join(dirname(__file__), 'wordbook.tx')) as f:
+            wordbook = f.readlines()
 
+        with open(sys.argv[1], 'r') as input_f:
             for line in input_f:
-                words = [x.text for x in nlp(line)]
-                print(words)
+                words = line.split(' ')
 
                 for i, word in enumerate(words[:-2]):
-                    bigram = f'{word} {words[i + 1]}'
+                    if word in wordbook:
+                        if words[i + 1] in wordbook:
+                            bigram = f'{word} {words[i + 1]}'
 
-                    if bigram not in bigrams:
-                        bigrams[bigram] = 0
+                            if bigram not in bigrams:
+                                bigrams[bigram] = 0
 
-                    if word not in dictionary:
-                        dictionary[word] = 0
+                            if word not in dictionary:
+                                dictionary[word] = 0
 
-                    bigrams[bigram]  += 1
-                    dictionary[word] += 1
+                            bigrams[bigram]  += 1
+
+                        dictionary[word] += 1
 
         with open(dictionary_path, 'w') as dict_f,\
              open(bigrams_path, 'w') as bigrams_f:

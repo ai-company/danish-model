@@ -1,4 +1,4 @@
-import util
+from . import util
 
 base_char_costs      = []
 base_prev_char_costs = []

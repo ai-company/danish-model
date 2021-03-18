@@ -120,6 +120,12 @@ def hardcode_commas(text):
 
 
 def init():
+    """
+    Comma correction factory; loading models and returning closure for commarization.
+
+    Returns:
+        - process: Closure for processing/commarization. 
+    """
     nlp = spacy.load('da_core_news_lg')
 
     model_file = join(dirname(__file__), 'data/model.pcl')
@@ -155,12 +161,24 @@ def init():
     sent_nlp = spacy.load('da_core_news_lg')
     sent_nlp.add_pipe(PySBDFactory(sent_nlp), first=True)
 
-    def process(text):
+    def process(text, changes):
+        """
+        Text processing closure for commarizing and explaining fixes.
+
+        Params:
+            - text: Text to be processed.
+            - changes: A reference to incremental changelog.
+
+        Returns:
+            - result: The processed text.
+            - changes: Updated list of explanations for changes made to the input text.
+        """
         doc = sent_nlp(text)
 
         result = ''.join([commarize_sentence(sent.string)
                           for sent in doc.sents])
 
+        # Add last comma.
         if c := result[-1:] not in '.?!':
             if c == ',':
                 result = result[:-1] + '.'
@@ -168,8 +186,92 @@ def init():
                 result += '.'
 
         result = hardcode_commas(result)
-        explanations = explain.get_explanations(text)
+        explanations = explain.get_explanations(result)
 
-        return result, explanations
+        tokens = result.split()
+
+        change_map = []
+
+        print(result)
+
+        for i, change in enumerate(changes):
+            if change['type'] == 'none':
+                change_map.append((change['origin'], i, None))
+            else:
+                content = change['change']
+
+                if change['type'] == 'split':
+                    change_map.append(
+                        (content[0]['type'] == 'none' and content[0]['origin'] or content[0]['change'], i, 0))
+                    change_map.append(
+                        (content[1]['type'] == 'none' and content[1]['origin'] or content[1]['change'], i, 1))
+                else:
+                    change_map.append((content, i, None))
+
+        comma_i = 1
+
+        for (change, i, split_i), token in zip(change_map, tokens):
+            if token.lower().replace(',', '').replace('.', '') == change \
+                    and token.replace(',', '').replace('.', '') != change:
+
+                i = i + comma_i - 1
+
+                explanation = 'Stort begyndelsesbogstav.'
+
+                if changes[i]['type'] == 'none':
+                    changes[i]['type'] = 'replace'
+                    changes[i]['change'] = token
+                    changes[i]['explain'] = explanation
+                else:
+                    capital_change = explain.change(
+                        'replace', token, explanation)
+
+                    if type(changes[i]['change']) == 'str':
+                        changes[i]['change'] = [
+                            explain.change(
+                                'replace', changes[i]['change'], changes[i]['explain']),
+                            capital_change
+                        ]
+
+                        del changes[i]['explain']
+                    else:
+                        split_change = changes[i]['change'][split_i]
+                        if split_change['type'] == 'none':
+                            changes[i]['change'][split_i] = capital_change
+                        else:
+                            changes[i]['change'][split_i]['change'] = token
+
+                            if type(split_change['explain']) == 'str':
+                                changes[i]['change'][split_i] = [
+                                    split_change['explain'],
+                                    explanation
+                                ]
+                            else:
+                                changes[i]['change'][split_i]['explain'].append(
+                                    explanation)
+
+            if ',' in token and explanations[comma_i]:
+                changes.insert(
+                    i + comma_i,
+                    explain.explain(
+                        'add',
+                        change=',',
+                        explanation=explanations[comma_i]
+                    )
+                )
+
+                comma_i += 1
+
+            elif '.' in token:
+                changes.insert(
+                    i + comma_i,
+                    explain.explain(
+                        'add',
+                        change='.',
+                        explanation='Sætningen bør afsluttes med et punktum.'
+                    )
+                )
+
+        return changes
 
     return process

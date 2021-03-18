@@ -110,7 +110,7 @@ def has_listing_potential(clause):
 
     return None
 
-def explain(clauses, types):
+def explain_commas(clauses, types):
     """
     Go through clauses and types in reverse order,
     mapping recurrent and independent types in order
@@ -176,6 +176,8 @@ def explain(clauses, types):
 
             elif last == ClauseType.SUB_SIDE:
                 exes.append('Komma før sideordnet ledsætning.')
+            else:
+                exes.append(None)
 
             last = tp
 
@@ -198,8 +200,6 @@ def get_explanations(text):
 
         for i, j in enumerate(sent):
             if ',' in j.text or i == len(sent) - 1:
-                # Why is Python like this??
-                # If this isn't here, Python chops of the last element.
                 if i == len(sent) - 1:
                     i = len(sent)
 
@@ -232,9 +232,50 @@ def get_explanations(text):
         # types.append(type_clause(sent[start:]))
         # commas.append(' '.join([x.text for x in sent[start:]]))
 
-        exes.extend(explain(commas, types))
+        exes.extend(explain_commas(commas, types))
 
     return exes
+
+
+
+# Helper functions providing an interface for the diff structure:
+
+
+
+def explain(type, original=None, change=None, explanation=None):
+    if type == 'none':
+        return {
+            'type': 'none',
+            'origin': original,
+        }
+    elif type == 'add':
+        return {
+            'type':    'add',
+            'change':  change,
+            'explain': explanation
+        }
+
+    result = {
+        'type':    type,
+        'change':  change,
+        'origin':  original,
+    }
+
+    if explanation:
+        result['explain'] = explanation,
+    
+    return result
+
+def change(type, change, explanation):
+    result = {
+        'type':    type,
+        'change':  change,   
+    }
+
+    if explanation:
+        result['explain'] = explanation,
+
+    return result
 
 if __name__ == '__main__':
     def test_in(exes, text):
@@ -249,7 +290,7 @@ if __name__ == '__main__':
             print(f'"{exes[i]}": very nice')
 
     def tests():
-        test_in(['ved opremsning'], 'han elsker kylling, han er sej og han er ost.')
+        test_in(['ved opremsning'], 'Han elsker kylling, han er sej og han er ost.')
         test_in(['ved parentetiske relativsætninger'], 'ham manden, der er en gangster.')
         test_in(['ved direkte tale'], 'Niels, du er en gangster.')
         test_in(['ved parentetiske appositioner'], 'Danmarks hovedstad, Køkenhavn')

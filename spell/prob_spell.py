@@ -1,7 +1,8 @@
-from distance    import distance as damerau_levenshtein_distance
+from .distance   import distance as damerau_levenshtein_distance
 from collections import defaultdict, namedtuple
 from itertools   import cycle
-from explain     import explain, change
+from .explain    import explain, change
+from os.path     import join, dirname
 
 import sys
 import os
@@ -9,7 +10,7 @@ import re
 import math
 import string
 
-import util
+from . import util
 
 def is_acronym(word, match_digits=False):
     if match_digits:
@@ -441,16 +442,16 @@ class Spell:
                 else:
                     explanation = 'Ordet var oprindeligt stavet forkert.'
                     changes = [
-                        change(one_in and 'none' or 'replace', split[0], one_in and explanation or None),
-                        change(two_in and 'none' or 'replace', split[1], two_in and explanation or None)
-                    ]   
+                        change(one_in and 'none' or 'replace', split[0], one_in and None or explanation),
+                        change(two_in and 'none' or 'replace', split[1], two_in and None or explanation)
+                    ]
 
                     explanations.append(
                         explain(
                             'split',
                             term_list[i],
                             changes,
-                            'Odet bør opdeles i flere'
+                            'Ordet bør opdeles i flere'
                         )
                     )
             else:
@@ -477,10 +478,6 @@ class Spell:
         suggestion_line = list()
 
         suggestion_line.append(suggestion)
-
-        import pprint
-
-        pprint.PrettyPrinter().pprint(explanations)
 
         return suggestion_line, explanations
 
@@ -632,8 +629,8 @@ class Suggestion:
 
 def init():
     s = Spell()
-    s.load_dict('dictionary.txt', 0, 1, sep='\xa0')
-    s.load_bigram_dict('bigrams.txt', 0, 2, sep='\xa0')
+    s.load_dict(join(dirname(__file__), 'dictionary.txt'), 0, 1, sep=' ')
+    s.load_bigram_dict(join(dirname(__file__), 'bigrams.txt'), 0, 2, sep=' ')
 
     def process(text):
         """
@@ -642,6 +639,7 @@ def init():
         Params:
             - text: The sentence to be processed.
         """
+
         return s.lookup_compound(text, max_edit_dist=2)
 
     return process
