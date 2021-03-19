@@ -13,8 +13,9 @@ def explain(type, original, correct=None, explanation=None):
 
     if explanation:
         result['explain'] = explanation,
-    
+
     return result
+
 
 def change(type, change, explanation):
     if type == 'none':
@@ -25,7 +26,7 @@ def change(type, change, explanation):
 
     result = {
         'type':    type,
-        'change':  change,   
+        'change':  change,
     }
 
     if explanation:

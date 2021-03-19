@@ -190,23 +190,7 @@ def init():
 
         tokens = result.split()
 
-        change_map = []
-
-        print(result)
-
-        for i, change in enumerate(changes):
-            if change['type'] == 'none':
-                change_map.append((change['origin'], i, None))
-            else:
-                content = change['change']
-
-                if change['type'] == 'split':
-                    change_map.append(
-                        (content[0]['type'] == 'none' and content[0]['origin'] or content[0]['change'], i, 0))
-                    change_map.append(
-                        (content[1]['type'] == 'none' and content[1]['origin'] or content[1]['change'], i, 1))
-                else:
-                    change_map.append((content, i, None))
+        change_map = explain.change_map(changes)
 
         comma_i = 1
 
@@ -272,6 +256,6 @@ def init():
                     )
                 )
 
-        return changes
+        return changes, result
 
     return process

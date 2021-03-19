@@ -2,8 +2,9 @@ import socket
 import os
 import traceback
 import json
-from typing import Callable
 
+from comma import explain
+from typing import Callable
 from comma.comma import init
 from spell.spell import bake_spelling as spell_init
 
@@ -59,9 +60,31 @@ def process(text: str) -> str:
         - JSON-formatted string with corrected text in `result` and a list of `changes`.
     """
     spelled_text, changes = spellai(text)
-    changes = ai(spelled_text, changes)
+    changes, result = ai(spelled_text, changes)
+
+    # Resolve removed chars
+    change_map = explain.change_map(changes)
+    word_i = 0
+
+    for i, (change, old) in enumerate(zip(changes, text.split())):
+        if ',' in old and (word_i < len(changes) - 1 and changes[word_i + 1]):
+            c = changes[word_i + 1]
+
+            if not (c['type'] == 'add' and c['change'] == ','):
+                changes.insert(word_i + 1, explain.change(
+                    'remove', ',', 'Der skal ikke være et komma her.'))
+                word_i += 1
+            else:
+                word_i += 1
+        elif ',' in old and not word_i < len(changes):
+            changes.insert(word_i + 1, explain.change(
+                'remove', ',', 'Der skal ikke være et komma her.'))
+            word_i += 2
+
+        word_i += 1
 
     return json.dumps(changes, separators=(',', ':'))
 
 
-ModelServer(HOST, PORT).serve(process)
+# ModelServer(HOST, PORT).serve(process)
+print('remember to uncomment')
