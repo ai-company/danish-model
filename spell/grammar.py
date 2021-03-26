@@ -4,6 +4,8 @@ import lemmy
 from spacy.symbols import nsubj, VERB, ADJ
 from nltk import Tree
 
+import inflect
+
 lemmatizer = lemmy.load('da')
 
 
@@ -30,21 +32,58 @@ def is_singular(token):
     return 'sing' in token.morph.number_
 
 
+def double_check_singular(token):
+    return True  # TODO: Irregular things.
+
+
 def is_inconsistent(token, relative):
     if relative.morph.number_ == '':
-        return False
+        return double_check_singular(relative) != is_singular(token)
+
     return is_singular(relative) != is_singular(token)
 
 
 def make_consistent(token, relative):
     if token.pos_ != 'AUX' and 'inf' in relative.morph.verb_form_:
-        print(token.text, relative.text, f'-> `{relative.text}` is wrong')
+        correct = inflect.inflect_verb(relative, presentize=True)
+        print(token.text, relative.text, f'-> `{correct}`')
+
+    if token.pos_ == 'DET' and token.text in ['en', 'et']:
+        if token.morph.gender_ != relative.morph.gender_:
+            correct = token.text == 'et' and 'en' or 'et'
+            print(token.text, relative.text, f'-> `{correct}`')
 
     if token.pos_ in ['PRON', 'NOUN', 'DET'] and is_inconsistent(token, relative):
-        print(token.text, relative.text, f'-> `{relative.text}` is wrong')
+        correct = relative.text + ' is wrong'
+        singular = is_singular(token)
+
+        if relative.pos_ in ['PROPN', 'NOUN']:
+
+            correct = inflect.inflect_noun(
+                relative,
+                singularize=singular,
+                pluralize=not singular
+            )
+
+        elif relative.pos_ == 'ADJ':
+            correct = inflect.inflect_adj(
+                relative,
+                singularize=singular,
+                pluralize=not singular
+            )
+
+        print(token.text, relative.text, f'-> {correct}')
 
     if token.pos_ == 'ADJ' and is_inconsistent(token, relative):
-        print(token.text, relative.text, f'-> `{token.text}` is wrong')
+        singular = is_singular(relative)
+
+        correct = inflect.inflect_adj(
+            token,
+            singularize=singular,
+            pluralize=not singular
+        )
+
+        print(token.text, relative.text, f'-> `{correct}`')
 
 
 def siblings(token):
@@ -62,7 +101,7 @@ def relatives_of(token, doc):
     return {
         'nsubj': [token.head],
         'root':  [],
-        'det':   [t for t in siblings(token) if t.pos_ in ['ADJ', 'NOUN']],
+        'det':   [t for t in siblings(token) if t.pos_ in ['ADJ', 'NOUN', 'PROPN']],
         'amod':  [token.head]
     }.get(token.dep_.lower())
 
@@ -76,11 +115,12 @@ def init():
         print()
 
         for token in doc:
-            # print()
+            print()
             # print(
             #     f'{token.text}({token.pos_}) @ {token.dep_} & {token.morph.to_json()}')
 
             if relatives := relatives_of(token, doc):
+
                 for t in relatives:
                     # print(
                     #     f'    -> {t.text}({t.morph.to_json()})')
