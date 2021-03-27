@@ -7,6 +7,7 @@ from comma import explain
 from typing import Callable
 from comma.comma import init
 from spell.spell import bake_spelling as spell_init
+from spell.grammar import init as grammar_init
 
 
 class ModelServer:
@@ -46,7 +47,8 @@ PORT = int(os.environ.get("MODEL_PORT_DANISH") or 9000)
 HOST = os.environ.get("HOST") or "localhost"
 
 ai = init()
-spellai = spell_init()
+spell = spell_init()
+grammar = grammar_init()
 
 
 def process(text: str) -> str:
@@ -59,8 +61,9 @@ def process(text: str) -> str:
     Returns:
         - JSON-formatted string with corrected text in `result` and a list of `changes`.
     """
-    spelled_text, changes = spellai(text)
-    changes, result = ai(spelled_text, changes)
+    spelled_text, changes = spell(text)
+    grammared_text, changes = grammar(spelled_text, changes)
+    changes, result = ai(grammared_text, changes)
 
     # Resolve removed chars
     change_map = explain.change_map(changes)
@@ -83,8 +86,15 @@ def process(text: str) -> str:
 
         word_i += 1
 
+    print(result)
+    print()
+
     return json.dumps(changes, separators=(',', ':'))
 
 
 # ModelServer(HOST, PORT).serve(process)
 print('remember to uncomment')
+
+while True:
+    print(process(input('> ')))
+    print()

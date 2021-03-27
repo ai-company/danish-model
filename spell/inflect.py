@@ -1,7 +1,7 @@
 from os.path import dirname, join
 
 import spacy
-import grammar
+from . import grammar
 import lemmy
 import random
 
@@ -25,6 +25,9 @@ noun_inflections = load_inflections(
 
 verb_inflections = load_inflections(
     join(dirname(__file__), 'inflections_verb.txt'))
+
+adj_inflections = load_inflections(
+    join(dirname(__file__), 'inflections_adj.txt'))
 
 
 def inflect_noun(token, properize=False, pluralize=False, singularize=False):
@@ -136,8 +139,35 @@ def inflect_verb(token, presentize=False, pastize=False, didize=False):
     return token.text
 
 
-def inflect_adj(token, properize=False, singularize=False, pluralize=False):
-    if pluralize or properize:
+def inflect_adj(token, itk=False, pluralize=False, singularize=False):
+    adj = lemmatizer.lemmatize('', token.text)[0]
+    if inflections := adj_inflections.get(adj):
+        i = 0
+        if len(inflections) == 1 and pluralize:
+            i = 0
+        else:
+            if pluralize:
+                i = 1
+            elif itk:
+                i = 0
+            else:
+                return adj
+
+        inflection = inflections[i]
+
+        if 'el.' in inflection:
+            choices = inflection.split('el.')
+
+            if 'itk. d.s.' in choices:
+                inflection = choices[1].strip()
+            else:
+                inflection = random.choice(choices).strip()
+        elif 'itk. d.s.' in inflection:
+            inflection = adj
+
+        return '-' in inflection and inflection.replace('-', adj) or inflection
+
+    if pluralize:
         ending = {
             'e': 'de',
             'n': 'ne',
@@ -148,8 +178,10 @@ def inflect_adj(token, properize=False, singularize=False, pluralize=False):
         }.get(token.text[-1], 'e')
 
         return f'{token.text}{ending}'
+    elif itk:
+        return f'{token.text}t'
 
-    return lemmatizer.lemmatize(token.text)[0]
+    return adj
 
 
 if __name__ == "__main__":
@@ -159,4 +191,4 @@ if __name__ == "__main__":
         for token in nlp(text):
             print(token.morph.gender_, token.pos_,
                   lemmatizer.lemmatize('', token.text))
-            print(inflect_verb(token, pastize=True))
+            print(inflect_adj(token, pluralize=True))

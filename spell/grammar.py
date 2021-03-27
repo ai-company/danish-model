@@ -4,7 +4,8 @@ import lemmy
 from spacy.symbols import nsubj, VERB, ADJ
 from nltk import Tree
 
-import inflect
+from . import inflect
+from . import explain
 
 lemmatizer = lemmy.load('da')
 
@@ -46,19 +47,24 @@ def is_inconsistent(token, relative):
 def make_consistent(token, relative):
     if token.pos_ != 'AUX' and 'inf' in relative.morph.verb_form_:
         correct = inflect.inflect_verb(relative, presentize=True)
-        print(token.text, relative.text, f'-> `{correct}`')
+        # print(token.text, relative.text, f'-> `{correct}`')
 
-    if token.pos_ == 'DET' and token.text in ['en', 'et']:
+        return correct, relative.i, 'Forveksling af infinitiv og nutid.'
+
+    elif token.pos_ == 'DET' and token.text in ['en', 'et']:
         if token.morph.gender_ != relative.morph.gender_:
             correct = token.text == 'et' and 'en' or 'et'
-            print(token.text, relative.text, f'-> `{correct}`')
+            gender = correct == 'en' and 'fælleskøn' or 'intetkøn'
 
-    if token.pos_ in ['PRON', 'NOUN', 'DET'] and is_inconsistent(token, relative):
+            return correct, token.i, f'Substantiver af {gender} skal have artiklen "{correct}".'
+
+    elif token.pos_ in ['PRON', 'NOUN', 'DET'] and is_inconsistent(token, relative):
         correct = relative.text + ' is wrong'
         singular = is_singular(token)
 
-        if relative.pos_ in ['PROPN', 'NOUN']:
+        explanation = singular and f'"{token.text}" skal bøjes i ental her.' or f'"{token.text}" skal bøjes i flertal her.'
 
+        if relative.pos_ in ['PROPN', 'NOUN']:
             correct = inflect.inflect_noun(
                 relative,
                 singularize=singular,
@@ -66,24 +72,43 @@ def make_consistent(token, relative):
             )
 
         elif relative.pos_ == 'ADJ':
+            itk = 'neut' in token.morph.gender_
+
             correct = inflect.inflect_adj(
                 relative,
-                singularize=singular,
-                pluralize=not singular
+                itk=itk,
+                pluralize=not singular,
+                singularize=singular
             )
 
-        print(token.text, relative.text, f'-> {correct}')
+            if itk:
+                explanation = f'"{token.text}" skal bøjes i intetkøn her.'
 
-    if token.pos_ == 'ADJ' and is_inconsistent(token, relative):
+        # print(token.text, relative.text, f'-> {correct}')
+
+        return correct, relative.i, explanation
+
+    elif token.pos_ == 'ADJ' and is_inconsistent(token, relative):
         singular = is_singular(relative)
+        itk = 'neut' in token.morph.gender_
 
         correct = inflect.inflect_adj(
             token,
+            itk=itk,
             singularize=singular,
             pluralize=not singular
         )
 
-        print(token.text, relative.text, f'-> `{correct}`')
+        if itk:
+            explanation = f'"{token.text}" skal bøjes i intetkøn her.'
+        else:
+            explanation = singular and f'"{token.text}" skal bøjes i ental her.' or f'"{token.text}" skal bøjes i flertal her.'
+
+        # print(token.text, relative.text, f'-> `{correct}`')
+
+        return correct, token.i
+
+    return token, None
 
 
 def siblings(token):
@@ -112,24 +137,40 @@ def init():
     def fix(text, changes=None):
         doc = nlp(text)
 
-        print()
+        fix_map = dict()  # For inserting fixes in corrected string.
+        result = []      # List of corrected words for corrected string.
+
+        # print()
 
         for token in doc:
-            print()
+            result.append(token.text)
+            # print()
             # print(
             #     f'{token.text}({token.pos_}) @ {token.dep_} & {token.morph.to_json()}')
 
             if relatives := relatives_of(token, doc):
-
                 for t in relatives:
                     # print(
                     #     f'    -> {t.text}({t.morph.to_json()})')
 
-                    make_consistent(token, t)
+                    correct, i, explanation = make_consistent(token, t)
 
-        print()
-        draw_tree(doc)
+                    if not i is None:  # None if nothing changed. :)
+                        explain.append_change(
+                            changes, i,
+                            explain.change('change', correct, explanation)
+                        )
+
+                        fix_map[i] = correct
+
         # print()
+        # draw_tree(doc)
+        # print()
+
+        for i, word in fix_map.items():
+            result[i] = word
+
+        return ' '.join(result), changes
 
     return fix
 

@@ -33,3 +33,18 @@ def change(type, change, explanation):
         result['explain'] = explanation,
 
     return result
+
+
+def append_change(changes, i, change):
+    if changes[i]['type'] == 'none':
+        changes[i]['type'] == 'change'
+
+        changes[i]['change'] = [change]
+    else:
+        if type(changes[i]['change']) == str:
+            changes[i]['change'] = [
+                changes[i]['change'],
+                change
+            ]
+        else:
+            changes[i]['change'].append(change)

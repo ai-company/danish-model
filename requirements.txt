@@ -3,3 +3,4 @@ numpy~=1.19.2
 spacy==2.3.5
 tensorflow==2.4.1
 pysbd==0.3.4
+lemmy==2.1.0
