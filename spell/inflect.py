@@ -136,7 +136,7 @@ def inflect_verb(token, presentize=False, pastize=False, didize=False):
 
         return f'{token.text}{ending}'
 
-    return token.text
+    return verb
 
 
 def inflect_adj(token, itk=False, pluralize=False, singularize=False):

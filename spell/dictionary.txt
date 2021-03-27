@@ -291741,7 +291741,7 @@ nordic 19098
 lider 19087
 bestyrelse 19049
 sæsonen 19011
-)det 18995
+det 18995
 forhånd 18942
 udfører 18896
 jnr 18896

@@ -3,7 +3,7 @@ import collections
 import tqdm
 
 from os.path import join, dirname
-from sys     import argv
+from sys import argv
 
 bindings = [
     'og', 'men', 'eller', 'samt', 'for', 'thi',
@@ -14,6 +14,7 @@ bindings = [
     'selvom', 'inden', 'hallo', 'av', 'halløj', 'hey', 'eow', 'hej', 'goddag', 'godaften',
     'især', 'men', 'bare', 'selvom', 'dog', 'herunder', 'heriblandt', 'såsom', 'e.g.', 'eksempelvis', 'f.eks.'
 ]
+
 
 def make_tag(t):
     result = ''
@@ -36,17 +37,20 @@ def make_tag(t):
 
     return result
 
+
 def mask(t):
     if (str(t.pos_) in ['PROPN', 'NOUN', 'SYM', 'ADJ']) and (t.text.lower() not in bindings):
         return make_tag(t.tag_)
 
     return str(t.text)
 
+
 def maybe_comma(t):
     if t.text == ',':
         return ','
 
     return mask(t)
+
 
 if __name__ == "__main__":
     nlp = spacy.load("da_core_news_lg")

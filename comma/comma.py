@@ -210,7 +210,7 @@ def init():
                     capital_change = explain.change(
                         'replace', token, explanation)
 
-                    if type(changes[i]['change']) == 'str':
+                    if type(changes[i]['change']) == str:
                         changes[i]['change'] = [
                             explain.change(
                                 'replace', changes[i]['change'], changes[i]['explain']),
@@ -219,6 +219,9 @@ def init():
 
                         del changes[i]['explain']
                     else:
+                        # if split_i is None:
+                        #     split_i = len(changes[i]['change']) - 1
+
                         split_change = changes[i]['change'][split_i]
                         if split_change['type'] == 'none':
                             changes[i]['change'][split_i] = capital_change

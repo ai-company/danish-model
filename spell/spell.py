@@ -21,6 +21,7 @@ letter_mix_map = {
     't':  'tt',
     'n':  'nd',
     'nd': 'n',
+    'l': 'll',
 }
 
 common_spelling_mistakes = dict()

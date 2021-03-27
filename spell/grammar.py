@@ -46,7 +46,21 @@ def is_inconsistent(token, relative):
 
 def make_consistent(token, relative):
     if token.pos_ != 'AUX' and 'inf' in relative.morph.verb_form_:
-        correct = inflect.inflect_verb(relative, presentize=True)
+        abort_mission = False
+        for t in relative.children:
+            if t.dep_ == 'aux':
+                abort_mission = True
+                break
+
+        if not abort_mission:
+            correct = inflect.inflect_verb(relative, presentize=True)
+            # print(token.text, relative.text, f'-> `{correct}`')
+
+            return correct, relative.i, 'Forveksling af infinitiv og nutid.'
+
+    elif token.pos_ == 'AUX'\
+            and 'inf' not in relative.morph.verb_form_:
+        correct = inflect.inflect_verb(relative)
         # print(token.text, relative.text, f'-> `{correct}`')
 
         return correct, relative.i, 'Forveksling af infinitiv og nutid.'
@@ -62,7 +76,7 @@ def make_consistent(token, relative):
         correct = relative.text + ' is wrong'
         singular = is_singular(token)
 
-        explanation = singular and f'"{token.text}" skal bøjes i ental her.' or f'"{token.text}" skal bøjes i flertal her.'
+        explanation = singular and f'"{relative.text}" skal bøjes i ental her.' or f'"{relative.text}" skal bøjes i flertal her.'
 
         if relative.pos_ in ['PROPN', 'NOUN']:
             correct = inflect.inflect_noun(
@@ -106,9 +120,22 @@ def make_consistent(token, relative):
 
         # print(token.text, relative.text, f'-> `{correct}`')
 
-        return correct, token.i
+        abort_mission = False
 
-    return token, None
+        for t in relative.children:
+            if t.dep_ == 'det' and singular and 'plur' in t.morph.number_:
+                abort_mission = True
+
+        if not abort_mission:
+            return correct, token.i, explanation
+
+    elif token.pos_ == 'VERB' and relative.dep_ == 'nsubj':
+        correct = inflect.inflect_verb(token, presentize=True)
+        # print(token.text, relative.text, f'-> `{correct}`')
+
+        return correct, token.i, 'Forveksling af infinitiv og nutid.'
+
+    return token, None, ''
 
 
 def siblings(token):
@@ -127,7 +154,9 @@ def relatives_of(token, doc):
         'nsubj': [token.head],
         'root':  [],
         'det':   [t for t in siblings(token) if t.pos_ in ['ADJ', 'NOUN', 'PROPN']],
-        'amod':  [token.head]
+        'amod':  [token.head],
+        'aux':   [token.head],
+        'xcomp': [t for t in siblings(token) if t.dep_ == 'nsubj']
     }.get(token.dep_.lower())
 
 
@@ -179,4 +208,4 @@ if __name__ == "__main__":
     fix = init()
     while True:
         text = input()
-        fix(text)
+        print(fix(text))

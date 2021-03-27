@@ -2,6 +2,7 @@ import socket
 import os
 import traceback
 import json
+import sys
 
 from comma import explain
 from typing import Callable
@@ -86,15 +87,12 @@ def process(text: str) -> str:
 
         word_i += 1
 
-    print(result)
-    print()
-
-    return json.dumps(changes, separators=(',', ':'))
+    return result, json.dumps(changes, separators=(',', ':'))
 
 
-# ModelServer(HOST, PORT).serve(process)
-print('remember to uncomment')
-
-while True:
-    print(process(input('> ')))
-    print()
+if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] == 'test':
+        while True:
+            print(process(input('> ')))
+    else:
+        ModelServer(HOST, PORT).serve(process)
