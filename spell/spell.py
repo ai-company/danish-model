@@ -98,6 +98,9 @@ def bake_spelling():
         # What has been changed and how?
         changes = []
 
+        # TODO: Cache things.
+        text = text.replace(',', '').replace('.', '').replace(' - ', ' ')
+
         words = list(map(fix_typo, text.split(' ')))
         unks = []
         words = []
@@ -125,6 +128,7 @@ def bake_spelling():
                 # We need a somewhat fixed version for the language model to suggest.
 
                 mask = computed.copy()[0].term.split()
+
                 old = mask[i]
                 mask[i] = '[MASK]'
                 masks[i] = (word, mask, old)

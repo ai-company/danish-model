@@ -2140,6 +2140,7 @@ fritænkerisk	 itk. d.s., -e
 fritænkersk	 itk. d.s., -e
 frivillig	 -t, -e
 frivol	 -t, -e 
+fri	 -t, -e
 frodig	 -t, -e
 from	 -t, -me
 fromladen	 -t, fromladne 

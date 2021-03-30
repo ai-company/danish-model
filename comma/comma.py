@@ -11,7 +11,7 @@ import numpy as np
 import spacy
 from pysbd.utils import PySBDFactory
 
-from . import convert, explain, model, data
+from . import convert, explain, model, data, clauses
 from .config import MINIBATCH_SIZE
 
 
@@ -114,11 +114,6 @@ def predict(x, model):
     return tf.nn.softmax(model(x))
 
 
-def hardcode_commas(text):
-    # Also add between multiple adjectives in a row
-    return text.replace(' men ', ', men ').replace(',,', ',')
-
-
 def init():
     """
     Comma correction factory; loading models and returning closure for commarization.
@@ -175,7 +170,7 @@ def init():
         """
         doc = sent_nlp(text)
 
-        result = ''.join([commarize_sentence(sent.string)
+        result = ''.join([clauses.heuristics(nlp(commarize_sentence(sent.string)))
                           for sent in doc.sents])
 
         # Add last comma.
@@ -185,7 +180,6 @@ def init():
             else:
                 result += '.'
 
-        result = hardcode_commas(result)
         explanations = explain.get_explanations(result)
 
         tokens = result.split()

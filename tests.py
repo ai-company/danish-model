@@ -14,13 +14,18 @@ class FullCorrectness(unittest.TestCase):
         )
 
         self.assertEqual(
-            fix('de gron isbjørrn'),
-            'De grønne isbjørne.'
+            fix('de gron blomste'),
+            'De grønne blomster.'
         )
 
         self.assertEqual(
             fix('alle de dum grasplæne'),
             'Alle de dumme græsplæner.'
+        )
+
+        self.assertEqual(
+            fix('han lovede igen at der kommet et frit og fair valg i Myanmar'),
+            'Han lovede igen, at der kommer et frit og fair valg i Myanmar.'
         )
 
     def test_spell_and_present(self):

@@ -2735,6 +2735,7 @@ kommandere	 -r, -de, -t
 kommatere	 -r, -de, -t 
 kommentere	 -r, -de, -t
 kommercialisere	 -r, -de, -t 
+komme	 -r, kom, -t 
 kommunalisere	 -r, -de, -t 
 kommunicere	 -r, -de, -t 
 kommunikere	 -r, -de, -t

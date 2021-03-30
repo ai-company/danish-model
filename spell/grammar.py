@@ -9,6 +9,14 @@ from . import explain
 
 lemmatizer = lemmy.load('da')
 
+PAST_AUX = [
+    'var',
+]
+
+INF_AUX = [
+    'at'
+]
+
 
 def to_nltk_tree(node):
     if node.n_lefts + node.n_rights > 0:
@@ -45,6 +53,10 @@ def is_inconsistent(token, relative):
 
 
 def make_consistent(token, relative):
+    # TODO: Refactoring.
+    # - Will need to model conditions in a functional and modular way.
+    # - A grammar rule DSL of modules.
+
     if token.pos_ != 'AUX' and 'inf' in relative.morph.verb_form_:
         abort_mission = False
         for t in relative.children:
@@ -56,14 +68,24 @@ def make_consistent(token, relative):
             correct = inflect.inflect_verb(relative, presentize=True)
             # print(token.text, relative.text, f'-> `{correct}`')
 
+            return correct, relative.i, 'Forveksling af infinitiv og nutid (nutids-r).'
+
+    elif token.pos_ == 'AUX':
+        if token.text.lower() in INF_AUX \
+                and 'inf' not in relative.morph.verb_form_:
+
+            correct = inflect.inflect_verb(relative)
+            # print(token.text, relative.text, f'-> `{correct}`')
+
             return correct, relative.i, 'Forveksling af infinitiv og nutid.'
 
-    elif token.pos_ == 'AUX'\
-            and 'inf' not in relative.morph.verb_form_:
-        correct = inflect.inflect_verb(relative)
-        # print(token.text, relative.text, f'-> `{correct}`')
+        elif token.text.lower() in PAST_AUX \
+                and 'part' not in relative.morph.verb_form_:
 
-        return correct, relative.i, 'Forveksling af infinitiv og nutid.'
+            correct = inflect.inflect_verb(relative, didize=True)
+            # print(token.text, relative.text, f'-> `{correct}`')
+
+            return correct, relative.i, 'Forveksling af datid og nutid.'
 
     elif token.pos_ == 'DET' and token.text in ['en', 'et']:
         if token.morph.gender_ != relative.morph.gender_:
@@ -135,6 +157,16 @@ def make_consistent(token, relative):
 
         return correct, token.i, 'Forveksling af infinitiv og nutid.'
 
+    elif (token.dep_ in ['expl'] or token.pos_ in ['NOUN', 'PROPN']) \
+            and 'part' in relative.morph.verb_form_:
+        # By default all 'part' words should be fixed.
+        # ... Any proper auxiliary words will overwrite this decision.
+
+        correct = inflect.inflect_verb(relative, presentize=True)
+        # print(token.text, relative.text, f'-> `{correct}`')
+
+        return correct, relative.i, 'Forveksling af datid og nutid.'
+
     return token, None, ''
 
 
@@ -153,10 +185,11 @@ def relatives_of(token, doc):
     return {
         'nsubj': [token.head],
         'root':  [],
-        'det':   [t for t in siblings(token) if t.pos_ in ['ADJ', 'NOUN', 'PROPN']],
+        'det':   [t for t in siblings(token) if t.pos_ in ['ADJ', 'NOUN']],
         'amod':  [token.head],
         'aux':   [token.head],
-        'xcomp': [t for t in siblings(token) if t.dep_ == 'nsubj']
+        'xcomp': [t for t in siblings(token) if t.dep_ == 'nsubj'],
+        'expl':  [t for t in siblings(token) if t.pos_ in ['VERB']]
     }.get(token.dep_.lower())
 
 

@@ -93,6 +93,10 @@ def process(text: str) -> str:
 if __name__ == "__main__":
     if len(sys.argv) == 2 and sys.argv[1] == 'test':
         while True:
-            print(process(input('> ')))
+            result, explanations = process(input('> '))
+
+            print(f'==== {result}\n')
+            print(explanations)
+            print()
     else:
         ModelServer(HOST, PORT).serve(process)

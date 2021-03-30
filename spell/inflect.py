@@ -31,7 +31,7 @@ adj_inflections = load_inflections(
 
 
 def inflect_noun(token, properize=False, pluralize=False, singularize=False):
-    noun = lemmatizer.lemmatize('', token.text)[0]
+    noun = lemmatizer.lemmatize('NOUN', token.text)[0]
     if inflections := noun_inflections.get(noun):
         i = 0
 
@@ -106,7 +106,7 @@ def inflect_noun(token, properize=False, pluralize=False, singularize=False):
 
 
 def inflect_verb(token, presentize=False, pastize=False, didize=False):
-    verb = lemmatizer.lemmatize('', token.text)[0]
+    verb = lemmatizer.lemmatize('VERB', token.text)[0]
     if inflections := verb_inflections.get(verb):
         i = 0
 
@@ -140,7 +140,7 @@ def inflect_verb(token, presentize=False, pastize=False, didize=False):
 
 
 def inflect_adj(token, itk=False, pluralize=False, singularize=False):
-    adj = lemmatizer.lemmatize('', token.text)[0]
+    adj = lemmatizer.lemmatize('ADJ', token.text)[0]
     if inflections := adj_inflections.get(adj):
         i = 0
         if len(inflections) == 1 and pluralize:
@@ -179,7 +179,8 @@ def inflect_adj(token, itk=False, pluralize=False, singularize=False):
 
         return f'{token.text}{ending}'
     elif itk:
-        return f'{token.text}t'
+        if token.text[-1] != 't':
+            return f'{token.text}t'
 
     return adj
 
