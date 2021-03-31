@@ -249,7 +249,6 @@ def get_explanations(text):
 
 # Helper functions providing an interface for the diff structure:
 
-
 def explain(type, original=None, change=None, explanation=None):
     if type == 'none':
         return {
@@ -309,6 +308,34 @@ def change_map(changes):
             else:
                 change_map.append((content, i, None))
     return change_map
+
+
+def insert_change(changes, i, split_i, new_change, explanation):
+    if type(changes[i]['change']) == str:
+        changes[i]['change'] = [
+            change('replace', changes[i]['change'], changes[i]['explain']),
+            new_change
+        ]
+
+        del changes[i]['explain']
+    else:
+        # if split_i is None:
+        #     split_i = len(changes[i]['change']) - 1
+
+        split_change = changes[i]['change'][split_i]
+        if split_change['type'] == 'none':
+            changes[i]['change'][split_i] = new_change
+        else:
+            changes[i]['change'][split_i]['change'] = token
+
+            if type(split_change['explain']) == 'str':
+                changes[i]['change'][split_i] = [
+                    split_change['explain'],
+                    explanation
+                ]
+            else:
+                changes[i]['change'][split_i]['explain'].append(
+                    explanation)
 
 
 if __name__ == '__main__':

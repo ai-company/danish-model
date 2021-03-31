@@ -45,6 +45,28 @@ class FullCorrectness(unittest.TestCase):
             'Den lille skildpadde, der kan lide kage, ændrer verden.'
         )
 
+    def test_capitalize(self):
+        self.assertEqual(
+            fix('jeg hedder niels og ændre verden'),
+            'Jeg hedder Niels og ændrer verden.'
+        )
+
+
+class Grammar(unittest.TestCase):
+    def test_todo(self):
+        self.assertEqual(
+            fix('folk skal lære og tænke sig om'),
+            'Folk skal lære at tænke sig om.'
+        )
+
+
+class Commas(unittest.TestCase):
+    def test_listings(self):
+        self.assertEqual(
+            fix('osten hunden og katten'),
+            'Osten, hunden og katten'
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

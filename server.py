@@ -3,6 +3,7 @@ import os
 import traceback
 import json
 import sys
+import spacy
 
 from comma import explain
 from typing import Callable
@@ -44,12 +45,13 @@ class ModelServer:
                     conn.sendall(bytes(handler(data), 'utf-8'))
 
 
-PORT = int(os.environ.get("MODEL_PORT_DANISH") or 9000)
+PORT = int(os.environ.get("MODcapitalize_namesEL_PORT_DANISH") or 9000)
 HOST = os.environ.get("HOST") or "localhost"
 
 ai = init()
-spell = spell_init()
-grammar = grammar_init()
+spell, unmasker = spell_init()
+grammar = grammar_init(unmasker)
+nlp = spacy.load('da_core_news_lg')
 
 
 def process(text: str) -> str:

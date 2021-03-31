@@ -53,16 +53,40 @@ def is_inconsistent(token, relative):
 
 
 def make_consistent(token, relative):
+    """
+    Makes a word pair consistent and correct.
+
+    Params:
+        - token: The primary token.
+        - relative: A token relative to the primary token.
+
+    Returns:
+        - correct: The correct word.
+        - index: The token index of the word being corrected.
+        - explanation: The explanation for a given correction.
+    """
     # TODO: Refactoring.
     # - Will need to model conditions in a functional and modular way.
     # - A grammar rule DSL of modules.
 
     if token.pos_ != 'AUX' and 'inf' in relative.morph.verb_form_:
         abort_mission = False
+
         for t in relative.children:
             if t.dep_ == 'aux':
                 abort_mission = True
                 break
+
+        if not abort_mission and token.pos_ == 'CCONJ':
+            # print('==== SIBLINGS')
+            for sibling in list(set([token.head] + list(token.ancestors))):
+                # print(f'  == {sibling.text}')
+                for t in sibling.children:
+                    # print(f'      == {t.text}: {t.dep_}')
+
+                    if t.dep_ == 'aux':
+                        abort_mission = True
+                        break
 
         if not abort_mission:
             correct = inflect.inflect_verb(relative, presentize=True)
@@ -189,14 +213,70 @@ def relatives_of(token, doc):
         'amod':  [token.head],
         'aux':   [token.head],
         'xcomp': [t for t in siblings(token) if t.dep_ == 'nsubj'],
-        'expl':  [t for t in siblings(token) if t.pos_ in ['VERB']]
+        'expl':  [t for t in siblings(token) if t.pos_ in ['VERB']],
+        'cc': list(set([token.head] + list(token.ancestors)))
     }.get(token.dep_.lower())
 
 
-def init():
+def capitalize_name(token, changes, i):
+    if token.text[0].lower() == token.text[0]:
+        correct = token.text.capitalize()
+
+        explanation = 'Dette egenavn bør have stort begyndelsesbogstav.'
+        explain.append_change(
+            changes, i,
+            explain.change(
+                'replace', correct, explanation)
+        )
+
+        return correct
+
+    return token.text
+
+
+def init(unmasker):
     nlp = spacy.load('da_core_news_lg')
 
     def fix(text, changes=None):
+        first_doc = nlp(text)
+
+        # Correct hardcore wacky mistakes by masking.
+
+        last_inf = False
+        tokens_masked = []
+        mask_i = None
+
+        for i, token in enumerate(first_doc):
+            if token.pos_ == 'VERB' and 'inf' in token.morph.verb_form_:
+                last_inf = True
+                tokens_masked.append(token.text)
+            else:
+                if token.text.lower() == 'og' and last_inf:
+                    tokens_masked.append('[MASK]')
+                    mask_i = i
+                else:
+                    tokens_masked.append(token.text)
+
+                last_inf = False
+
+        if mask_i:
+            text_masked = ' '.join(tokens_masked).replace(
+                ' ,', ',').replace(' .', '.')
+
+            tokens = [x['token_str'] for x in unmasker(text_masked)]
+            correct = tokens[0]
+
+            explain.append_change(
+                changes, mask_i,
+                explain.change('change', correct, 'Forkert brug af "og".')
+            )
+
+            tokens_masked[mask_i] = correct
+
+            text = ' '.join(tokens_masked).replace(
+                ' ,', ',').replace(' .', '.')
+
+        # Compute new NLP based on corrected wacky mistakes
         doc = nlp(text)
 
         fix_map = dict()  # For inserting fixes in corrected string.
@@ -224,6 +304,9 @@ def init():
                         )
 
                         fix_map[i] = correct
+
+            if token.pos_ == 'PROPN':
+                fix_map[token.i] = capitalize_name(token, changes, token.i)
 
         # print()
         # draw_tree(doc)

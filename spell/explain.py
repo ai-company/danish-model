@@ -48,3 +48,53 @@ def append_change(changes, i, change):
             ]
         else:
             changes[i]['change'].append(change)
+
+
+def change_map(changes):
+    change_map = []
+    for i, change in enumerate(changes):
+        if change['type'] == 'none':
+            change_map.append((change['origin'], i, None))
+        else:
+            content = change['change']
+
+            if change['type'] == 'split':
+                change_map.append(
+                    (content[0]['type'] == 'none' and content[0]['origin'] or content[0]['change'], i, 0))
+                change_map.append(
+                    (content[1]['type'] == 'none' and content[1]['origin'] or content[1]['change'], i, 1))
+            else:
+                change_map.append((content, i, None))
+    return change_map
+
+
+def insert_change(changes, i, split_i, new_change, explanation):
+    print(i, split_i, changes[i])
+    if changes[i]['type'] == 'none':
+        changes[i]['change'] = new_change
+        changes[i]['type'] = 'replace'
+    elif type(changes[i]['change']) == str:
+        changes[i]['change'] = [
+            change('replace', changes[i]['change'], changes[i]['explain']),
+            new_change
+        ]
+
+        del changes[i]['explain']
+    else:
+        # if split_i is None:
+        #     split_i = len(changes[i]['change']) - 1
+
+        split_change = changes[i]['change'][split_i]
+        if split_change['type'] == 'none':
+            changes[i]['change'][split_i] = new_change
+        else:
+            changes[i]['change'][split_i]['change'] = token
+
+            if type(split_change['explain']) == 'str':
+                changes[i]['change'][split_i] = [
+                    split_change['explain'],
+                    explanation
+                ]
+            else:
+                changes[i]['change'][split_i]['explain'].append(
+                    explanation)
