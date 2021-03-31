@@ -218,15 +218,16 @@ def relatives_of(token, doc):
     }.get(token.dep_.lower())
 
 
-def capitalize_name(token, changes, i):
+def capitalize_name(token, changes, i, split_i):
     if token.text[0].lower() == token.text[0]:
         correct = token.text.capitalize()
 
         explanation = 'Dette egenavn bør have stort begyndelsesbogstav.'
-        explain.append_change(
-            changes, i,
+        explain.insert_change(
+            changes, i, split_i,
             explain.change(
-                'replace', correct, explanation)
+                'replace', correct, explanation),
+            explanation
         )
 
         return correct
@@ -284,7 +285,9 @@ def init(unmasker):
 
         # print()
 
-        for token in doc:
+        change_map = explain.change_map(changes)
+
+        for (_, i, split_i), token in zip(change_map, doc):
             result.append(token.text)
             # print()
             # print(
@@ -295,18 +298,21 @@ def init(unmasker):
                     # print(
                     #     f'    -> {t.text}({t.morph.to_json()})')
 
-                    correct, i, explanation = make_consistent(token, t)
+                    correct, token_i, explanation = make_consistent(token, t)
 
-                    if not i is None:  # None if nothing changed. :)
-                        explain.append_change(
-                            changes, i,
+                    if not token_i is None:  # None if nothing changed. :)
+                        # The mapped token position
+                        map_i = change_map[token_i][1]
+
+                        explain.insert_change(
+                            changes, map_i, split_i,
                             explain.change('change', correct, explanation)
                         )
 
                         fix_map[i] = correct
 
             if token.pos_ == 'PROPN':
-                fix_map[token.i] = capitalize_name(token, changes, token.i)
+                fix_map[token.i] = capitalize_name(token, changes, i, split_i)
 
         # print()
         # draw_tree(doc)

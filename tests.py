@@ -64,7 +64,7 @@ class Commas(unittest.TestCase):
     def test_listings(self):
         self.assertEqual(
             fix('osten hunden og katten'),
-            'Osten, hunden og katten'
+            'Osten, hunden og katten.'
         )
 
 

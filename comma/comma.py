@@ -207,13 +207,18 @@ def init():
                     explain.insert_change(
                         changes, i, split_i, capital_change, explanation)
 
-            if ',' in token and explanations[comma_i]:
+            if ',' in token:
+                explanation = 'Der bør være et komma her.'
+
+                if comma_i < len(explanations):
+                    explanation = explanations[comma_i]
+
                 changes.insert(
                     i + comma_i,
                     explain.explain(
                         'add',
                         change=',',
-                        explanation=explanations[comma_i]
+                        explanation=explanation
                     )
                 )
 

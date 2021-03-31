@@ -4,6 +4,8 @@ def explain(type, original, correct=None, explanation=None):
             'type': 'none',
             'origin': original,
         }
+    elif type == 'split':
+        correct = [change('none', t) for t in list(correct.split(' '))]
 
     result = {
         'type':    type,
@@ -17,7 +19,7 @@ def explain(type, original, correct=None, explanation=None):
     return result
 
 
-def change(type, change, explanation):
+def change(type, change, explanation=None):
     if type == 'none':
         return {
             'type': 'none',
@@ -52,11 +54,14 @@ def append_change(changes, i, change):
 
 def change_map(changes):
     change_map = []
+    print(changes)
     for i, change in enumerate(changes):
         if change['type'] == 'none':
             change_map.append((change['origin'], i, None))
         else:
             content = change['change']
+
+            print(content)
 
             if change['type'] == 'split':
                 change_map.append(
@@ -69,7 +74,6 @@ def change_map(changes):
 
 
 def insert_change(changes, i, split_i, new_change, explanation):
-    print(i, split_i, changes[i])
     if changes[i]['type'] == 'none':
         changes[i]['change'] = new_change
         changes[i]['type'] = 'replace'

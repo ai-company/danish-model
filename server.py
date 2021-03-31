@@ -89,7 +89,7 @@ def process(text: str) -> str:
 
         word_i += 1
 
-    return result, json.dumps(changes, separators=(',', ':'))
+    return result, json.dumps([dict(c, **{'index': i}) for i, c in enumerate(changes)], separators=(',', ':'))
 
 
 if __name__ == "__main__":
