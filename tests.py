@@ -51,6 +51,12 @@ class FullCorrectness(unittest.TestCase):
             'Jeg hedder Niels og ændrer verden.'
         )
 
+    def test_i_am_very_smart(self):
+        self.assertEqual(
+            fix('der er en gruppe af folk der prøver at fremme brugen af korte sætninger i skrivning, men det synes jeg er skadeligt for det generelle udtryk i sproget, fordi de vil skære alt for meget i ens læsning.'),
+            'bruh'
+        )
+
 
 class Grammar(unittest.TestCase):
     def test_todo(self):

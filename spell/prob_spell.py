@@ -459,6 +459,7 @@ class Spell:
                         )
                     )
                 else:
+                    print('THESE:', split[0], split[1])
                     explanation = 'Ordet var oprindeligt stavet forkert.'
                     changes = [
                         change(one_in and 'none' or 'replace',

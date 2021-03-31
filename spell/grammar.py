@@ -302,14 +302,18 @@ def init(unmasker):
 
                     if not token_i is None:  # None if nothing changed. :)
                         # The mapped token position
-                        map_i = change_map[token_i][1]
+                        change = change_map[token_i]
 
-                        explain.insert_change(
+                        map_i = change[1]
+                        split_i = change[2]
+
+                        explain.insert_append_change(
                             changes, map_i, split_i,
-                            explain.change('change', correct, explanation)
+                            explain.change('change', correct, explanation),
+                            explanation
                         )
 
-                        fix_map[i] = correct
+                        fix_map[token_i] = correct
 
             if token.pos_ == 'PROPN':
                 fix_map[token.i] = capitalize_name(token, changes, i, split_i)
