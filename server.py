@@ -2,11 +2,14 @@ import socket
 import os
 import traceback
 import json
+import sys
+import spacy
 
 from comma import explain
 from typing import Callable
 from comma.comma import init
 from spell.spell import bake_spelling as spell_init
+from spell.grammar import init as grammar_init
 
 
 class ModelServer:
@@ -42,11 +45,13 @@ class ModelServer:
                     conn.sendall(bytes(handler(data), 'utf-8'))
 
 
-PORT = int(os.environ.get("MODEL_PORT_DANISH") or 9000)
+PORT = int(os.environ.get("MODcapitalize_namesEL_PORT_DANISH") or 9000)
 HOST = os.environ.get("HOST") or "localhost"
 
 ai = init()
-spellai = spell_init()
+spell, unmasker = spell_init()
+grammar = grammar_init(unmasker)
+nlp = spacy.load('da_core_news_lg')
 
 
 def process(text: str) -> str:
@@ -59,8 +64,9 @@ def process(text: str) -> str:
     Returns:
         - JSON-formatted string with corrected text in `result` and a list of `changes`.
     """
-    spelled_text, changes = spellai(text)
-    changes, result = ai(spelled_text, changes)
+    spelled_text, changes = spell(text)
+    grammared_text, changes = grammar(spelled_text, changes)
+    changes, result = ai(grammared_text, changes)
 
     # Resolve removed chars
     change_map = explain.change_map(changes)
@@ -83,8 +89,16 @@ def process(text: str) -> str:
 
         word_i += 1
 
-    return json.dumps(changes, separators=(',', ':'))
+    return result, json.dumps([dict(c, **{'index': i}) for i, c in enumerate(changes)], separators=(',', ':'))
 
 
-# ModelServer(HOST, PORT).serve(process)
-print('remember to uncomment')
+if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] == 'test':
+        while True:
+            result, explanations = process(input('> '))
+
+            print(f'==== {result}\n')
+            print(explanations)
+            print()
+    else:
+        ModelServer(HOST, PORT).serve(process)

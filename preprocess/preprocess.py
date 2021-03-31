@@ -8,18 +8,20 @@ import nltk
 # nltk.download('punkt')
 from nltk.tokenize import word_tokenize
 
-NUM    = "<NUM>"
+NUM = "<NUM>"
 PUNCTS = {",": ",COMMA", }
 
 forbidden_symbols = re.compile(r"[\[\]\(\)\/\\\>\<\=\+\_\*]")
-numbers           = re.compile(r"\d")
-punct             = re.compile(r"([\.\?\!\,\:\;\-])(?:[\.\?\!\,\:\;\-]){1,}")
+numbers = re.compile(r"\d")
+punct = re.compile(r"([\.\?\!\,\:\;\-])(?:[\.\?\!\,\:\;\-]){1,}")
+
 
 def is_number(x):
     if len(x) == 0:
         return False
 
     return len(numbers.sub("", x)) / len(x) < 0.6
+
 
 def skip(line):
     if line.strip() == "":
@@ -28,6 +30,7 @@ def skip(line):
     last_symbol = line[-1]
 
     return False
+
 
 def process_line(line):
     tokens = line.split(" ")
@@ -43,11 +46,12 @@ def process_line(line):
 
     return ' '.join(output_tokens) + ' '
 
+
 if __name__ == "__main__":
     skipped = 0
 
     with codecs.open(sys.argv[2], "w", encoding="utf-8") as out_txt, \
-         codecs.open(sys.argv[1], "r", encoding="utf-8") as text:
+            codecs.open(sys.argv[1], "r", encoding="utf-8") as text:
 
         for line in text:
 
@@ -62,4 +66,4 @@ if __name__ == "__main__":
 
             out_txt.write(line + "\n")
 
-    print("Skipped {} lines".format(skipped))
+    print(f'Skipped {skipped} lines')

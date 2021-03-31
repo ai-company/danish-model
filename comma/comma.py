@@ -11,7 +11,7 @@ import numpy as np
 import spacy
 from pysbd.utils import PySBDFactory
 
-from . import convert, explain, model, data
+from . import convert, explain, model, data, clauses
 from .config import MINIBATCH_SIZE
 
 
@@ -114,11 +114,6 @@ def predict(x, model):
     return tf.nn.softmax(model(x))
 
 
-def hardcode_commas(text):
-    # Also add between multiple adjectives in a row
-    return text.replace(' men ', ', men ').replace(',,', ',')
-
-
 def init():
     """
     Comma correction factory; loading models and returning closure for commarization.
@@ -175,7 +170,7 @@ def init():
         """
         doc = sent_nlp(text)
 
-        result = ''.join([commarize_sentence(sent.string)
+        result = ''.join([clauses.heuristics(nlp(commarize_sentence(sent.string)))
                           for sent in doc.sents])
 
         # Add last comma.
@@ -185,7 +180,6 @@ def init():
             else:
                 result += '.'
 
-        result = hardcode_commas(result)
         explanations = explain.get_explanations(result)
 
         tokens = result.split()
@@ -210,37 +204,21 @@ def init():
                     capital_change = explain.change(
                         'replace', token, explanation)
 
-                    if type(changes[i]['change']) == 'str':
-                        changes[i]['change'] = [
-                            explain.change(
-                                'replace', changes[i]['change'], changes[i]['explain']),
-                            capital_change
-                        ]
+                    explain.insert_change(
+                        changes, i, split_i, capital_change, explanation)
 
-                        del changes[i]['explain']
-                    else:
-                        split_change = changes[i]['change'][split_i]
-                        if split_change['type'] == 'none':
-                            changes[i]['change'][split_i] = capital_change
-                        else:
-                            changes[i]['change'][split_i]['change'] = token
+            if ',' in token:
+                explanation = 'Der bør være et komma her.'
 
-                            if type(split_change['explain']) == 'str':
-                                changes[i]['change'][split_i] = [
-                                    split_change['explain'],
-                                    explanation
-                                ]
-                            else:
-                                changes[i]['change'][split_i]['explain'].append(
-                                    explanation)
+                if comma_i < len(explanations):
+                    explanation = explanations[comma_i]
 
-            if ',' in token and explanations[comma_i]:
                 changes.insert(
                     i + comma_i,
                     explain.explain(
                         'add',
                         change=',',
-                        explanation=explanations[comma_i]
+                        explanation=explanation
                     )
                 )
 

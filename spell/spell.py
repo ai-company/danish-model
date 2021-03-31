@@ -1,4 +1,5 @@
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer, AutoModelForPreTraining
+
 from .prob_spell import init
 from nltk.corpus import words as corpus_words
 
@@ -11,7 +12,9 @@ with open(join(dirname(__file__), 'dictionary.txt'), 'r') as f:
     for line in f:
         corpus_words.append(line.split()[0])
 
-unmasker = pipeline('fill-mask', model='Maltehb/danish-bert-botxo')
+tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
+unmasker = pipeline(
+    'fill-mask', model='Maltehb/danish-bert-botxo', tokenizer=tokenizer)
 prob_spell = init()
 
 # TODO: Move to CSV :)
@@ -21,6 +24,7 @@ letter_mix_map = {
     't':  'tt',
     'n':  'nd',
     'nd': 'n',
+    'l': 'll',
 }
 
 common_spelling_mistakes = dict()
@@ -97,6 +101,9 @@ def bake_spelling():
         # What has been changed and how?
         changes = []
 
+        # TODO: Cache things.
+        text = text.replace(',', '').replace('.', '').replace(' - ', ' ')
+
         words = list(map(fix_typo, text.split(' ')))
         unks = []
         words = []
@@ -122,8 +129,8 @@ def bake_spelling():
                 words[i] = word
 
                 # We need a somewhat fixed version for the language model to suggest.
-
                 mask = computed.copy()[0].term.split()
+
                 old = mask[i]
                 mask[i] = '[MASK]'
                 masks[i] = (word, mask, old)
@@ -168,7 +175,7 @@ def bake_spelling():
 
         return ' '.join(result), changes
 
-    return fix
+    return fix, unmasker
 
 
 if __name__ == "__main__":
