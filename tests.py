@@ -51,18 +51,23 @@ class FullCorrectness(unittest.TestCase):
             'Jeg hedder Niels og ændrer verden.'
         )
 
-    def test_i_am_very_smart(self):
-        self.assertEqual(
-            fix('der er en gruppe af folk der prøver at fremme brugen af korte sætninger i skrivning, men det synes jeg er skadeligt for det generelle udtryk i sproget, fordi de vil skære alt for meget i ens læsning.'),
-            'bruh'
-        )
-
 
 class Grammar(unittest.TestCase):
     def test_todo(self):
         self.assertEqual(
             fix('folk skal lære og tænke sig om'),
             'Folk skal lære at tænke sig om.'
+        )
+
+    def test_lay(self):
+        self.assertEqual(
+            fix('jeg lægger ned på sengen'),
+            'Jeg ligger ned på sengen.'
+        )
+
+        self.assertEqual(
+            fix('jeg ligger hunden ned på sengen'),
+            'Jeg lægger hunden ned på sengen.'
         )
 
 

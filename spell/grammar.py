@@ -191,6 +191,13 @@ def make_consistent(token, relative):
 
         return correct, relative.i, 'Forveksling af datid og nutid.'
 
+    elif token.text in ['ligger', 'lægger']:
+        if relative.dep_ == 'obj':
+            if token.text == 'ligger':
+                return 'lægger', token.i, 'Forveksling af ligger og lægger.'
+        elif token.text == 'lægger':
+            return 'ligger', token.i, 'Forveksling af ligger og lægger.'
+
     return token, None, ''
 
 
@@ -208,7 +215,7 @@ def siblings(token):
 def relatives_of(token, doc):
     return {
         'nsubj': [token.head],
-        'root':  [],
+        'root':  token.text in ['ligger', 'lægger'] and [t for t in token.children if t.dep_ == 'obj'] or [],
         'det':   [t for t in siblings(token) if t.pos_ in ['ADJ', 'NOUN']],
         'amod':  [token.head],
         'aux':   [token.head],
@@ -283,20 +290,22 @@ def init(unmasker):
         fix_map = dict()  # For inserting fixes in corrected string.
         result = []      # List of corrected words for corrected string.
 
-        # print()
+        print()
 
         change_map = explain.change_map(changes)
 
         for (_, i, split_i), token in zip(change_map, doc):
             result.append(token.text)
-            # print()
-            # print(
-            #     f'{token.text}({token.pos_}) @ {token.dep_} & {token.morph.to_json()}')
+            print()
+            print(
+                f'{token.text}({token.pos_}) @ {token.dep_} & {token.morph.to_json()}')
 
             if relatives := relatives_of(token, doc):
+                # TODO: Refactor rule system.
+
                 for t in relatives:
-                    # print(
-                    #     f'    -> {t.text}({t.morph.to_json()})')
+                    print(
+                        f'    -> {t.text}({t.morph.to_json()})')
 
                     correct, token_i, explanation = make_consistent(token, t)
 
@@ -314,13 +323,27 @@ def init(unmasker):
                         )
 
                         fix_map[token_i] = correct
+            else:
+                if token.text == 'lægger' and len(relatives) == 0:
+                    change = change_map[token.i]
+                    map_i = change[1]
+                    split_i = change[2]
+
+                    explain.insert_append_change(
+                        changes, map_i, split_i,
+                        explain.change('change', 'ligger',
+                                       'Forveksling af lægger og ligger.'),
+                        explanation
+                    )
+
+                    fix_map[token.i] = 'ligger'
 
             if token.pos_ == 'PROPN':
                 fix_map[token.i] = capitalize_name(token, changes, i, split_i)
 
-        # print()
-        # draw_tree(doc)
-        # print()
+        print()
+        draw_tree(doc)
+        print()
 
         for i, word in fix_map.items():
             result[i] = word
