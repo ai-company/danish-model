@@ -10,6 +10,7 @@ from typing import Callable
 from comma.comma import init
 from spell.spell import bake_spelling as spell_init
 from spell.grammar import init as grammar_init
+from pysbd.utils import PySBDFactory
 
 
 class ModelServer:
@@ -53,6 +54,10 @@ spell, unmasker = spell_init()
 grammar = grammar_init(unmasker)
 nlp = spacy.load('da_core_news_lg')
 
+# Split sentences.
+sent_nlp = spacy.load('da_core_news_lg')
+sent_nlp.add_pipe(PySBDFactory(sent_nlp), first=True)
+
 
 def process(text: str) -> str:
     """
@@ -64,9 +69,30 @@ def process(text: str) -> str:
     Returns:
         - JSON-formatted string with corrected text in `result` and a list of `changes`.
     """
-    spelled_text, changes = spell(text)
-    grammared_text, changes = grammar(spelled_text, changes)
-    changes, result = ai(grammared_text, changes)
+
+    # Document by sentences
+    doc = sent_nlp(text)
+
+    # The global change-log
+    changes = []
+
+    # TODO: Maybe just move or remove.
+    # This is mostly for testing.
+    result = ''
+
+    # Fix each sentence
+    for sent in doc.sents:
+        if len(sent.string.strip()) == 0:
+            continue
+
+        # TODO: Stripping and diffs?
+        spelled_text, changes = spell(sent.string.strip(), changes)
+        grammared_text, changes = grammar(spelled_text, changes)
+        changes, final = ai(grammared_text, changes)
+
+        result += ' ' + final
+
+    result = result.strip()
 
     # Resolve removed chars
     change_map = explain.change_map(changes)

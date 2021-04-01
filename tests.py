@@ -66,7 +66,7 @@ der er nogen mennesker der prøver at overbevise folk om at sætninger skal vær
             """),
             """
 Der er nogen mennesker, der prøver at overbevise folk om, at sætninger skal være korte, men det er dumt og ødelægger fuldstændig det generelle sprog og ens forståelse.
-            """
+            """.strip()
         )
 
     def test_lay(self):

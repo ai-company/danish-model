@@ -1,14 +1,14 @@
-def explain(type, original, correct=None, explanation=None):
-    if type == 'none':
+def explain(ctype, original, correct=None, explanation=None):
+    if ctype == 'none':
         return {
             'type': 'none',
             'origin': original,
         }
-    elif type == 'split' and type(correct) == str:
+    elif ctype == 'split' and type(correct) == str:
         correct = [change('none', t) for t in list(correct.split(' '))]
 
     result = {
-        'type':    type,
+        'type':    ctype,
         'change':  correct,
         'origin':  original,
     }

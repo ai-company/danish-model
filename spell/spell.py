@@ -86,7 +86,7 @@ def explain_none(changes, i, change, explain):
 
 
 def bake_spelling():
-    def fix(text):
+    def fix(text, changes=[]):
         """
         Fixes incorrect spelling and grammatically incorrect sequences.
 
@@ -97,9 +97,6 @@ def bake_spelling():
             - result: The fixed text.
             - changes: An incremental changelog of what and how.
         """
-
-        # What has been changed and how?
-        changes = []
 
         # TODO: Cache things.
         text = text.replace(',', '').replace('.', '').replace(' - ', ' ')
@@ -130,6 +127,12 @@ def bake_spelling():
 
                 # We need a somewhat fixed version for the language model to suggest.
                 mask = computed.copy()[0].term.split()
+
+                if i >= len(mask):
+                    import pdb
+                    pdb.set_trace()
+
+                    print(i, f'(-- -> "{mask}" < ---)', len(mask))
 
                 old = mask[i]
                 mask[i] = '[MASK]'

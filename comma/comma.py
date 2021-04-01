@@ -153,9 +153,6 @@ def init():
 
         return result
 
-    sent_nlp = spacy.load('da_core_news_lg')
-    sent_nlp.add_pipe(PySBDFactory(sent_nlp), first=True)
-
     def process(text, changes):
         """
         Text processing closure for commarizing and explaining fixes.
@@ -168,10 +165,8 @@ def init():
             - result: The processed text.
             - changes: Updated list of explanations for changes made to the input text.
         """
-        doc = sent_nlp(text)
 
-        result = ''.join([clauses.heuristics(nlp(commarize_sentence(sent.string)))
-                          for sent in doc.sents])
+        result = clauses.heuristics(nlp(commarize_sentence(text)))
 
         # Add last comma.
         if c := result[-1:] not in '.?!':

@@ -326,9 +326,9 @@ def insert_change(changes, i, split_i, new_change, explanation):
         if split_change['type'] == 'none':
             changes[i]['change'][split_i] = new_change
         else:
-            changes[i]['change'][split_i]['change'] = token
+            changes[i]['change'][split_i]['change'] = new_change['change']
 
-            if type(split_change['explain']) == 'str':
+            if type(split_change['explain']) == str:
                 changes[i]['change'][split_i] = [
                     split_change['explain'],
                     explanation

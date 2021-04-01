@@ -177,9 +177,6 @@ def make_consistent(token, relative):
             pluralize=not singular
         )
 
-        import pdb
-        pdb.set_trace()
-
         if itk:
             explanation = f'"{token.text}" skal bøjes i intetkøn her.'
         else:
@@ -311,22 +308,22 @@ def init(unmasker):
         fix_map = dict()  # For inserting fixes in corrected string.
         result = []      # List of corrected words for corrected string.
 
-        print()
+        # print()
 
         change_map = explain.change_map(changes)
 
         for (_, i, split_i), token in zip(change_map, doc):
             result.append(token.text)
-            print()
-            print(
-                f'{token.text}({token.pos_}) @ {token.dep_} & {token.morph.to_json()}')
+            # print()
+            # print(
+            #     f'{token.text}({token.pos_}) @ {token.dep_} & {token.morph.to_json()}')
 
             if relatives := relatives_of(token, doc):
                 # TODO: Refactor rule system.
 
                 for t in relatives:
-                    print(
-                        f'    -> {t.text}({t.morph.to_json()})')
+                    # print(
+                    #     f'    -> {t.text}({t.morph.to_json()})')
 
                     correct, token_i, explanation = make_consistent(token, t)
 
@@ -362,9 +359,9 @@ def init(unmasker):
             if token.pos_ == 'PROPN':
                 fix_map[token.i] = capitalize_name(token, changes, i, split_i)
 
-        print()
-        draw_tree(doc)
-        print()
+        # print()
+        # draw_tree(doc)
+        # print()
 
         for i, word in fix_map.items():
             result[i] = word

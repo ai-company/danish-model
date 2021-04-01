@@ -16,3 +16,8 @@ $ python tests.py
 
 
 ```
+
+### Notes for Mr Bug
+#### Things that can be relevant.
+
+1. The sentences are stripped.
