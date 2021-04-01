@@ -17,6 +17,10 @@ INF_AUX = [
     'at'
 ]
 
+REFLECTIVE_ADJ = [
+    'nogen'
+]
+
 
 def to_nltk_tree(node):
     if node.n_lefts + node.n_rights > 0:
@@ -38,6 +42,10 @@ def is_singular_adj(text):
 def is_singular(token):
     if token.pos_ == 'ADJ':
         return is_singular_adj(token.text)
+    elif token.pos_ == 'DET':
+        # import pdb
+        # pdb.set_trace()
+        return 'plur' not in token.morph.number_
     return 'sing' in token.morph.number_
 
 
@@ -122,6 +130,11 @@ def make_consistent(token, relative):
         correct = relative.text + ' is wrong'
         singular = is_singular(token)
 
+        abort_mission = False
+
+        if token.text in REFLECTIVE_ADJ:
+            abort_mission = True
+
         explanation = singular and f'"{relative.text}" skal bøjes i ental her.' or f'"{relative.text}" skal bøjes i flertal her.'
 
         if relative.pos_ in ['PROPN', 'NOUN']:
@@ -134,19 +147,24 @@ def make_consistent(token, relative):
         elif relative.pos_ == 'ADJ':
             itk = 'neut' in token.morph.gender_
 
-            correct = inflect.inflect_adj(
-                relative,
-                itk=itk,
-                pluralize=not singular,
-                singularize=singular
-            )
+            # If it's describing the neutral word, it should not inflect.
+            if 'def' in relative.morph.definite_:
+                abort_mission = True
+            else:
+                correct = inflect.inflect_adj(
+                    relative,
+                    itk=itk,
+                    pluralize=not singular,
+                    singularize=singular
+                )
 
-            if itk:
-                explanation = f'"{token.text}" skal bøjes i intetkøn her.'
+                if itk:
+                    explanation = f'"{token.text}" skal bøjes i intetkøn her.'
 
         # print(token.text, relative.text, f'-> {correct}')
 
-        return correct, relative.i, explanation
+        if not abort_mission:
+            return correct, relative.i, explanation
 
     elif token.pos_ == 'ADJ' and is_inconsistent(token, relative):
         singular = is_singular(relative)
@@ -158,6 +176,9 @@ def make_consistent(token, relative):
             singularize=singular,
             pluralize=not singular
         )
+
+        import pdb
+        pdb.set_trace()
 
         if itk:
             explanation = f'"{token.text}" skal bøjes i intetkøn her.'
@@ -217,7 +238,7 @@ def relatives_of(token, doc):
         'nsubj': [token.head],
         'root':  token.text in ['ligger', 'lægger'] and [t for t in token.children if t.dep_ == 'obj'] or [],
         'det':   [t for t in siblings(token) if t.pos_ in ['ADJ', 'NOUN']],
-        'amod':  [token.head],
+        'amod':  token.head.dep_ == 'nsubj' and [token.head] or [t for t in token.children if t.dep_ == 'nsubj'],
         'aux':   [token.head],
         'xcomp': [t for t in siblings(token) if t.dep_ == 'nsubj'],
         'expl':  [t for t in siblings(token) if t.pos_ in ['VERB']],

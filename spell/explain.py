@@ -4,7 +4,7 @@ def explain(type, original, correct=None, explanation=None):
             'type': 'none',
             'origin': original,
         }
-    elif type == 'split':
+    elif type == 'split' and type(correct) == str:
         correct = [change('none', t) for t in list(correct.split(' '))]
 
     result = {

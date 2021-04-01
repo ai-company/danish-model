@@ -59,6 +59,16 @@ class Grammar(unittest.TestCase):
             'Folk skal lære at tænke sig om.'
         )
 
+    def test_iamverysmart(self):
+        self.assertEqual(
+            fix("""
+der er nogen mennesker der prøver at overbevise folk om at sætninger skal være korte men det er dumt og ødelægger fuldstændig det generelle sprog og ens forståelse.
+            """),
+            """
+Der er nogen mennesker, der prøver at overbevise folk om, at sætninger skal være korte, men det er dumt og ødelægger fuldstændig det generelle sprog og ens forståelse.
+            """
+        )
+
     def test_lay(self):
         self.assertEqual(
             fix('jeg lægger ned på sengen'),
@@ -75,6 +85,14 @@ class Commas(unittest.TestCase):
     def test_listings(self):
         self.assertEqual(
             fix('osten hunden og katten'),
+            'Osten, hunden og katten.'
+        )
+
+
+class DontTouchThese(unittest.TestCase):
+    def test_perfectly_good(self):
+        self.assertEqual(
+            fix('Osten, hunden og katten.'),
             'Osten, hunden og katten.'
         )
 

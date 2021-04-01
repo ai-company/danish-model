@@ -140,7 +140,7 @@ def bake_spelling():
             old = changes[i]
 
             # The following will transform none-object into corresponding chonge.
-            # Note: the origin will have been the change made befor correction pass.
+            # Note: the origin will have been the change made before correction pass.
             explain_none(changes, i, change[0], change[1])
 
         computed_text = computed[0].term
