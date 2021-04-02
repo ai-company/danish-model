@@ -5,33 +5,28 @@ from . import grammar
 import lemmy
 import random
 
-lemmatizer = lemmy.load('da')
+lemmatizer = lemmy.load("da")
 
 
 def load_inflections(path):
     inflections = dict()
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         for line in f:
-            line = line.split('\t')
-            parts = [p.strip() for p in line[1].split(',')]
+            line = line.split("\t")
+            parts = [p.strip() for p in line[1].split(",")]
 
             inflections[line[0].strip()] = parts
 
     return inflections
 
 
-noun_inflections = load_inflections(
-    join(dirname(__file__), 'inflections_noun.txt'))
-
-verb_inflections = load_inflections(
-    join(dirname(__file__), 'inflections_verb.txt'))
-
-adj_inflections = load_inflections(
-    join(dirname(__file__), 'inflections_adj.txt'))
+noun_inflections = load_inflections(join(dirname(__file__), "inflections_noun.txt"))
+verb_inflections = load_inflections(join(dirname(__file__), "inflections_verb.txt"))
+adj_inflections = load_inflections(join(dirname(__file__), "inflections_adj.txt"))
 
 
 def inflect_noun(token, properize=False, pluralize=False, singularize=False):
-    noun = lemmatizer.lemmatize('NOUN', token.text)[0]
+    noun = lemmatizer.lemmatize("NOUN", token.text)[0]
     if inflections := noun_inflections.get(noun):
         i = 0
 
@@ -46,67 +41,67 @@ def inflect_noun(token, properize=False, pluralize=False, singularize=False):
 
         inflection = inflections[i]
 
-        if 'el.' in inflection:
-            inflection = random.choice(inflection.split('el.')).strip()
+        if "el." in inflection:
+            inflection = random.choice(inflection.split("el.")).strip()
 
-        return '-' in inflection and inflection.replace('-', noun) or inflection
+        return "-" in inflection and inflection.replace("-", noun) or inflection
 
-    if '_neut' in token.morph.gender_:
+    if "_neut" in token.morph.gender_:
         if properize:
-            ending = ''
+            ending = ""
 
             if grammar.is_singular(token):
                 ending = {
-                    's': 'set',
-                    'n': 'net',
-                    'k': 'ket',
-                    'm': 'met',
-                    'p': 'pet',
-                    'e': 't',
-                }.get(token.text[-1], 'et')
+                    "s": "set",
+                    "n": "net",
+                    "k": "ket",
+                    "m": "met",
+                    "p": "pet",
+                    "e": "t",
+                }.get(token.text[-1], "et")
             else:
                 ending = {
-                    'r': 'ne',
-                    't': 'te',
-                    'e': 'ne',
-                }.get(token.text[-1], 'ene')
+                    "r": "ne",
+                    "t": "te",
+                    "e": "ne",
+                }.get(token.text[-1], "ene")
 
-            return f'{token.text}{ending}'
+            return f"{token.text}{ending}"
     else:
         if properize:
-            ending = ''
+            ending = ""
 
-            if '_sing' in token.morph.number_:
+            if "_sing" in token.morph.number_:
                 ending = {
-                    's': 'sen',
-                    'n': 'nen',
-                    'k': 'ken',
-                    'm': 'men',
-                    'p': 'pen',
-                    'e': 'n',
-                }.get(token.text[-1], 'en')
+                    "s": "sen",
+                    "n": "nen",
+                    "k": "ken",
+                    "m": "men",
+                    "p": "pen",
+                    "e": "n",
+                }.get(token.text[-1], "en")
             else:
                 ending = {
-                    'r': 'ne',
-                    's': 'serne',
-                    'm': 'merne',
-                    'p': 'perne',
-                }.get(token.text[-1], 'erne')
+                    "r": "ne",
+                    "s": "serne",
+                    "m": "merne",
+                    "p": "perne",
+                }.get(token.text[-1], "erne")
 
-            return f'{token.text}{ending}'
+            return f"{token.text}{ending}"
 
     if pluralize:
         ending = {
-            'e': 'r',
-        }.get(token.text[-1], 'er')
+            "e": "r",
+        }.get(token.text[-1], "er")
 
-        return f'{token.text}{ending}'
+        return f"{token.text}{ending}"
 
     return lemmatizer.lemmatize(token.text)[0]  # Singular cause of lemma B)
 
 
 def inflect_verb(token, presentize=False, pastize=False, didize=False):
-    verb = lemmatizer.lemmatize('VERB', token.text)[0]
+    verb = lemmatizer.lemmatize("VERB", token.text)[0]
     if inflections := verb_inflections.get(verb):
         i = 0
 
@@ -121,26 +116,26 @@ def inflect_verb(token, presentize=False, pastize=False, didize=False):
 
         inflection = inflections[i]
 
-        if 'el.' in inflection:
-            inflection = random.choice(inflection.split('el.')).strip()
+        if "el." in inflection:
+            inflection = random.choice(inflection.split("el.")).strip()
 
-        return '-' in inflection and inflection.replace('-', verb) or inflection
+        return "-" in inflection and inflection.replace("-", verb) or inflection
 
     if presentize:
-        return f'{token.text}r'  # Now times R
+        return f"{token.text}r"  # Now times R
 
     if pastize:
         ending = {
-            'e': 'de',
-        }.get(token.text[-1], 'ede')
+            "e": "de",
+        }.get(token.text[-1], "ede")
 
-        return f'{token.text}{ending}'
+        return f"{token.text}{ending}"
 
     return verb
 
 
 def inflect_adj(token, itk=False, pluralize=False, singularize=False):
-    adj = lemmatizer.lemmatize('ADJ', token.text)[0]
+    adj = lemmatizer.lemmatize("ADJ", token.text)[0]
     if inflections := adj_inflections.get(adj):
         i = 0
         if len(inflections) == 1 and pluralize:
@@ -155,41 +150,48 @@ def inflect_adj(token, itk=False, pluralize=False, singularize=False):
 
         inflection = inflections[i]
 
-        if 'el.' in inflection:
-            choices = inflection.split('el.')
+        if "el." in inflection:
+            choices = inflection.split("el.")
 
-            if 'itk. d.s.' in choices:
+            if "itk. d.s." in choices:
                 inflection = choices[1].strip()
             else:
                 inflection = random.choice(choices).strip()
-        elif 'itk. d.s.' in inflection:
+        elif "itk. d.s." in inflection:
             inflection = adj
 
-        return '-' in inflection and inflection.replace('-', adj) or inflection
+        return "-" in inflection and inflection.replace("-", adj) or inflection
 
     if pluralize:
         ending = {
-            'e': 'de',
-            'n': 'ne',
-            't': 'te',
-            'm': 'me',
-            's': 'se',
-            'p': 'pe',
-        }.get(token.text[-1], 'e')
+            "e": "de",
+            "n": "ne",
+            "t": "te",
+            "m": "me",
+            "s": "se",
+            "p": "pe",
+        }.get(token.text[-1], "e")
 
-        return f'{token.text}{ending}'
+        return f"{token.text}{ending}"
     elif itk:
-        if token.text[-1] != 't':
-            return f'{token.text}t'
+        if token.text[-1] != "t":
+            return f"{token.text}t"
 
     return adj
 
 
+def inflect(token, **kwargs):
+    return {
+        "NOUN": inflect_noun(token, **kwargs),
+        "ADJ": inflect_adj(token, **kwargs),
+        "VERB": inflect_verb(token, **kwargs),
+    }.get(token.pos_)
+
+
 if __name__ == "__main__":
-    nlp = spacy.load('da_core_news_lg')
+    nlp = spacy.load("da_core_news_lg")
     while True:
-        text = input('> ')
+        text = input("> ")
         for token in nlp(text):
-            print(token.morph.gender_, token.pos_,
-                  lemmatizer.lemmatize('', token.text))
+            print(token.morph.gender_, token.pos_, lemmatizer.lemmatize("", token.text))
             print(inflect_adj(token, pluralize=True))

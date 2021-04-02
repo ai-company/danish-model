@@ -11,7 +11,7 @@ def distance(s1, s2, max_dist):
     global base_char_costs
     global base_prev_char_costs
 
-    max_dist = int(min(2**31 - 1, max_dist))
+    max_dist = int(min(2 ** 31 - 1, max_dist))
 
     if len(s1) > len(s2):
         s2, s1 = s1, s2
@@ -30,27 +30,21 @@ def distance(s1, s2, max_dist):
 
     if max_dist < l2:
         return distance_max(
-            s1, s2, l1, l2, start, max_dist,
-            base_char_costs,
-            base_prev_char_costs
+            s1, s2, l1, l2, start, max_dist, base_char_costs, base_prev_char_costs
         )
 
-    return _distance(
-        s1, s2, l1, l2, start,
-        base_char_costs,
-        base_prev_char_costs
-    )
+    return _distance(s1, s2, l1, l2, start, base_char_costs, base_prev_char_costs)
 
 
 def _distance(s1, s2, l1, l2, start, char_costs, prev_char_costs):
     char_cost = [j + 1 for j in range(l2)]
-    char = ' '
+    char = " "
     current_cost = 0
 
     for i in range(l1):
         prev_char = char
         char = s1[start + i]
-        char2 = ' '
+        char2 = " "
 
         left_char_cost = above_char_cost = i
         next_trans_cost = 0
@@ -74,10 +68,13 @@ def _distance(s1, s2, l1, l2, start, char_costs, prev_char_costs):
 
                 current_cost += 1
 
-            if i != 0 and j != 0 \
-               and char == prev_char \
-               and prev_char == char2 \
-               and trans_cost + 1 < current_cost:
+            if (
+                i != 0
+                and j != 0
+                and char == prev_char
+                and prev_char == char2
+                and trans_cost + 1 < current_cost
+            ):
 
                 current_cost = trans_cost + 1
 
@@ -94,14 +91,14 @@ def distance_max(s1, s2, l1, l2, start, max_dist, char_costs, prev_char_costs):
     j_start = 0
     j_end = max_dist
 
-    char = ' '
+    char = " "
     current_cost = 0
 
     for i in range(l1):
         prev_char = char
         char = s1[start + i]
 
-        char2 = ' '
+        char2 = " "
         left_char_cost = above_char_cost = i
         next_trans_cost = 0
 
@@ -129,10 +126,13 @@ def distance_max(s1, s2, l1, l2, start, max_dist, char_costs, prev_char_costs):
 
                 current_cost += 1
 
-                if i != 0 and j != 0 \
-                   and char == prev_char \
-                   and prev_char == char2 \
-                   and trans_cost + 1 < current_cost:
+                if (
+                    i != 0
+                    and j != 0
+                    and char == prev_char
+                    and prev_char == char2
+                    and trans_cost + 1 < current_cost
+                ):
 
                     current_cost = trans_cost + 1
 
@@ -144,8 +144,8 @@ def distance_max(s1, s2, l1, l2, start, max_dist, char_costs, prev_char_costs):
     return current_cost if current_cost <= max_dist else -1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     while True:
-        text = input('> ').split()
+        text = input("> ").split()
         print(distance(text[0], text[1], 3, include_unknown=False))
         print()

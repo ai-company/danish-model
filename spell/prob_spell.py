@@ -17,7 +17,7 @@ def is_acronym(word, match_digits=False):
     if match_digits:
         return any(i.isdigit() for i in word)
 
-    return re.match(r'\b[A-Z0-9]{2,}\b', word) is not None
+    return re.match(r"\b[A-Z0-9]{2,}\b", word) is not None
 
 
 class Spell:
@@ -59,9 +59,11 @@ class Spell:
         elif key in self.words:
             count_previous = self.words[key]
 
-            count = (count_previous + count
-                     if sys.maxsize - count_previous > count
-                     else sys.maxsize)
+            count = (
+                count_previous + count
+                if sys.maxsize - count_previous > count
+                else sys.maxsize
+            )
 
             self.words[key] = count
             return False
@@ -97,21 +99,25 @@ class Spell:
 
         return True
 
-    def load_bigram_dict(self, corpus_path, term_index, count_index, sep=None, encoding=None):
+    def load_bigram_dict(
+        self, corpus_path, term_index, count_index, sep=None, encoding=None
+    ):
         if not os.path.exists(corpus_path):
             return False
 
-        with open(corpus_path, 'r', encoding=encoding) as f:
+        with open(corpus_path, "r", encoding=encoding) as f:
             return self.load_bigram_dict_stream(f, term_index, count_index, sep)
 
-    def load_bigram_dict_stream(self, corpus_stream, term_index=None, count_index=None, sep=None):
+    def load_bigram_dict_stream(
+        self, corpus_stream, term_index=None, count_index=None, sep=None
+    ):
         min_line_parts = 3 if sep is None else 2
 
         for line in corpus_stream:
             line_parts = line.rstrip().split(sep)
 
             if len(line_parts) >= min_line_parts:
-                key = f'{line_parts[term_index]}{line_parts[term_index + 1]}'
+                key = f"{line_parts[term_index]}{line_parts[term_index + 1]}"
                 count = util.parse_int64(line_parts[count_index])
 
                 if count is not None:
@@ -121,14 +127,14 @@ class Spell:
 
         return True
 
-    def load_dict(self, corpus_path, term_index, count_index, sep=' ', encoding=None):
+    def load_dict(self, corpus_path, term_index, count_index, sep=" ", encoding=None):
         if not os.path.exists(corpus_path):
             return False
 
-        with open(corpus_path, 'r', encoding=encoding) as f:
+        with open(corpus_path, "r", encoding=encoding) as f:
             return self.load_dict_stream(f, term_index, count_index, sep)
 
-    def load_dict_stream(self, corpus_stream, term_index, count_index, sep=' '):
+    def load_dict_stream(self, corpus_stream, term_index, count_index, sep=" "):
         for line in corpus_stream:
             line_parts = line.rstrip().split(sep)
 
@@ -145,14 +151,14 @@ class Spell:
         if not os.path.exists(corpus):
             return False
 
-        with open(corpus, 'r', encoding=encoding) as f:
+        with open(corpus, "r", encoding=encoding) as f:
             for line in f:
                 for key in self.parse_words(line):
                     self.create_dict_entry(key, 1)
 
         return True
 
-    def lookup(self, phrase, max_edit_dist=2, closeness='*', include_unknown=False):
+    def lookup(self, phrase, max_edit_dist=2, closeness="*", include_unknown=False):
         if max_edit_dist is None:
             max_edit_dist = self.max_dict_edit_dist
 
@@ -174,7 +180,7 @@ class Spell:
             suggestion_count = self.words[phrase]
             suggestions.append(Suggestion(phrase, 0, suggestion_count))
 
-            if closeness != '*':
+            if closeness != "*":
                 return early()
 
         if max_edit_dist == 0:
@@ -204,7 +210,7 @@ class Spell:
             len_diff = phrase_prefix_len - candidate_len
 
             if len_diff > max_edit_dist2:
-                if closeness == '*':
+                if closeness == "*":
                     continue
 
                 break
@@ -217,17 +223,19 @@ class Spell:
 
                     suggestion_len = len(suggestion)
 
-                    if abs(suggestion_len - phrase_len) > max_edit_dist2 \
-                            or suggestion_len < candidate_len \
-                            or (suggestion_len == candidate_len
-                                and suggestion != candidate):
+                    if (
+                        abs(suggestion_len - phrase_len) > max_edit_dist2
+                        or suggestion_len < candidate_len
+                        or (suggestion_len == candidate_len and suggestion != candidate)
+                    ):
                         continue
 
-                    suggestion_prefix_len = min(suggestion_len,
-                                                self.prefix_len)
+                    suggestion_prefix_len = min(suggestion_len, self.prefix_len)
 
-                    if suggestion_prefix_len > phrase_prefix_len \
-                            and suggestion_prefix_len - candidate_len > max_edit_dist2:
+                    if (
+                        suggestion_prefix_len > phrase_prefix_len
+                        and suggestion_prefix_len - candidate_len > max_edit_dist2
+                    ):
                         continue
 
                     distance = 0
@@ -235,29 +243,48 @@ class Spell:
 
                     if candidate_len == 0:
                         distance = max(phrase_len, suggestion_len)
-                        if (distance > max_edit_dist2
-                                or suggestion in considered_suggestions):
+                        if (
+                            distance > max_edit_dist2
+                            or suggestion in considered_suggestions
+                        ):
                             continue
 
                     elif suggestion_len == 1:
-                        distance = phrase_len if phrase.index(
-                            suggestion[0]) < 0 else phrase_len - 1
-                        if distance > max_edit_dist2 or suggestion in considered_suggestions:
+                        distance = (
+                            phrase_len
+                            if phrase.index(suggestion[0]) < 0
+                            else phrase_len - 1
+                        )
+                        if (
+                            distance > max_edit_dist2
+                            or suggestion in considered_suggestions
+                        ):
                             continue
                     else:
                         if self.prefix_len - max_edit_dist == candidate_len:
-                            min_dist = min(
-                                phrase_len, suggestion_len) - self.prefix_len
+                            min_dist = min(phrase_len, suggestion_len) - self.prefix_len
                         else:
                             min_dist = 0
 
-                        if self.prefix_len - max_edit_dist == candidate_len \
-                                and (min_dist > 1
-                                     and phrase[phrase_len + 1 - min_dist:] != suggestion[suggestion_len + 1 - min_dist:]) \
-                                or (min_dist > 0
-                                    and phrase[phrase_len - min_dist] != suggestion[suggestion_len - min_dist]
-                                    and (phrase[phrase_len - min_dist - 1] != suggestion[suggestion_len - min_dist]
-                                         or phrase[phrase_len - min_dist] != suggestion[suggestion_len - min_dist - 1])):
+                        if (
+                            self.prefix_len - max_edit_dist == candidate_len
+                            and (
+                                min_dist > 1
+                                and phrase[phrase_len + 1 - min_dist :]
+                                != suggestion[suggestion_len + 1 - min_dist :]
+                            )
+                            or (
+                                min_dist > 0
+                                and phrase[phrase_len - min_dist]
+                                != suggestion[suggestion_len - min_dist]
+                                and (
+                                    phrase[phrase_len - min_dist - 1]
+                                    != suggestion[suggestion_len - min_dist]
+                                    or phrase[phrase_len - min_dist]
+                                    != suggestion[suggestion_len - min_dist - 1]
+                                )
+                            )
+                        ):
                             continue
                         elif suggestion in considered_suggestions:
                             continue
@@ -265,7 +292,8 @@ class Spell:
                         considered_suggestions.add(suggestion)
 
                         distance = damerau_levenshtein_distance(
-                            phrase, suggestion, max_edit_dist2)
+                            phrase, suggestion, max_edit_dist2
+                        )
 
                         if distance < 0:
                             continue
@@ -275,24 +303,27 @@ class Spell:
                         si = Suggestion(suggestion, distance, suggestion_count)
 
                         if suggestions:
-                            if closeness == 'top':
-                                if distance < max_edit_dist2 or suggestion_count > suggestions[0].count:
+                            if closeness == "top":
+                                if (
+                                    distance < max_edit_dist2
+                                    or suggestion_count > suggestions[0].count
+                                ):
                                     max_edit_dist2 = distance
                                     suggestions[0] = si
 
                                 continue
 
-                        if closeness != '*':
+                        if closeness != "*":
                             max_edit_dist2 = distance
 
                         suggestions.append(si)
 
             if len_diff < max_edit_dist and candidate_len <= self.prefix_len:
-                if closeness != '*' and len_diff >= max_edit_dist2:
+                if closeness != "*" and len_diff >= max_edit_dist2:
                     continue
 
                 for i in range(candidate_len):
-                    delete = candidate[:i] + candidate[i + 1:]
+                    delete = candidate[:i] + candidate[i + 1 :]
                     if delete not in considered_deletes:
                         considered_deletes.add(delete)
                         candidates.append(delete)
@@ -303,7 +334,9 @@ class Spell:
         early()
         return suggestions
 
-    def lookup_compound(self, phrase, max_edit_dist=2, split_space=False, ignore_non_words=False):
+    def lookup_compound(
+        self, phrase, max_edit_dist=2, split_space=False, ignore_non_words=False
+    ):
         term_list = util.parse_words(phrase, split_space)
         explanations = []
 
@@ -325,14 +358,11 @@ class Spell:
                     suggestion_parts.append(Suggestion(term_list2[i], 0, 0))
                     continue
 
-            suggestions = self.lookup(
-                term_list[i], max_edit_dist, closeness='top')
+            suggestions = self.lookup(term_list[i], max_edit_dist, closeness="top")
 
             if i > 0 and not is_last_combi:
                 suggestion_combi = self.lookup(
-                    term_list[i - 1] + term_list[i],
-                    max_edit_dist,
-                    closeness='top'
+                    term_list[i - 1] + term_list[i], max_edit_dist, closeness="top"
                 )
 
                 if suggestion_combi:
@@ -342,14 +372,23 @@ class Spell:
                         best2 = suggestions[0]
                     else:
                         best2 = Suggestion(
-                            term_list[i], max_edit_dist + 1, 10 // 10**len(term_list[i]))
+                            term_list[i],
+                            max_edit_dist + 1,
+                            10 // 10 ** len(term_list[i]),
+                        )
 
                     distance1 = best1.distance + best2.distance
 
-                    if (distance1 >= 0
-                            and (suggestion_combi[0].distance + 1 < distance1
-                                 or (suggestion_combi[0].distance + 1 == distance1
-                                     and (suggestion_combi[0].count > best1.count / self.N * best2.count)))):
+                    if distance1 >= 0 and (
+                        suggestion_combi[0].distance + 1 < distance1
+                        or (
+                            suggestion_combi[0].distance + 1 == distance1
+                            and (
+                                suggestion_combi[0].count
+                                > best1.count / self.N * best2.count
+                            )
+                        )
+                    ):
 
                         suggestion_combi[0].distance += 1
                         suggestion_parts[-1] = suggestion_combi[0]
@@ -373,18 +412,20 @@ class Spell:
                         part1 = term_list[i][:j]
                         part2 = term_list[i][j:]
 
-                        suggestion1 = self.lookup(
-                            part1, max_edit_dist, closeness='top')
+                        suggestion1 = self.lookup(part1, max_edit_dist, closeness="top")
 
                         if suggestion1:
                             suggestion2 = self.lookup(
-                                part2, max_edit_dist, closeness='top')
+                                part2, max_edit_dist, closeness="top"
+                            )
 
                             if suggestion2:
                                 tmp_term = (
-                                    suggestion1[0].term + ' ' + suggestion2[0].term)
+                                    suggestion1[0].term + " " + suggestion2[0].term
+                                )
                                 tmp_dist = damerau_levenshtein_distance(
-                                    term_list[i], tmp_term, max_edit_dist)
+                                    term_list[i], tmp_term, max_edit_dist
+                                )
 
                                 if tmp_dist < 0:
                                     tmp_dist = max_edit_dist + 1
@@ -402,44 +443,69 @@ class Spell:
                                     if suggestions:
                                         best_s = suggestions[0]
 
-                                        if suggestion1[0].term + suggestion2[0].term == term_list[i]:
-                                            tmp_count = max(
-                                                tmp_count, best_s.count + 2)
-                                        elif suggestion1[0].term == best_s.term or suggestion2[0].term == best_s.term:
-                                            tmp_count = max(
-                                                tmp_count, best_s.count + 1)
+                                        if (
+                                            suggestion1[0].term + suggestion2[0].term
+                                            == term_list[i]
+                                        ):
+                                            tmp_count = max(tmp_count, best_s.count + 2)
+                                        elif (
+                                            suggestion1[0].term == best_s.term
+                                            or suggestion2[0].term == best_s.term
+                                        ):
+                                            tmp_count = max(tmp_count, best_s.count + 1)
 
-                                    elif suggestion1[0].term + suggestion2[0].term == term_list[i]:
-                                        tmp_count = max(tmp_count, max(
-                                            suggestion1[0].count, suggestion2[0].count) + 2)
+                                    elif (
+                                        suggestion1[0].term + suggestion2[0].term
+                                        == term_list[i]
+                                    ):
+                                        tmp_count = max(
+                                            tmp_count,
+                                            max(
+                                                suggestion1[0].count,
+                                                suggestion2[0].count,
+                                            )
+                                            + 2,
+                                        )
                                 else:
                                     tmp_count = min(
-                                        self.bigram_count_min, suggestion1[0].count // self.N * suggestion2[0].count)
+                                        self.bigram_count_min,
+                                        suggestion1[0].count
+                                        // self.N
+                                        * suggestion2[0].count,
+                                    )
 
                                 suggestion_split = Suggestion(
-                                    tmp_term, tmp_dist, tmp_count)
+                                    tmp_term, tmp_dist, tmp_count
+                                )
 
-                                if (suggestion_split_best is None or suggestion_split.count > suggestion_split_best.count):
+                                if (
+                                    suggestion_split_best is None
+                                    or suggestion_split.count
+                                    > suggestion_split_best.count
+                                ):
                                     suggestion_split_best = suggestion_split
 
                     if suggestion_split_best is not None:
                         suggestion_parts.append(suggestion_split_best)
-                        self.replaced_words[term_list[i]
-                                            ] = suggestion_split_best
+                        self.replaced_words[term_list[i]] = suggestion_split_best
                     else:
                         s = Suggestion(
-                            term_list[i], max_edit_dist + 1, 10 // 10 ** len(term_list[i]))
+                            term_list[i],
+                            max_edit_dist + 1,
+                            10 // 10 ** len(term_list[i]),
+                        )
                         suggestion_parts.append(s)
 
                         self.replaced_words[term_list[i]] = s
                 else:
                     s = Suggestion(
-                        term_list[i], max_edit_dist + 1, 10 // 10 ** len(term_list[i]))
+                        term_list[i], max_edit_dist + 1, 10 // 10 ** len(term_list[i])
+                    )
                     suggestion_parts.append(s)
 
                     self.replaced_words[term_list[i]] = s
 
-        joined_term = ''
+        joined_term = ""
         joined_count = self.N
 
         for i, s in enumerate(suggestion_parts):
@@ -452,52 +518,53 @@ class Spell:
                 if one_in and two_in:
                     explanations.append(
                         explain(
-                            'split',
-                            term_list[i],
-                            s.term,
-                            'Ordet bør opdeles i flere.'
+                            "split", term_list[i], s.term, "Ordet bør opdeles i flere."
                         )
                     )
                 else:
-                    print('THESE:', split[0], split[1])
-                    explanation = 'Ordet var oprindeligt stavet forkert.'
+                    print("THESE:", split[0], split[1])
+                    explanation = "Ordet var oprindeligt stavet forkert."
                     changes = [
-                        change(one_in and 'none' or 'replace',
-                               split[0], one_in and None or explanation),
-                        change(two_in and 'none' or 'replace',
-                               split[1], two_in and None or explanation)
+                        change(
+                            one_in and "none" or "replace",
+                            split[0],
+                            one_in and None or explanation,
+                        ),
+                        change(
+                            two_in and "none" or "replace",
+                            split[1],
+                            two_in and None or explanation,
+                        ),
                     ]
 
                     explanations.append(
                         explain(
-                            'split',
-                            term_list[i],
-                            changes,
-                            'Ordet bør opdeles i flere'
+                            "split", term_list[i], changes, "Ordet bør opdeles i flere"
                         )
                     )
             else:
                 if s.term == term_list[i]:
-                    explanations.append(
-                        explain('none', s.term)
-                    )
+                    explanations.append(explain("none", s.term))
                 else:
                     explanations.append(
                         explain(
-                            'replace',
+                            "replace",
                             term_list[i],
                             s.term,
-                            'Ordet var oprindeligt stavet forkert.'
+                            "Ordet var oprindeligt stavet forkert.",
                         )
                     )
 
-            joined_term += s.term + ' '
+            joined_term += s.term + " "
             joined_count *= s.count / self.N
 
         joined_term = joined_term.rstrip()
 
-        suggestion = Suggestion(joined_term, damerau_levenshtein_distance(
-            phrase, joined_term, 2**31 - 1), int(joined_count))
+        suggestion = Suggestion(
+            joined_term,
+            damerau_levenshtein_distance(phrase, joined_term, 2 ** 31 - 1),
+            int(joined_count),
+        )
         suggestion_line = list()
 
         suggestion_line.append(suggestion)
@@ -521,12 +588,12 @@ class Spell:
             imax = min(len(phrase) - j, max_segmentation_len)
 
             for i in range(1, imax + 1):
-                part = phrase[j:j + i]
+                part = phrase[j : j + i]
                 sep_len = 0
 
                 top_ed = 0
                 top_log_prob = 0.0
-                top_result = ''
+                top_result = ""
 
                 if part[0].isspace():
                     part = part[1:]
@@ -535,10 +602,9 @@ class Spell:
 
                 top_ed += len(part)
 
-                part = part.replace(' ', '')
+                part = part.replace(" ", "")
                 top_ed -= len(part)
-                results = self.lookup(
-                    part.lower(), max_edit_dist, closeness='top')
+                results = self.lookup(part.lower(), max_edit_dist, closeness="top")
 
                 if results:
                     top_result = results[0].term
@@ -547,14 +613,12 @@ class Spell:
                         top_result = top_result.capitalize()
 
                     top_ed += results[0].distance
-                    top_log_prob = math.log10(
-                        float(results[0].count) / float(self.N))
+                    top_log_prob = math.log10(float(results[0].count) / float(self.N))
                 else:
                     top_result = part
                     top_ed += len(part)
 
-                    top_log_prob = math.log10(
-                        10.0 / self.N / math.pow(10.0, len(part)))
+                    top_log_prob = math.log10(10.0 / self.N / math.pow(10.0, len(part)))
 
                 dest = (i + idx) % array_size
 
@@ -562,30 +626,40 @@ class Spell:
 
                 if j == 0:
                     compositions[dest] = Composition(
-                        part, top_result, top_ed, top_log_prob)
-                elif (i == max_segmentation_len
-                      or ((comp.distance_sum + top_ed == compositions[dest].distance_sum
-                          or comp.distance_sum + sep_len + top_ed == compositions[dest].distance_sum)
-                          and compositions[dest].log_prob_sum < comp.log_prob_sum + top_log_prob)
-                      or comp.distance_sum + sep_len + top_ed < compositions[dest].distance_sum):
+                        part, top_result, top_ed, top_log_prob
+                    )
+                elif (
+                    i == max_segmentation_len
+                    or (
+                        (
+                            comp.distance_sum + top_ed
+                            == compositions[dest].distance_sum
+                            or comp.distance_sum + sep_len + top_ed
+                            == compositions[dest].distance_sum
+                        )
+                        and compositions[dest].log_prob_sum
+                        < comp.log_prob_sum + top_log_prob
+                    )
+                    or comp.distance_sum + sep_len + top_ed
+                    < compositions[dest].distance_sum
+                ):
 
-                    if ((len(top_result) == 1
-                         and top_result[0] in string.punctuation)
-                            or (len(top_result) == 2
-                                and top_result.startswith('\''))):
+                    if (
+                        len(top_result) == 1 and top_result[0] in string.punctuation
+                    ) or (len(top_result) == 2 and top_result.startswith("'")):
 
                         compositions[dest] = Composition(
                             comp.segmented_string + part,
                             comp.corrected_string + top_result,
                             comp.distance_sum + top_ed,
-                            comp.log_prob_sum + top_log_prob
+                            comp.log_prob_sum + top_log_prob,
                         )
                     else:
                         compositions[dest] = Composition(
-                            comp.segmented_string + ' ' + part,
-                            comp.corrected_string + ' ' + top_result,
+                            comp.segmented_string + " " + part,
+                            comp.corrected_string + " " + top_result,
                             comp.distance_sum + sep_len + top_ed,
-                            comp.log_prob_sum + top_log_prob
+                            comp.log_prob_sum + top_log_prob,
                         )
 
             idx = next(circular_index)
@@ -598,7 +672,7 @@ class Spell:
 
         if word_len > 1:
             for i in range(word_len):
-                delete = word[:i] + word[i + 1:]
+                delete = word[:i] + word[i + 1 :]
 
                 if delete not in delete_words:
                     delete_words.add(delete)
@@ -612,25 +686,26 @@ class Spell:
         hash_set = set()
 
         if len(key) <= self.max_dict_edit_dist:
-            hash_set.add('')
+            hash_set.add("")
 
         if len(key) > self.prefix_len:
-            key = key[:self.prefix_len]
+            key = key[: self.prefix_len]
 
         hash_set.add(key)
 
         return self.edits(key, 0, hash_set)
 
     def parse_words(self, text):
-        matches = re.findall(r'(([^\W_]|[\'’])+)', text.lower())
+        matches = re.findall(r"(([^\W_]|[\'’])+)", text.lower())
         matches = [match[0] for match in matches]
 
         return matches
 
 
-Composition = namedtuple('Composition',
-                         ['segmented_string', 'corrected_string',
-                          'distance_sum', 'log_prob_sum'])
+Composition = namedtuple(
+    "Composition",
+    ["segmented_string", "corrected_string", "distance_sum", "log_prob_sum"],
+)
 Composition.__new__.__defaults__ = (None,) * len(Composition._fields)
 
 
@@ -658,8 +733,8 @@ class Suggestion:
 
 def init():
     s = Spell()
-    s.load_dict(join(dirname(__file__), 'dictionary.txt'), 0, 1, sep=' ')
-    s.load_bigram_dict(join(dirname(__file__), 'bigrams.txt'), 0, 2, sep=' ')
+    s.load_dict(join(dirname(__file__), "dictionary.txt"), 0, 1, sep=" ")
+    s.load_bigram_dict(join(dirname(__file__), "bigrams.txt"), 0, 2, sep=" ")
 
     def process(text):
         """
@@ -674,8 +749,8 @@ def init():
     return process
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     spell = init()
     while True:
-        text = input('> ')
+        text = input("> ")
         spell(text)

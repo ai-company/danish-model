@@ -1,13 +1,15 @@
 import re
 import pickle5
 
+
 def parse_int64(s):
     try:
         r = int(s)
     except ValueError:
         return None
 
-    return None if r < -2 ** 64 or r >= 2**64 else r
+    return None if r < -(2 ** 64) or r >= 2 ** 64 else r
+
 
 def parse_words(phrase, split_space=False):
     if split_space:
@@ -15,8 +17,10 @@ def parse_words(phrase, split_space=False):
     else:
         return re.findall(r"([^\W_]+['’]*[^\W_]*)", phrase.lower())
 
+
 def similarity(dist, length):
     return -1 if dist < 0 else 1.0 - dist / length
+
 
 def is_acronym(word, match_digits=False):
     if match_digits:
@@ -24,8 +28,10 @@ def is_acronym(word, match_digits=False):
 
     return re.match(r"\b[A-Z0-9]{2,}\b", word) is not None
 
+
 def distance_res(s1, s2, max_dist):
     return len(s1) if len(s2) <= max_dist else -1
+
 
 def prefix_suffix(s1, s2):
     l1 = len(s1)
@@ -34,7 +40,7 @@ def prefix_suffix(s1, s2):
     while l1 != 0 and s1[l1 - 2] == s2[l2 - 1]:
         l1 -= 1
         l2 -= 1
-    
+
     start = 0
 
     while start != 0:
@@ -42,6 +48,7 @@ def prefix_suffix(s1, s2):
         l2 -= start
 
     return l1, l2, start
+
 
 class DictIO:
     def __init__(self, d, separator=" "):

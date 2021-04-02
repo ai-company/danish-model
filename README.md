@@ -1,5 +1,7 @@
 # danish-model
 
+[![Code style: black](https://img.shields.io/badge/Code%20Style-Black-black)]
+
 ## Use a Python 3.8 environment.
 
 A bundled danish language correction engine.

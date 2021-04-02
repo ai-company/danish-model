@@ -8,23 +8,22 @@ from os.path import join, dirname
 
 corpus_words = []
 
-with open(join(dirname(__file__), 'dictionary.txt'), 'r') as f:
+with open(join(dirname(__file__), "dictionary.txt"), "r") as f:
     for line in f:
         corpus_words.append(line.split()[0])
 
 tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
-unmasker = pipeline(
-    'fill-mask', model='Maltehb/danish-bert-botxo', tokenizer=tokenizer)
+unmasker = pipeline("fill-mask", model="Maltehb/danish-bert-botxo", tokenizer=tokenizer)
 prob_spell = init()
 
 # TODO: Move to CSV :)
 letter_mix_map = {
-    'rd': 'r',
-    'tt': 't',
-    't':  'tt',
-    'n':  'nd',
-    'nd': 'n',
-    'l': 'll',
+    "rd": "r",
+    "tt": "t",
+    "t": "tt",
+    "n": "nd",
+    "nd": "n",
+    "l": "ll",
 }
 
 common_spelling_mistakes = dict()
@@ -35,11 +34,11 @@ def is_real(word):
 
 
 def low_hanging_fruits(sentence):
-    words = sentence.split(' ')
+    words = sentence.split(" ")
 
     for i, word in enumerate(words):
         if i < len(words) - 2 and len(words) > 1:
-            bigram = f'{word} {words[i + 1]}'
+            bigram = f"{word} {words[i + 1]}"
 
             if result := common_spelling_mistakes.get(bigram):
                 words[i] = result
@@ -48,7 +47,7 @@ def low_hanging_fruits(sentence):
         if result := common_spelling_mistakes.get(word):
             words[i] = result
 
-    return ' '.join(words)
+    return " ".join(words)
 
 
 def fix_typo(word):
@@ -63,14 +62,14 @@ def fix_typo(word):
         for i, letter in enumerate(word):
             if c := letter_mix_map.get(letter):
 
-                maybe = word[:i] + c + word[i+1:]
+                maybe = word[:i] + c + word[i + 1 :]
 
                 if is_real(maybe):
                     return maybe
 
             if len(word) > 1:
                 if c := letter_mix_map.get(word[i - 1] + letter):
-                    maybe = word[:i - 1] + c + word[i + 1:]
+                    maybe = word[: i - 1] + c + word[i + 1 :]
 
                     if is_real(maybe):
                         return maybe
@@ -79,10 +78,10 @@ def fix_typo(word):
 
 
 def explain_none(changes, i, change, explain):
-    changes[i]['type'] = 'replace'
-    changes[i]['change'] = changes[i]['origin']
-    changes[i]['origin'] = change
-    changes[i]['explain'] = explain
+    changes[i]["type"] = "replace"
+    changes[i]["change"] = changes[i]["origin"]
+    changes[i]["origin"] = change
+    changes[i]["explain"] = explain
 
 
 def bake_spelling():
@@ -99,21 +98,21 @@ def bake_spelling():
         """
 
         # TODO: Cache things.
-        text = text.replace(',', '').replace('.', '').replace(' - ', ' ')
+        text = text.replace(",", "").replace(".", "").replace(" - ", " ")
 
-        words = list(map(fix_typo, text.split(' ')))
+        words = list(map(fix_typo, text.split(" ")))
         unks = []
         words = []
         change_cache = {}
 
-        for i, word in enumerate(text.split(' ')):
+        for i, word in enumerate(text.split(" ")):
             fixed = fix_typo(word)
             words.append(fixed)
 
             if fixed != word:
-                change_cache[i] = (word, 'Dette var nok en tastefejl.')
+                change_cache[i] = (word, "Dette var nok en tastefejl.")
 
-        sentence = ' '.join(words)
+        sentence = " ".join(words)
         sentence = low_hanging_fruits(sentence)
 
         computed, changes = prob_spell(sentence)
@@ -129,7 +128,7 @@ def bake_spelling():
                 mask = computed.copy()[0].term.split()
 
                 old = mask[i]
-                mask[i] = '[MASK]'
+                mask[i] = "[MASK]"
                 masks[i] = (word, mask, old)
 
         for i, change in change_cache.items():
@@ -145,20 +144,24 @@ def bake_spelling():
         result = []
 
         # Yea, I know. Nvm, what did I know??
-        for i, word in enumerate(computed_text.split(' ')):
+        for i, word in enumerate(computed_text.split(" ")):
             if mask := masks.get(i):
-                tokens = [x['token_str'] for x in unmasker(' '.join(mask[1]))]
+                tokens = [x["token_str"] for x in unmasker(" ".join(mask[1]))]
 
                 found_match = False
 
                 for token in tokens:
-                    if mask[0] in token or token in mask[0] and mask[2] not in corpus_words:
+                    if (
+                        mask[0] in token
+                        or token in mask[0]
+                        and mask[2] not in corpus_words
+                    ):
 
-                        if changes[i]['type'] == 'none':
+                        if changes[i]["type"] == "none":
                             explain_none(changes, i, change[0], change[1])
                         else:
-                            changes[i]['change'] = token
-                            changes[i]['explain'] = 'Indsættelse af korrekt ord.'
+                            changes[i]["change"] = token
+                            changes[i]["explain"] = "Indsættelse af korrekt ord."
 
                         result.append(token)
                         found_match = True
@@ -170,19 +173,19 @@ def bake_spelling():
             else:
                 result.append(word)
 
-        return ' '.join(result), changes
+        return " ".join(result), changes
 
     return fix, unmasker
 
 
 if __name__ == "__main__":
     while True:
-        text = input('> ')
+        text = input("> ")
         fix = bake_spelling()
 
-        if text == '@open':
-            with open('test_en.txt', 'r') as f, open('out.txt', 'w+') as out:
+        if text == "@open":
+            with open("test_en.txt", "r") as f, open("out.txt", "w+") as out:
                 for line in f:
-                    out.write(f'{fix(line)}\n')
+                    out.write(f"{fix(line)}\n")
 
         print(fix(text))

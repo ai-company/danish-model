@@ -4051,6 +4051,7 @@ busfuld	 -e, -ene
 busgade	 -n, -r, -rne
 bush	 -en, -er, -erne 
 busholdeplads	 -en, -er, -erne
+busk	 -en, -e, -ene
 buskads	 -et, -er, -erne
 buskmand	 -en, buskmænd, buskmændene 
 buskning	 -en, -er, -erne 
