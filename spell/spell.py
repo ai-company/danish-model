@@ -128,12 +128,6 @@ def bake_spelling():
                 # We need a somewhat fixed version for the language model to suggest.
                 mask = computed.copy()[0].term.split()
 
-                if i >= len(mask):
-                    import pdb
-                    pdb.set_trace()
-
-                    print(i, f'(-- -> "{mask}" < ---)', len(mask))
-
                 old = mask[i]
                 mask[i] = '[MASK]'
                 masks[i] = (word, mask, old)

@@ -269,7 +269,7 @@ def explain(type, original=None, change=None, explanation=None):
     }
 
     if explanation:
-        result['explain'] = explanation,
+        result['explain'] = explanation
 
     return result
 
@@ -287,7 +287,7 @@ def change(type, change, explanation):
     }
 
     if explanation:
-        result['explain'] = explanation,
+        result['explain'] = explanation
 
     return result
 
@@ -326,14 +326,20 @@ def insert_change(changes, i, split_i, new_change, explanation):
         if split_change['type'] == 'none':
             changes[i]['change'][split_i] = new_change
         else:
-            changes[i]['change'][split_i]['change'] = new_change['change']
+            # If change is a list, explain is as well.
+            if type(split_change['change']) == str:
+                changes[i]['change'][split_i]['change'] = [
+                    split_change['change'],
+                    new_change['change']
+                ]
 
-            if type(split_change['explain']) == str:
-                changes[i]['change'][split_i] = [
+                changes[i]['change'][split_i]['explain'] = [
                     split_change['explain'],
-                    explanation
+                    new_change['explain']
                 ]
             else:
+                changes[i]['change'][split_i]['change'].append(
+                    new_change['change'])
                 changes[i]['change'][split_i]['explain'].append(
                     explanation)
 

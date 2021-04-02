@@ -14,7 +14,7 @@ def explain(ctype, original, correct=None, explanation=None):
     }
 
     if explanation:
-        result['explain'] = explanation,
+        result['explain'] = explanation
 
     return result
 
@@ -32,7 +32,7 @@ def change(type, change, explanation=None):
     }
 
     if explanation:
-        result['explain'] = explanation,
+        result['explain'] = explanation
 
     return result
 
