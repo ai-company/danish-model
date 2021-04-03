@@ -91,7 +91,7 @@ def process(text: str) -> str:
 
         # TODO: Stripping and diffs?
         spelled_text, changes = spell(sent.string.strip(), changes)
-        pounded_text, changes = compound_words(spelled_text, changes)
+        pounded_text, changes = compound_words(spelled_text, changes, nlp)
         grammared_text, changes = grammar(pounded_text, changes)
         changes, final = ai(grammared_text, changes)
 

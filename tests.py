@@ -49,6 +49,12 @@ class Grammar(unittest.TestCase):
         )
 
     def test_iamverysmart(self):
+
+        self.assertEqual(
+            fix("jeg kan lide oste kage der smager af jord bær"),
+            "Jeg kan lide ostekage, der smager af jordbær.",
+        )
+
         self.assertEqual(
             fix(
                 """

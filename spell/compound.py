@@ -11,7 +11,7 @@ lemmatizer = lemmy.load("da")
 path = dirname(__file__)
 
 BINDINGS = ["s", "e", "n", ""]
-COMPOUNDABLE = ["NOUN", "ADJ", "VERB"]
+COMPOUNDABLE = ["NOUN", "VERB"]
 
 with open(join(path, "compounds.txt")) as f:
     compounds = [line.strip() for line in f]
@@ -48,7 +48,7 @@ def simple_connect(text):
 
 
 def should_compound_straight(token, other, nlp):
-    lemma = lemmatizer.lemmatize("NOUN", token.text)
+    lemma = lemmatizer.lemmatize(token.pos_, token.text)
 
     result = False
 
@@ -67,19 +67,16 @@ def should_compound_straight(token, other, nlp):
 
 
 def check_compound(token, other, nlp):
-    # (token.pos_ == other.pos_ == "NOUN") or
-    if (
-        token.pos_ in COMPOUNDABLE
-        and not (token.pos_ == other.pos_ == "VERB")
-        and token.dep_ != "ROOT"
-    ):
+    # TODO: Figure out dependency rules
+    if token.pos_ == other.pos_ == "NOUN":
         lemma = lemmatizer.lemmatize(token.pos_, token.text)
 
         for word in lemma:
             if pound := compound_map.get(word):
                 return pound.replace("-", other.text)
             else:
-                return simple_connect(token.text) + other.text
+                if not "def" in token.morph.definite_:
+                    return simple_connect(token.text) + other.text
 
     return None
 
@@ -90,7 +87,12 @@ def compound_words(text, changes, nlp) -> str:
     result = dict()
     last_compounded = (-2, -2)  # Index of token, index in result
 
+    result_text = []
+
     for i, token in enumerate(tokens):
+
+        result_text.append(token.text)
+
         if i < len(tokens) - 1:
             other = tokens[i + 1]
             add_to_last = last_compounded[0] == i - 1
@@ -129,7 +131,7 @@ def compound_words(text, changes, nlp) -> str:
 
                     inflect_func = inflect.inflect_adj
 
-                    kwargs["singularize"] = grammar.is_singular_adj(other)
+                    kwargs["singularize"] = grammar.is_singular(other)
                     kwargs["pluralize"] = not kwargs["singularize"]
 
                 left = lemmatizer.lemmatize(token.pos_, token.text)[0]
@@ -140,8 +142,6 @@ def compound_words(text, changes, nlp) -> str:
                 if c in compounds:
                     right_inflected = inflect_func(other, **kwargs)
                     compound = c.replace(right, right_inflected)
-
-                    print(compound)
 
             if not compound:
                 if should_compound_straight(token_, other, nlp):
@@ -174,12 +174,38 @@ def compound_words(text, changes, nlp) -> str:
 
     change_map = explain.change_map(changes)
 
+    new_changes = []
+    new_result_text = []
+
+    last_change_i = 0
+
     for start, v in result.items():
-        origin = change_map[start : v[1]]
+        origin_map = change_map[start : v[1] + 1]
+        new_changes += changes[last_change_i : origin_map[0][1]]
+        new_result_text += result_text[last_change_i : origin_map[0][1]]
 
-        print(origin)
+        last_change_i = origin_map[-1][1] + 1
 
-    return result, changes
+        origin = []
+
+        for index, (word, i, split_i) in enumerate(origin_map):
+            if changes[i]["type"] != "split":
+                origin.append(word)
+
+        new_changes.append(
+            explain.explain("merge", origin, v[0], "Disse ord bør sammensættes.")
+        )
+
+        new_result_text.append(v[0])
+
+    if len(new_result_text) == 0:
+        new_result_text = result_text
+        new_changes = changes
+    else:
+        new_changes += changes[last_change_i : len(changes)]
+        new_result_text += result_text[last_change_i : len(changes)]
+
+    return " ".join(new_result_text).replace(" ,", ",").replace(" .", "."), new_changes
 
 
 if __name__ == "__main__":
