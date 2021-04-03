@@ -177,9 +177,9 @@ def init():
 
         result = clauses.heuristics(nlp(commarize_sentence(text)))
 
-        # Add last comma.
-        if c := result[-1:] not in ".?!":
-            if c == ",":
+        # Add last period.
+        if result[-1:] not in ".?!":
+            if result[-1:] == ",":
                 result = result[:-1] + "."
             else:
                 result += "."

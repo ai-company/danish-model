@@ -125,6 +125,7 @@ def type_clause(clause):
     clause = list(filter(lambda x: not x.pos_ in ["PUNCT"], clause))
 
     ### SUBORDINATE CLAUSES ###
+
     if clause[0].lemma_ in side_words:
         return ClauseType.SUB_SIDE
     if clause[0].lemma_ in under_words:
@@ -253,6 +254,9 @@ def get_explanations(text):
                     i = len(sent)
 
                 clause = sent[start:i]
+
+                if len(str(sent[start:i]).replace(",", "").replace(".", "")) == 0:
+                    break
 
                 commas.append(" ".join([x.text for x in sent[start:i]]))
                 tp = type_clause(sent[start:i])

@@ -1413,6 +1413,9 @@ længdegrad
 lærkefalk
 læsehest
 løbesko
+løbehjul
+løbebånd
+løbemaskine
 løbetur
 lønmodtager
 løvfrø

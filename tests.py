@@ -42,6 +42,40 @@ class FullCorrectness(unittest.TestCase):
         )
 
 
+class Compound(unittest.TestCase):
+    def test_compound(self):
+        self.assertEqual(
+            fix("jeg kan lide oste kage der smager af jord bær"),
+            "Jeg kan lide ostekage, der smager af jordbær.",
+        )
+
+        self.assertEqual(
+            fix("mit store skib skal hen til et skib værft"),
+            "Mit store skib skal hen til et skibsværft.",
+        )
+
+        self.assertEqual(
+            fix("i mit sommmer hus er der plads til mine kate killinger"),
+            "I mit sommerhus er der plads til mine kattekillinger.",
+        )
+
+        self.assertEqual(
+            fix("jeg står på løbe hjul med rulle skøjter på"),
+            "Jeg står på løbehjul med rulleskøjter på.",
+        )
+
+    def test_dont_touch(self):
+        # self.assertEqual(
+        #     fix("mine oste hunde og katte"),
+        #     "Mine oste, hunde og katte.",
+        # )
+
+        self.assertEqual(
+            fix("jeg vil løbe hjul."),
+            "Jeg vil løbe hjul.",
+        )
+
+
 class Grammar(unittest.TestCase):
     def test_todo(self):
         self.assertEqual(
@@ -49,11 +83,6 @@ class Grammar(unittest.TestCase):
         )
 
     def test_iamverysmart(self):
-
-        self.assertEqual(
-            fix("jeg kan lide oste kage der smager af jord bær"),
-            "Jeg kan lide ostekage, der smager af jordbær.",
-        )
 
         self.assertEqual(
             fix(

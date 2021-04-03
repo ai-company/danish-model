@@ -25,8 +25,10 @@ verb_inflections = load_inflections(join(dirname(__file__), "inflections_verb.tx
 adj_inflections = load_inflections(join(dirname(__file__), "inflections_adj.txt"))
 
 
-def inflect_noun(token, properize=False, pluralize=False, singularize=False):
-    noun = lemmatizer.lemmatize("NOUN", token.text)[0]
+def inflect_noun(
+    token, properize=False, pluralize=False, singularize=False, lemma=None
+):
+    noun = lemma or lemmatizer.lemmatize("NOUN", token.text)[0]
     if inflections := noun_inflections.get(noun):
         i = 0
 
@@ -97,7 +99,7 @@ def inflect_noun(token, properize=False, pluralize=False, singularize=False):
 
         return f"{token.text}{ending}"
 
-    return lemmatizer.lemmatize(token.text)[0]  # Singular cause of lemma B)
+    return noun  # Singular cause of lemma B)
 
 
 def inflect_verb(token, presentize=False, pastize=False, didize=False):

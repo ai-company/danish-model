@@ -38,6 +38,8 @@ def is_singular_adj(text):
 
 def is_singular(token):
     if token.pos_ == "ADJ":
+        if len(token.morph.number_) > 0:
+            return "sing" in token.morph.number_
         return is_singular_adj(token.text)
     elif token.pos_ == "DET":
         # import pdb

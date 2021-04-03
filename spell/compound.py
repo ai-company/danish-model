@@ -23,6 +23,10 @@ with open(join(path, "compound_map.txt")) as f:
         line = line.split("\t")
         compound_map[line[0]] = line[1]
 
+# with open(join(path, "wordbook.txt")) as f:
+#     for line in f:
+#         compounds.append(line.strip())
+
 compound_values = [x.replace("-", "") for x in compound_map.values()]
 
 
@@ -58,7 +62,6 @@ def should_compound_straight(token, other, nlp):
             in_compounds = token.text in compound_values + [simple_connect(word)]
 
             if nlp(word)[0].pos_ != token.pos_ or in_compounds and word != token.text:
-
                 if c := in_compounds:
                     result = c
                     break
@@ -134,14 +137,26 @@ def compound_words(text, changes, nlp) -> str:
                     kwargs["singularize"] = grammar.is_singular(other)
                     kwargs["pluralize"] = not kwargs["singularize"]
 
-                left = lemmatizer.lemmatize(token.pos_, token.text)[0]
-                right = lemmatizer.lemmatize(other.pos_, other.text)[0]
+                lefts = lemmatizer.lemmatize(token.pos_, token.text) + [token.text]
+                rights = lemmatizer.lemmatize(other.pos_, other.text) + [other.text]
 
-                c = f"{left}{binding}{right}"
+                for left in lefts:
+                    for right in rights:
+                        c = f"{left}{binding}{right}"
 
-                if c in compounds:
-                    right_inflected = inflect_func(other, **kwargs)
-                    compound = c.replace(right, right_inflected)
+                        if c in compounds:
+                            # Compounds are inflected by their last element.
+                            right_inflected = inflect_func(other, lemma=right, **kwargs)
+                            compound = c.replace(right, right_inflected)
+
+                            if token.dep_ == "ROOT" and nlp(compound)[0].pos_ != "VERB":
+                                compound = None
+                                continue
+                            else:
+                                break
+
+                    if compound:
+                        break
 
             if not compound:
                 if should_compound_straight(token_, other, nlp):

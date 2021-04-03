@@ -12869,6 +12869,7 @@ hjorterod	 -en, hjorterod, -ene
 hjortetak	 -ken, -ker, -kerne 
 hjortetaksalt	 -et 
 hjortetakssalt	 -et 
+hjul	 -et, hjul, -ene
 hjulaksel	 hjulakslen, hjulaksler, hjulakslerne
 hjuldamper	 -en, -e, -ne
 hjulege	 -n, -r, -rne
@@ -18012,6 +18013,7 @@ kunstsilke	 -n, -r, -rne
 kunstskat	 -ten, -te, -tene
 kunstskøjteløb	 -et, kunstskøjteløb, -ene
 kunstskøjteløber	 -en, -e, -ne
+skøjte	 -n, skøjter, -rne
 kunstsne	 -en
 kunstsprog	 -et, kunstsprog, -ene 
 kunststof	 -fet, -fer, -ferne
