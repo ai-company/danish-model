@@ -116,14 +116,13 @@ def predict(x, model):
     return tf.nn.softmax(model(x))
 
 
-def init():
+def init(nlp):
     """
     Comma correction factory; loading models and returning closure for commarization.
 
     Returns:
         - process: Closure for processing/commarization.
     """
-    nlp = spacy.load("da_core_news_lg")
 
     model_file = join(dirname(__file__), "data/model.pcl")
 
@@ -157,7 +156,7 @@ def init():
         result = result.replace("?QUESTIONMARK", "")
 
         result = f'{encoded_text.split(" ")[0]}{result}'
-        result = convert.convert(result, text)
+        result = convert.convert(result, text, nlp)
         result = f"{result[0].upper()}{result[1:]}"
 
         return result
@@ -184,7 +183,7 @@ def init():
             else:
                 result += "."
 
-        explanations = explain.get_explanations(result)
+        explanations = explain.get_explanations(result, nlp)
 
         tokens = result.split()
 
