@@ -145715,6 +145715,7 @@ killing 1787
 killingens 39
 killingernes 49
 killingers 12
+killinger 12
 killingetunge 1
 killingetunger 1
 killingetungernes 1
@@ -242174,7 +242175,6 @@ sommerhalvårets 17
 sommerhalvårs 1
 sommerhimmel 62
 sommerhus 19041
-sommerhus' 1
 sommerhusejere 366
 sommerhusejerne 149
 sommerhusenes 8

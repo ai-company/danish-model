@@ -4,32 +4,72 @@ import sys
 from enum import Enum
 
 side_words = [
-    'og', 'men', 'eller', 'samt', 'for', 'thi',
-    'både',
+    "og",
+    "men",
+    "eller",
+    "samt",
+    "for",
+    "thi",
+    "både",
 ]
 
 under_words = [
-    'at', 'da', 'dengang', 'end', 'efter', 'for', 'fordi',
-    'før', 'hvorvidt', 'idet', 'ifald', 'indtil', 'jo', 'ligesom',
-    'medmindre', 'mens', 'når', 'om', 'selv', 'siden', 'skønt',
-    'som', 'så', 'såfremt', 'snart', 'til', 'uden', 'ved', 'm.fl.',
-    'selvom', 'inden'
+    "at",
+    "da",
+    "dengang",
+    "end",
+    "efter",
+    "for",
+    "fordi",
+    "før",
+    "hvorvidt",
+    "idet",
+    "ifald",
+    "indtil",
+    "jo",
+    "ligesom",
+    "medmindre",
+    "mens",
+    "når",
+    "om",
+    "selv",
+    "siden",
+    "skønt",
+    "som",
+    "så",
+    "såfremt",
+    "snart",
+    "til",
+    "uden",
+    "ved",
+    "m.fl.",
+    "selvom",
+    "inden",
 ]
 
-intj_words = [
-    'hallo', 'av', 'halløj', 'hey', 'eow', 'hej'
-]
+intj_words = ["hallo", "av", "halløj", "hey", "eow", "hej"]
 
 detail_words = [
-    'især', 'men', 'bare', 'selvom', 'dog', 'herunder', 'heriblandt', 'såsom', 'e.g.', 'eksempelvis', 'f.eks.'
+    "især",
+    "men",
+    "bare",
+    "selvom",
+    "dog",
+    "herunder",
+    "heriblandt",
+    "såsom",
+    "e.g.",
+    "eksempelvis",
+    "f.eks.",
 ]
 
 question_words = [
-    'ikke',
+    "ikke",
 ]
 
 listing_words = [
-    'og', 'eller',
+    "og",
+    "eller",
 ]
 
 
@@ -49,7 +89,7 @@ class ClauseType(Enum):
     UNKNOWN = 8
 
 
-nlp = spacy.load('da_core_news_lg')
+nlp = spacy.load("da_core_news_lg")
 
 
 def is_whole_sentence(clause):
@@ -57,9 +97,9 @@ def is_whole_sentence(clause):
     root = False
 
     for tok in clause:
-        if tok.dep_ == 'ROOT':
+        if tok.dep_ == "ROOT":
             root = True
-        if 'subj' in tok.dep_:
+        if "subj" in tok.dep_:
             subject = True
 
     return subject and root
@@ -69,23 +109,23 @@ def maybe_direct(clause):
     first = clause[0].text.lower()
     poss = list(dict.fromkeys([x.pos_ for x in clause]))
 
-    if poss == ['PROPN']:
+    if poss == ["PROPN"]:
         return ClauseType.IND_DIRECT
 
-    if clause[0].pos_ == 'INTJ' or first in intj_words:
+    if clause[0].pos_ == "INTJ" or first in intj_words:
         return ClauseType.IND_LIM
 
-    if first in detail_words \
-       or len(poss) == 2 and poss[0] in question_words:
+    if first in detail_words or len(poss) == 2 and poss[0] in question_words:
         return ClauseType.IND_ADD
 
     return None
 
 
 def type_clause(clause):
-    clause = list(filter(lambda x: not x.pos_ in ['PUNCT'], clause))
+    clause = list(filter(lambda x: not x.pos_ in ["PUNCT"], clause))
 
     ### SUBORDINATE CLAUSES ###
+
     if clause[0].lemma_ in side_words:
         return ClauseType.SUB_SIDE
     if clause[0].lemma_ in under_words:
@@ -136,9 +176,9 @@ def explain_commas(clauses, types):
 
         for i, (clause, tp) in enumerate(reversed(list(zip(clauses, types)))):
             if last == ClauseType.MAIN and tp == ClauseType.MAIN:
-                exes.append('Komma mellem ledsætninger.')
+                exes.append("Komma mellem ledsætninger.")
 
-            clause = clause.replace(',', '').strip().split(' ')
+            clause = clause.replace(",", "").strip().split(" ")
 
             if meta := has_listing_potential(clause):
                 list_meta = meta
@@ -153,37 +193,37 @@ def explain_commas(clauses, types):
                         # exes.append('Komma ved opremsning.')
                         pass
 
-                    exes.append('Komma ved opremsning.')
+                    exes.append("Komma ved opremsning.")
                     was_last_list = False
                 else:
                     list_meta = None
 
-            elif clause[0] in ['der', 'som']:
-                exes.append('Komma ved parentetiske relativsætninger.')
+            elif clause[0] in ["der", "som"]:
+                exes.append("Komma ved parentetiske relativsætninger.")
 
             elif tp == ClauseType.SUB_SIDE:
-                exes.append('Komma efter sideordnet ledsætning.')
+                exes.append("Komma efter sideordnet ledsætning.")
 
             elif tp == ClauseType.SUB_UNDER:
-                exes.append('Komma efter underordnet ledsætning.')
+                exes.append("Komma efter underordnet ledsætning.")
 
             elif tp == ClauseType.IND_DIRECT:
-                exes.append('Komma ved direkte tale.')
+                exes.append("Komma ved direkte tale.")
 
             elif tp == ClauseType.IND_APP:
-                exes.append('Komma ved parentetiske appositioner.')
+                exes.append("Komma ved parentetiske appositioner.")
 
             elif tp == ClauseType.IND_ADD:
-                exes.append('Komma ved forklaringer og præcisioner.')
+                exes.append("Komma ved forklaringer og præcisioner.")
 
             elif tp == ClauseType.IND_LIM:
-                exes.append('Komma ved afgrænsning.')
+                exes.append("Komma ved afgrænsning.")
 
             elif last == ClauseType.SUB_UNDER:
-                exes.append('Komma før underordnet ledsætning.')
+                exes.append("Komma før underordnet ledsætning.")
 
             elif last == ClauseType.SUB_SIDE:
-                exes.append('Komma før sideordnet ledsætning.')
+                exes.append("Komma før sideordnet ledsætning.")
             else:
                 exes.append(None)
 
@@ -193,7 +233,7 @@ def explain_commas(clauses, types):
 
 
 def is_action_clause(pos):
-    return 'VERB' in pos or 'AUX' in pos
+    return "VERB" in pos or "AUX" in pos
 
 
 def get_explanations(text):
@@ -209,13 +249,16 @@ def get_explanations(text):
         last_tp = None
 
         for i, j in enumerate(sent):
-            if ',' in j.text or i == len(sent) - 1:
+            if "," in j.text or i == len(sent) - 1:
                 if i == len(sent) - 1:
                     i = len(sent)
 
                 clause = sent[start:i]
 
-                commas.append(' '.join([x.text for x in sent[start:i]]))
+                if len(str(sent[start:i]).replace(",", "").replace(".", "")) == 0:
+                    break
+
+                commas.append(" ".join([x.text for x in sent[start:i]]))
                 tp = type_clause(sent[start:i])
 
                 pos = [x.pos_ for x in sent[start:i]]
@@ -249,45 +292,42 @@ def get_explanations(text):
 
 # Helper functions providing an interface for the diff structure:
 
+
 def explain(type, original=None, change=None, explanation=None):
-    if type == 'none':
+    if type == "none":
         return {
-            'type': 'none',
-            'origin': original,
+            "type": "none",
+            "origin": original,
         }
-    elif type == 'add':
-        return {
-            'type':    'add',
-            'change':  change,
-            'explain': explanation
-        }
+    elif type == "add":
+        return {"type": "add", "change": change, "explain": explanation}
 
     result = {
-        'type':    type,
-        'change':  change,
-        'origin':  original,
+        "type": type,
+        "change": change,
+        "origin": original,
     }
 
     if explanation:
-        result['explain'] = explanation,
+        result["explain"] = explanation
 
     return result
 
 
 def change(type, change, explanation):
-    if type == 'none':
+    if type == "none":
         return {
-            'type': 'none',
-            'origin': change,
+            "type": "none",
+            "origin": change,
         }
 
     result = {
-        'type':    type,
-        'change':  change,
+        "type": type,
+        "change": change,
     }
 
     if explanation:
-        result['explain'] = explanation,
+        result["explain"] = explanation
 
     return result
 
@@ -295,50 +335,69 @@ def change(type, change, explanation):
 def change_map(changes):
     change_map = []
     for i, change in enumerate(changes):
-        if change['type'] == 'none':
-            change_map.append((change['origin'], i, None))
+        if change["type"] == "none":
+            change_map.append((change["origin"], i, None))
         else:
-            content = change['change']
+            content = change["change"]
 
-            if change['type'] == 'split':
+            if change["type"] == "split":
                 change_map.append(
-                    (content[0]['type'] == 'none' and content[0]['origin'] or content[0]['change'], i, 0))
+                    (
+                        content[0]["type"] == "none"
+                        and content[0]["origin"]
+                        or content[0]["change"],
+                        i,
+                        0,
+                    )
+                )
                 change_map.append(
-                    (content[1]['type'] == 'none' and content[1]['origin'] or content[1]['change'], i, 1))
+                    (
+                        content[1]["type"] == "none"
+                        and content[1]["origin"]
+                        or content[1]["change"],
+                        i,
+                        1,
+                    )
+                )
             else:
                 change_map.append((content, i, None))
     return change_map
 
 
 def insert_change(changes, i, split_i, new_change, explanation):
-    if type(changes[i]['change']) == str:
-        changes[i]['change'] = [
-            change('replace', changes[i]['change'], changes[i]['explain']),
-            new_change
+    if type(changes[i]["change"]) == str:
+        changes[i]["change"] = [
+            change("replace", changes[i]["change"], changes[i]["explain"]),
+            new_change,
         ]
 
-        del changes[i]['explain']
+        del changes[i]["explain"]
     else:
         # if split_i is None:
         #     split_i = len(changes[i]['change']) - 1
 
-        split_change = changes[i]['change'][split_i]
-        if split_change['type'] == 'none':
-            changes[i]['change'][split_i] = new_change
+        split_change = changes[i]["change"][split_i]
+        if split_change["type"] == "none":
+            changes[i]["change"][split_i] = new_change
         else:
-            changes[i]['change'][split_i]['change'] = token
+            # If change is a list, explain is as well.
+            if type(split_change["change"]) == str:
+                changes[i]["change"][split_i]["change"] = [
+                    split_change["change"],
+                    new_change["change"],
+                ]
 
-            if type(split_change['explain']) == 'str':
-                changes[i]['change'][split_i] = [
-                    split_change['explain'],
-                    explanation
+                changes[i]["change"][split_i]["explain"] = [
+                    split_change["explain"],
+                    new_change["explain"],
                 ]
             else:
-                changes[i]['change'][split_i]['explain'].append(
-                    explanation)
+                changes[i]["change"][split_i]["change"].append(new_change["change"])
+                changes[i]["change"][split_i]["explain"].append(explanation)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+
     def test_in(exes, text):
         for i, ex in enumerate(get_explanations(text)):
             if len(exes) == i:
@@ -351,26 +410,23 @@ if __name__ == '__main__':
             print(f'"{exes[i]}": very nice')
 
     def tests():
-        test_in(['ved opremsning'],
-                'Han elsker kylling, han er sej og han er ost.')
-        test_in(['ved parentetiske relativsætninger'],
-                'ham manden, der er en gangster.')
-        test_in(['ved direkte tale'], 'Niels, du er en gangster.')
-        test_in(['ved parentetiske appositioner'],
-                'Danmarks hovedstad, Køkenhavn')
-        test_in(['ved forklaringer og præcisioner'],
-                'Orto er god, især til kommaer.')
-        test_in(['ved afgrænsning'], 'Av, det gjorde godt nok ondt.')
-        test_in(['før underordnet ledsætning'],
-                'Det var fedt, dengang jeg var lille.')
-        test_in(['før sideordnet'], 'kyllingen er stærk, men den er dum.')
+        test_in(["ved opremsning"], "Han elsker kylling, han er sej og han er ost.")
+        test_in(
+            ["ved parentetiske relativsætninger"], "ham manden, der er en gangster."
+        )
+        test_in(["ved direkte tale"], "Niels, du er en gangster.")
+        test_in(["ved parentetiske appositioner"], "Danmarks hovedstad, Køkenhavn")
+        test_in(["ved forklaringer og præcisioner"], "Orto er god, især til kommaer.")
+        test_in(["ved afgrænsning"], "Av, det gjorde godt nok ondt.")
+        test_in(["før underordnet ledsætning"], "Det var fedt, dengang jeg var lille.")
+        test_in(["før sideordnet"], "kyllingen er stærk, men den er dum.")
 
-        print('\n==== Tests passed: feel good time. ====\n')
+        print("\n==== Tests passed: feel good time. ====\n")
 
-    if sys.argv[1] == 'test':
+    if sys.argv[1] == "test":
         tests()
 
     while True:
-        text = input('> ')
+        text = input("> ")
         print(get_explanations(text))
         print()
