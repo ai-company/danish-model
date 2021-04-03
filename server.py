@@ -9,6 +9,7 @@ from comma import explain
 from typing import Callable
 
 from comma.comma import init
+from comma.clauses import flag_simple_listings
 
 from spell.spell import bake_spelling as spell_init
 from spell.grammar import init as grammar_init
@@ -91,6 +92,11 @@ def process(text: str) -> str:
 
         # TODO: Stripping and diffs?
         spelled_text, changes = spell(sent.string.strip(), changes)
+
+        # Before compounding, we first need to clear simple colliding listings.
+        # These will be removed commarization, but will serve as flags.
+        # They are ok cheap though.
+        spelled_text = flag_simple_listings(nlp(spelled_text), changes)
         pounded_text, changes = compound_words(spelled_text, changes, nlp)
         grammared_text, changes = grammar(pounded_text, changes)
         changes, final = ai(grammared_text, changes)

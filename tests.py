@@ -65,10 +65,10 @@ class Compound(unittest.TestCase):
         )
 
     def test_dont_touch(self):
-        # self.assertEqual(
-        #     fix("mine oste hunde og katte"),
-        #     "Mine oste, hunde og katte.",
-        # )
+        self.assertEqual(
+            fix("mine oste hunde og katte"),
+            "Mine oste, hunde og katte.",
+        )
 
         self.assertEqual(
             fix("jeg vil løbe hjul."),
