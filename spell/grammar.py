@@ -267,9 +267,7 @@ def capitalize_name(token, changes, i, split_i):
     return token.text
 
 
-def init(unmasker):
-    nlp = spacy.load("da_core_news_lg")
-
+def init(unmasker, nlp):
     def fix(text, changes=None):
         first_doc = nlp(text)
 

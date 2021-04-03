@@ -6,11 +6,11 @@ from nltk.corpus import words as corpus_words
 from . import explain
 from os.path import join, dirname
 
-corpus_words = []
+corpus_words = dict()
 
 with open(join(dirname(__file__), "dictionary.txt"), "r") as f:
     for line in f:
-        corpus_words.append(line.split()[0])
+        corpus_words[line.split()[0]] = True
 
 tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
 unmasker = pipeline("fill-mask", model="Maltehb/danish-bert-botxo", tokenizer=tokenizer)

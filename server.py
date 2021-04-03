@@ -54,10 +54,11 @@ class ModelServer:
 PORT = int(os.environ.get("MODcapitalize_namesEL_PORT_DANISH") or 9000)
 HOST = os.environ.get("HOST") or "localhost"
 
-ai = init()
-spell, unmasker = spell_init()
-grammar = grammar_init(unmasker)
 nlp = spacy.load("da_core_news_lg")
+
+ai = init(nlp)
+spell, unmasker = spell_init()
+grammar = grammar_init(unmasker, nlp)
 
 # Split sentences.
 sent_nlp = spacy.load("da_core_news_lg")

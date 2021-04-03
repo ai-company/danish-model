@@ -89,9 +89,6 @@ class ClauseType(Enum):
     UNKNOWN = 8
 
 
-nlp = spacy.load("da_core_news_lg")
-
-
 def is_whole_sentence(clause):
     subject = False
     root = False
@@ -146,7 +143,7 @@ def compare_listing_initial(meta, meta_initial):
     return meta.text == meta_initial.text or meta.tag_ == meta_initial.tag_
 
 
-def has_listing_potential(clause):
+def has_listing_potential(clause, nlp):
     for word in listing_words:
         if word in clause:
             meta = nlp(clause[clause.index(word) + 1])[0]
@@ -158,7 +155,7 @@ def has_listing_potential(clause):
     return None
 
 
-def explain_commas(clauses, types):
+def explain_commas(clauses, types, nlp):
     """
     Go through clauses and types in reverse order,
     mapping recurrent and independent types in order
@@ -180,7 +177,7 @@ def explain_commas(clauses, types):
 
             clause = clause.replace(",", "").strip().split(" ")
 
-            if meta := has_listing_potential(clause):
+            if meta := has_listing_potential(clause, nlp):
                 list_meta = meta
                 was_last_list = True
                 last = tp
@@ -236,7 +233,7 @@ def is_action_clause(pos):
     return "VERB" in pos or "AUX" in pos
 
 
-def get_explanations(text):
+def get_explanations(text, nlp):
     sents = list(nlp(text).sents)
 
     exes = []
@@ -285,7 +282,7 @@ def get_explanations(text):
         # types.append(type_clause(sent[start:]))
         # commas.append(' '.join([x.text for x in sent[start:]]))
 
-        exes.extend(explain_commas(commas, types))
+        exes.extend(explain_commas(commas, types, nlp))
 
     return exes
 
