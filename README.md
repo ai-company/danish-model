@@ -15,9 +15,33 @@ $ source .env/bin/activate
 $ pip install -r requirements.txt
 $ python -m spacy download da_core_news_lg
 $ python tests.py
-
-
 ```
+
+### Structure
+
+#### `comma`
+
+The commarization and punctuation model.
+
+#### `data`
+
+Tools for creating and manipulating datasets.
+
+#### `preprocess`
+
+Data preprocessing pipeline for getting data ready for training of comma model.
+
+#### `spell`
+
+The spelling algorithms and BERT interop layer.
+
+#### `test_data`
+
+Data for testing the whole pipeline.
+
+#### `wordbook`
+
+A Rust PyO3 module for interfacing dictionaries and inflection lists.
 
 ### Notes for Mr Bug
 #### Things that can be relevant.
