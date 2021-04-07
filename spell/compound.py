@@ -57,6 +57,10 @@ def should_compound_straight(a, b, nlp):
         for word in lemma:
             in_compounds = a.text in compound_values + [simple_connect(word)]
 
+            # Can't compound possesive
+            if a.has("definite", "def"):
+                break
+
             if nlp(word)[0].pos_.lower() != a.pos or in_compounds and word != a.text:
                 if c := in_compounds:
                     result = c
@@ -73,9 +77,6 @@ def check_compound(token, other, nlp):
         for word in lemma:
             if pound := compound_map.get(word):
                 return pound.replace("-", other.text)
-            else:
-                if token.has("definite", "def"):
-                    return simple_connect(token.text) + other.text
 
     return None
 

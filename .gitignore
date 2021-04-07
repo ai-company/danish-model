@@ -132,3 +132,4 @@ out.zip
 bob.zip
 **/data/*
 !data/scramble.py
+wordbook/

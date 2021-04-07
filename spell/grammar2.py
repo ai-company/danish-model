@@ -185,22 +185,35 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
         if (lower_a in INF_AUX) and not b.has("verbform", "inf"):
             correct = inflect.inflect_verb(b)
 
+            old = b["verbform"]
+
+            b.text = correct
+            b["verbform"] = "inf"
+
             # TODO: Express tense in human language.
-            return Fix(correct, b.i, f"Forveksling af {b['verbform']} og infinitiv.")
+            return Fix(b, b.i, f"Forveksling af {old} og infinitiv.")
 
         if (lower_a in PAST_AUX) and not b.has("verbform", "part"):
             correct = inflect.inflect_verb(b, didize=True)
 
+            old = b["verbform"]
+
+            b.text = correct
+            b["verbform"] = "part"
+
             # TODO: Express tense in human language.
-            return Fix(correct, b.i, f"Forveksling af {b['verbform']} og datid")
+            return Fix(b, b.i, f"Forveksling af {old} og datid")
 
     if a.pos == "det" and a.text in ["en", "et"]:
         if a["gender"] != b["gender"]:
             correct = a.text == "et" and "en" or "et"
             gender = correct == "en" and "fælleskøn" or "intetkøn"
 
+            a.text = correct
+            a["gender"] = b["gender"]
+
             return Fix(
-                correct,
+                a,
                 a.i,
                 f'Substantiver af {gender} skal have artiklen "{correct}".',
             )
@@ -241,11 +254,15 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
                         explanation = f'"{a.text}" skal bøjes i intetkøn her.'
 
             if not abort_mission:
-                return Fix(correct, b.i, explanation)
+                b.text = correct
+                b["number"] = a["number"]
+                b["gender"] = a["gender"]
+
+                return Fix(b, b.i, explanation)
 
     if a.pos == "adj" and is_inconsistent(a, b):
         b_singular = is_singular(b)
-        itk = a.has("gender", "neut")
+        itk = a.has("gender", "neut") and not b.has("gender", "neut")
 
         correct = inflect.inflect_adj(
             a, itk=itk, singularize=b_singular, pluralize=not b_singular
@@ -269,24 +286,40 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
                 break
 
         if not abort_mission:
-            return Fix(correct, a.i, explanation)
+            a.text = correct
+
+            a["number"] = b["number"]
+            a["gender"] = b["gender"]
+
+            return Fix(a, a.i, explanation)
 
     if (a.pos == "verb" and a.has("verbform", "inf")) and b.dep == "nsubj":
         # This is a default correction that will be fixed by auxes.
 
         correct = inflect.inflect_verb(a, presentize=True)
-        return Fix(correct, a.i, "Forveksling af infinitiv og nutid")
+
+        a.text = correct
+        a["verbform"] = "fin"
+
+        return Fix(a, a.i, "Forveksling af infinitiv og nutid")
 
     if a.dep == "expl" and a.pos in ["noun", "propn"] and b.has("verbform", "part"):
         correct = inflect.inflect_verb(b, presentize=True)
-        return Fib(correct, b.i, "Forveksling af datid og nutid.")
+
+        b.text = correct
+        b["verbform"] = "fin"
+
+        return Fib(b, b.i, "Forveksling af datid og nutid.")
 
     if a.text in ["ligger", "lægger"]:
         if b.dep == "obj":
             if a.text == "ligger":
-                return Fix("lægger", a.i, "Forveksling af ligger og lægger.")
+                a.text = "lægger"
+                return Fix(a, a.i, "Forveksling af ligger og lægger.")
+
         elif a.text == "lægger":
-            return Fix("ligger", a.i, "Forveksling af ligger og lægger.")
+            a.text = "ligger"
+            return Fix(a, a.i, "Forveksling af ligger og lægger.")
 
     return None
 
@@ -311,9 +344,7 @@ def fix_aux_inf(a: GrammarObject, b: GrammarObject) -> Fix:
 
     if not abort_mission and a.pos == "cconj":
         for cousin in list(set([a.head] + list(a.ancestors))):
-            print("-", cousin.text)
             for obj in cousin.children:
-                print(" *", obj.text)
                 if obj.dep_ == "aux":
                     abort_mission = True
                     break
@@ -324,7 +355,10 @@ def fix_aux_inf(a: GrammarObject, b: GrammarObject) -> Fix:
         # TODO: Maybe pastize. Keep state of sentence somewhere.
         correct = inflect.inflect_verb(b, presentize=True)
 
-        return Fix(correct, b.i, "Forveksling af infinitiv og nutid.")
+        b.text = correct
+        b["verbform"] = "fin"
+
+        return Fix(b, b.i, "Forveksling af infinitiv og nutid.")
 
 
 def at_og_fixer(unmasker, first_doc, text, changes) -> str:
@@ -507,6 +541,7 @@ def grammar_tree(token):
 
 def init(unmasker, nlp):
     def fix(text, changes=[]):
+
         first_doc = nlp(text)
         text, changes = at_og_fixer(unmasker, first_doc, text, changes)
 
@@ -531,34 +566,42 @@ def init(unmasker, nlp):
             go = GrammarObject.from_token(token)
             result.append(token.text)
 
-            print()
-            print(
-                f"{token.text}({token.pos_}) @ {token.dep_} & {token.morph.to_json()}"
-            )
+            # print()
+            # print(
+            #     f"{token.text}({token.pos_}) @ {token.dep_} & {token.morph.to_json()}"
+            # )
 
             if relatives := grammar_tree(token):
 
                 for cousin in relatives:
 
-                    go_cousin = GrammarObject.from_token(cousin)
+                    go_cousin = correction_lookup.get(
+                        cousin.i
+                    ) or GrammarObject.from_token(cousin)
 
-                    print(f"- {go_cousin.text} {go_cousin.dep} {go_cousin.pos}")
+                    # print(f"- {go_cousin.text} {go_cousin.dep} {go_cousin.pos}")
 
                     if fix := fix_pair(go, go_cousin):
-                        change = change_map[fix.i]
+                        try:
+                            change = change_map[fix.i]
+                        except:
+                            import pdb
 
+                            pdb.set_trace()
                         map_i = change[1]
-                        split_i = change[2]
+                        map_split_i = change[2]
 
                         explain.insert_append_change(
                             changes,
                             map_i,
-                            split_i,
-                            explain.change("replace", fix.correct, fix.explanation),
+                            map_split_i,
+                            explain.change(
+                                "replace", fix.correct.text, fix.explanation
+                            ),
                             fix.explanation,
                         )
 
-                        print(f"--> {fix.i} {fix.correct}: {fix.explanation}")
+                        # print(f"--> {fix.i} {fix.correct.text}: {fix.explanation}")
 
                         result_fix_map[fix.i] = fix.correct.text
                         correction_lookup[fix.i] = fix.correct
@@ -569,9 +612,9 @@ def init(unmasker, nlp):
             if go.pos == "propn":
                 result_fix_map[go.i] = capitalize_name(go, changes, i, split_i)
 
-        print()
-        draw_tree(doc)
-        print()
+        # print()
+        # draw_tree(doc)
+        # print()
 
         for i, word in result_fix_map.items():
             result[i] = word

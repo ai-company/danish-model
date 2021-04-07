@@ -98,7 +98,13 @@ def insert_change(changes, i, split_i, new_change, explanation):
             # if split_i is None:
             #     split_i = len(changes[i]['change']) - 1
 
-            split_change = changes[i]["change"][split_i]
+            try:
+                split_change = changes[i]["change"][split_i]
+            except:
+                import pdb
+
+                pdb.set_trace()
+
             if split_change["type"] == "none":
                 changes[i]["change"][split_i] = new_change
             else:
@@ -134,9 +140,18 @@ def insert_append_change(changes, i, split_i, new_change, explanation):
         if split_change["type"] == "none":
             changes[i]["change"][split_i] = new_change
         else:
-            changes[i]["change"][split_i]["change"] = token
+            if type(split_change["change"]) == str:
+                changes[i]["change"][split_i]["change"] = [
+                    changes[i]["change"][split_i]["change"],
+                    new_change,
+                ]
+            else:
+                changes[i]["change"][split_i]["change"].append(new_change)
 
             if type(split_change["explain"]) == str:
-                changes[i]["change"][split_i] = [split_change["explain"], explanation]
+                changes[i]["change"][split_i]["explain"] = [
+                    split_change["explain"],
+                    explanation,
+                ]
             else:
                 changes[i]["change"][split_i]["explain"].append(explanation)

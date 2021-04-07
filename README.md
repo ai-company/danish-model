@@ -39,10 +39,6 @@ The spelling algorithms and BERT interop layer.
 
 Data for testing the whole pipeline.
 
-- `wordbook`
-
-A Rust PyO3 module for interfacing dictionaries and inflection lists.
-
 ### Notes for Mr Bug
 #### Things that can be relevant.
 

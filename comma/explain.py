@@ -124,20 +124,22 @@ def maybe_direct(clause):
 def type_clause(clause):
     clause = list(filter(lambda x: not x.pos_ in ["PUNCT"], clause))
 
-    ### SUBORDINATE CLAUSES ###
+    if len(clause) > 0:
 
-    if clause[0].lemma_ in side_words:
-        return ClauseType.SUB_SIDE
-    if clause[0].lemma_ in under_words:
-        return ClauseType.SUB_UNDER
+        ### SUBORDINATE CLAUSES ###
 
-    ### A HELSÆTNING / MAIN CLAUSE ###
-    if is_whole_sentence(clause):
-        return ClauseType.MAIN
+        if clause[0].lemma_ in side_words:
+            return ClauseType.SUB_SIDE
+        if clause[0].lemma_ in under_words:
+            return ClauseType.SUB_UNDER
 
-    ### INDEPENDENT CLAUSE ###
-    if tp := maybe_direct(clause):
-        return tp
+        ### A HELSÆTNING / MAIN CLAUSE ###
+        if is_whole_sentence(clause):
+            return ClauseType.MAIN
+
+        ### INDEPENDENT CLAUSE ###
+        if tp := maybe_direct(clause):
+            return tp
 
     return ClauseType.UNKNOWN
 
@@ -319,7 +321,7 @@ def explain(type, original=None, change=None, explanation=None):
     return result
 
 
-def change(type, change, explanation):
+def change(type, change, explanation=None):
     if type == "none":
         return {
             "type": "none",
