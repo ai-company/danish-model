@@ -3,8 +3,6 @@ import spacy
 import collections
 import sys
 
-nlp = spacy.load("da_core_news_lg")
-
 
 def make_tag(t):
     result = ""
@@ -28,7 +26,7 @@ def make_tag(t):
     return result
 
 
-def convert(pos, original):
+def convert(pos, original, nlp):
     result = ""
 
     original = [t for t in nlp(original)]

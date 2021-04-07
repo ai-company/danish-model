@@ -14,7 +14,9 @@ BINDINGS = ["s", "e", "n", ""]
 COMPOUNDABLE = ["noun", "verb"]
 
 with open(join(path, "compounds.txt")) as f:
-    compounds = [line.strip() for line in f]
+    compounds = dict()
+    for line in f:
+        compounds[line.strip()] = True  # I am speed.
 
 with open(join(path, "compound_map.txt")) as f:
     compound_map = dict()

@@ -19,23 +19,23 @@ $ python tests.py
 
 ### Structure
 
-- `comma`
+#### `comma`
 
 The commarization and punctuation model.
 
-- `data`
+#### `data`
 
 Tools for creating and manipulating datasets.
 
-- `preprocess`
+#### `preprocess`
 
 Data preprocessing pipeline for getting data ready for training of comma model.
 
-- `spell`
+#### `spell`
 
 The spelling algorithms and BERT interop layer.
 
-- `test_data`
+#### `test_data`
 
 Data for testing the whole pipeline.
 

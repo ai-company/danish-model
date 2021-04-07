@@ -56,7 +56,7 @@ HOST = os.environ.get("HOST") or "localhost"
 
 nlp = spacy.load("da_core_news_lg")
 
-ai = init()
+ai = init(nlp)
 spell, unmasker = spell_init()
 grammar = grammar_init(unmasker, nlp)
 
