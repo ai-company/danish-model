@@ -175,7 +175,7 @@ def is_inconsistent(a: GrammarObject, b: GrammarObject) -> bool:
 
 
 def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
-    if a.pos != "aux" and b.has("verbform", "inf"):
+    if (a.pos != "aux" and a.text not in INF_AUX) and b.has("verbform", "inf"):
         if fix := fix_aux_inf(a, b):
             return fix
 
@@ -303,7 +303,7 @@ def fix_aux_inf(a: GrammarObject, b: GrammarObject) -> Fix:
     abort_mission = False
 
     for obj in b.children:
-        if obj.dep == "aux":
+        if obj.dep_ == "aux":
             # There is a modifier for the inf verb.
             # In this case there should be no correction.
             abort_mission = True
@@ -311,17 +311,20 @@ def fix_aux_inf(a: GrammarObject, b: GrammarObject) -> Fix:
 
     if not abort_mission and a.pos == "cconj":
         for cousin in list(set([a.head] + list(a.ancestors))):
+            print("-", cousin.text)
             for obj in cousin.children:
-                if obj.dep == "aux":
+                print(" *", obj.text)
+                if obj.dep_ == "aux":
                     abort_mission = True
                     break
 
+    if abort_mission:
+        return None
+    else:
         # TODO: Maybe pastize. Keep state of sentence somewhere.
         correct = inflect.inflect_verb(b, presentize=True)
 
-        return Fix(correct, b.i, "Forveksling af infinitiv of nutid.")
-
-    return None
+        return Fix(correct, b.i, "Forveksling af infinitiv og nutid.")
 
 
 def at_og_fixer(unmasker, first_doc, text, changes) -> str:
@@ -557,7 +560,8 @@ def init(unmasker, nlp):
 
                         print(f"--> {fix.i} {fix.correct}: {fix.explanation}")
 
-                        result_fix_map[fix.i] = fix.correct
+                        result_fix_map[fix.i] = fix.correct.text
+                        correction_lookup[fix.i] = fix.correct
             else:
                 if token.text in ["lægger", "ligger"]:
                     fix_lays(token, changes, change_map, result_fix_map)
