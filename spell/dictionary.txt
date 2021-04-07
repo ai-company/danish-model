@@ -40868,7 +40868,9 @@ boligpolitiks 1
 boligpolitiske 130
 boligpris 52
 boligprisens 1
+boligpriserne 20
 boligprisernes 20
+coronakrisen 20
 boligprisers 1
 boligproblem 26
 boligproblemernes 1
@@ -46830,6 +46832,7 @@ brugendes 1
 brugenes 10
 brugens 37
 bruger 318239
+brugerpris 11
 brugeradgangskode 11
 brugeradgangskoder 1
 brugeradgangskoderne 2
@@ -94222,6 +94225,7 @@ forbrugsvillige 1
 forbrugt 712
 forbrugte 295
 forbrugtes 23
+brugerprisen 1
 forbrusk 1
 forbruske 1
 forbruskedes 1
@@ -222846,6 +222850,7 @@ salgspris' 1
 salgsprisens 29
 salgsprisernes 1
 salgsprisers 1
+salgspriser 1
 salgssum 116
 salgssummen 149
 salgssummens 1

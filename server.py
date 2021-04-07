@@ -12,7 +12,7 @@ from comma.comma import init
 from comma.clauses import flag_simple_listings
 
 from spell.spell import bake_spelling as spell_init
-from spell.grammar import init as grammar_init
+from spell.grammar2 import init as grammar_init
 from spell.compound import compound_words
 
 from pysbd.utils import PySBDFactory
@@ -54,10 +54,11 @@ class ModelServer:
 PORT = int(os.environ.get("MODcapitalize_namesEL_PORT_DANISH") or 9000)
 HOST = os.environ.get("HOST") or "localhost"
 
+nlp = spacy.load("da_core_news_lg")
+
 ai = init()
 spell, unmasker = spell_init()
-grammar = grammar_init(unmasker)
-nlp = spacy.load("da_core_news_lg")
+grammar = grammar_init(unmasker, nlp)
 
 # Split sentences.
 sent_nlp = spacy.load("da_core_news_lg")

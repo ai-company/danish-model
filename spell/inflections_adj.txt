@@ -79,7 +79,8 @@ aftagelig	 -t, -e
 aftenlig	 -t, -e
 aftenåben	 -t, aftenåbne
 afveksle	 -r, -de, -t 
-afvigte	 OM TIDSPERIODE sidste)
+afvigte	 afvigte
+stik	 stik
 aggressiv	 -t, -e 
 agil	 -t, -e 
 agitatorisk	 itk. d.s., -e 
@@ -6066,6 +6067,7 @@ rådvild	 -t, -e
 råhvid	 -t, -e
 råkold	 -t, -e
 råstærk	 -t, -e
+sidste	 sidste
 saddukæisk	 itk. d.s., -e 
 sadistisk	 itk. d.s., -e 
 sadomasochistisk	 itk. d.s., -e

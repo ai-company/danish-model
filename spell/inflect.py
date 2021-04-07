@@ -1,7 +1,7 @@
 from os.path import dirname, join
 
 import spacy
-from . import grammar
+from . import grammar2
 import lemmy
 import random
 
@@ -25,10 +25,8 @@ verb_inflections = load_inflections(join(dirname(__file__), "inflections_verb.tx
 adj_inflections = load_inflections(join(dirname(__file__), "inflections_adj.txt"))
 
 
-def inflect_noun(
-    token, properize=False, pluralize=False, singularize=False, lemma=None
-):
-    noun = lemma or lemmatizer.lemmatize("NOUN", token.text)[0]
+def inflect_noun(go, properize=False, pluralize=False, singularize=False, lemma=None):
+    noun = lemma or lemmatizer.lemmatize("NOUN", go.text)[0]
     if inflections := noun_inflections.get(noun):
         i = 0
 
@@ -48,11 +46,11 @@ def inflect_noun(
 
         return "-" in inflection and inflection.replace("-", noun) or inflection
 
-    if "_neut" in token.morph.gender_:
+    if go.has("gender", "neut"):
         if properize:
             ending = ""
 
-            if grammar.is_singular(token):
+            if grammar.is_singular(go):
                 ending = {
                     "s": "set",
                     "n": "net",
@@ -60,20 +58,20 @@ def inflect_noun(
                     "m": "met",
                     "p": "pet",
                     "e": "t",
-                }.get(token.text[-1], "et")
+                }.get(go.text[-1], "et")
             else:
                 ending = {
                     "r": "ne",
                     "t": "te",
                     "e": "ne",
-                }.get(token.text[-1], "ene")
+                }.get(go.text[-1], "ene")
 
-            return f"{token.text}{ending}"
+            return f"{go.text}{ending}"
     else:
         if properize:
             ending = ""
 
-            if "_sing" in token.morph.number_:
+            if go.has("number", "sing"):
                 ending = {
                     "s": "sen",
                     "n": "nen",
@@ -81,29 +79,29 @@ def inflect_noun(
                     "m": "men",
                     "p": "pen",
                     "e": "n",
-                }.get(token.text[-1], "en")
+                }.get(go.text[-1], "en")
             else:
                 ending = {
                     "r": "ne",
                     "s": "serne",
                     "m": "merne",
                     "p": "perne",
-                }.get(token.text[-1], "erne")
+                }.get(go.text[-1], "erne")
 
-            return f"{token.text}{ending}"
+            return f"{go.text}{ending}"
 
     if pluralize:
         ending = {
             "e": "r",
-        }.get(token.text[-1], "er")
+        }.get(go.text[-1], "er")
 
-        return f"{token.text}{ending}"
+        return f"{go.text}{ending}"
 
     return noun  # Singular cause of lemma B)
 
 
-def inflect_verb(token, presentize=False, pastize=False, didize=False):
-    verb = lemmatizer.lemmatize("VERB", token.text)[0]
+def inflect_verb(go, presentize=False, pastize=False, didize=False, lemma=None):
+    verb = lemma or lemmatizer.lemmatize("VERB", go.text)[0]
     if inflections := verb_inflections.get(verb):
         i = 0
 
@@ -124,20 +122,20 @@ def inflect_verb(token, presentize=False, pastize=False, didize=False):
         return "-" in inflection and inflection.replace("-", verb) or inflection
 
     if presentize:
-        return f"{token.text}r"  # Now times R
+        return f"{go.text}r"  # Now times R
 
     if pastize:
         ending = {
             "e": "de",
-        }.get(token.text[-1], "ede")
+        }.get(go.text[-1], "ede")
 
-        return f"{token.text}{ending}"
+        return f"{go.text}{ending}"
 
     return verb
 
 
-def inflect_adj(token, itk=False, pluralize=False, singularize=False):
-    adj = lemmatizer.lemmatize("ADJ", token.text)[0]
+def inflect_adj(go, itk=False, pluralize=False, singularize=False, lemma=None):
+    adj = lemma or lemmatizer.lemmatize("ADJ", go.text)[0]
     if inflections := adj_inflections.get(adj):
         i = 0
         if len(inflections) == 1 and pluralize:
@@ -172,22 +170,22 @@ def inflect_adj(token, itk=False, pluralize=False, singularize=False):
             "m": "me",
             "s": "se",
             "p": "pe",
-        }.get(token.text[-1], "e")
+        }.get(go.text[-1], "e")
 
-        return f"{token.text}{ending}"
+        return f"{go.text}{ending}"
     elif itk:
-        if token.text[-1] != "t":
-            return f"{token.text}t"
+        if go.text[-1] != "t":
+            return f"{go.text}t"
 
     return adj
 
 
-def inflect(token, **kwargs):
+def inflect(go, **kwargs):
     return {
-        "NOUN": inflect_noun(token, **kwargs),
-        "ADJ": inflect_adj(token, **kwargs),
-        "VERB": inflect_verb(token, **kwargs),
-    }.get(token.pos_)
+        "NOUN": inflect_noun(go, **kwargs),
+        "ADJ": inflect_adj(go, **kwargs),
+        "VERB": inflect_verb(go, **kwargs),
+    }.get(go.pos)
 
 
 if __name__ == "__main__":
@@ -196,4 +194,4 @@ if __name__ == "__main__":
         text = input("> ")
         for token in nlp(text):
             print(token.morph.gender_, token.pos_, lemmatizer.lemmatize("", token.text))
-            print(inflect_adj(token, pluralize=True))
+            print(inflect_adj(grammar.GrammarObject.from_token(token), pluralize=True))

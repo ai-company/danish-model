@@ -149,11 +149,13 @@ def compare_listing_initial(meta, meta_initial):
 def has_listing_potential(clause):
     for word in listing_words:
         if word in clause:
-            meta = nlp(clause[clause.index(word) + 1])[0]
-            meta_initial = nlp(clause[0])[0]
 
-            if compare_listing_initial(meta, meta_initial):
-                return meta
+            if clause.index(word) + 1 < len(clause):
+                meta = nlp(clause[clause.index(word) + 1])[0]
+                meta_initial = nlp(clause[0])[0]
+
+                if compare_listing_initial(meta, meta_initial):
+                    return meta
 
     return None
 
@@ -255,8 +257,11 @@ def get_explanations(text):
 
                 clause = sent[start:i]
 
-                if len(str(sent[start:i]).replace(",", "").replace(".", "")) == 0:
+                if len(str(sent[start : i + 1]).replace(",", "").replace(".", "")) == 0:
                     break
+
+                # Til Niels i fremtiden. :)))
+                # Men egentlig er det ikke alene salgsprisens som afgør om en bolig er billig, eller dyr.
 
                 commas.append(" ".join([x.text for x in sent[start:i]]))
                 tp = type_clause(sent[start:i])

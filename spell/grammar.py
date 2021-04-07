@@ -15,7 +15,7 @@ PAST_AUX = [
 
 INF_AUX = ["at"]
 
-REFLECTIVE_ADJ = ["nogen"]
+REFLECTIVE_ADJ = ["nogen", "ingen"]
 
 
 def to_nltk_tree(node):
@@ -26,7 +26,12 @@ def to_nltk_tree(node):
 
 
 def draw_tree(doc):
-    [to_nltk_tree(sent.root).pretty_print() for sent in doc.sents]
+    for sent in doc.sents:
+        if c := to_nltk_tree(sent.root):
+            if type(c) == str:
+                print(c)
+            else:
+                c.pretty_print()
 
 
 # ======================= END OF DEBUG
@@ -128,7 +133,7 @@ def make_consistent(token, relative):
             )
 
     elif token.pos_ in ["PRON", "NOUN", "DET"] and is_inconsistent(token, relative):
-        correct = relative.text + " is wrong"
+        correct = relative.text
         singular = is_singular(token)
 
         abort_mission = False
@@ -238,8 +243,10 @@ def relatives_of(token, doc):
         "root": token.text in ["ligger", "lægger"]
         and [t for t in token.children if t.dep_ == "obj"]
         or [],
-        "det": [t for t in siblings(token) if t.pos_ in ["ADJ", "NOUN"]],
-        "amod": token.head.dep_ == "nsubj"
+        "det": token.head.pos_ == "NOUN"
+        and [token.head]
+        or [t for t in siblings(token) if t.pos_ in ["ADJ", "NOUN"]][:1],
+        "amod": token.head.dep_ in ["nsubj", "ROOT"]
         and [token.head]
         or [t for t in token.children if t.dep_ == "nsubj"],
         "aux": [token.head],
@@ -314,22 +321,22 @@ def init(unmasker):
         fix_map = dict()  # For inserting fixes in corrected string.
         result = []  # List of corrected words for corrected string.
 
-        # print()
+        print()
 
         change_map = explain.change_map(changes)
 
         for (_, i, split_i), token in zip(change_map, doc):
             result.append(token.text)
-            # print()
-            # print(
-            #     f'{token.text}({token.pos_}) @ {token.dep_} & {token.morph.to_json()}')
+            print()
+            print(
+                f"{token.text}({token.pos_}) @ {token.dep_} & {token.morph.to_json()}"
+            )
 
             if relatives := relatives_of(token, doc):
                 # TODO: Refactor rule system.
 
                 for t in relatives:
-                    # print(
-                    #     f'    -> {t.text}({t.morph.to_json()})')
+                    print(f"    -> {t.text}({t.morph.to_json()})")
 
                     correct, token_i, explanation = make_consistent(token, t)
 
@@ -344,7 +351,7 @@ def init(unmasker):
                             changes,
                             map_i,
                             split_i,
-                            explain.change("change", correct, explanation),
+                            explain.change("replace", correct, explanation),
                             explanation,
                         )
 
@@ -370,9 +377,9 @@ def init(unmasker):
             if token.pos_ == "PROPN":
                 fix_map[token.i] = capitalize_name(token, changes, i, split_i)
 
-        # print()
-        # draw_tree(doc)
-        # print()
+        print()
+        draw_tree(doc)
+        print()
 
         for i, word in fix_map.items():
             result[i] = word

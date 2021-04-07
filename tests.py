@@ -1,5 +1,10 @@
 import unittest
+import sys
+import cProfile
+import tqdm
+
 from server import process
+from os.path import dirname, join
 
 
 def fix(text):
@@ -82,6 +87,8 @@ class Grammar(unittest.TestCase):
             fix("folk skal lære og tænke sig om"), "Folk skal lære at tænke sig om."
         )
 
+        self.assertEqual(fix("jeg syntes det er godt"), "Jeg synes det er godt.")
+
     def test_iamverysmart(self):
 
         self.assertEqual(
@@ -114,4 +121,20 @@ class DontTouchThese(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    if len(sys.argv) < 2:
+        unittest.main()
+    elif path := sys.argv[1]:
+        with open(path, "r") as f, open(
+            join(dirname(path), "out.txt"), "w"
+        ) as out, open(join(dirname(path), "change_log.txt"), "w") as log:
+
+            for line in tqdm.tqdm(f.readlines()):
+                line = line.strip()
+
+                if len(line) == 0:
+                    continue
+
+                fixed = process(line)
+
+                out.write(f"{fixed[0]}\n")
+                log.write(f"{fixed[1]}\n\n")

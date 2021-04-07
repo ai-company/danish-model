@@ -2250,6 +2250,7 @@ aedes
 æglæggeres
 æglæggernes
 æglæggers
+boligbyrden
 æglægning
 æglægningens
 æglægningernes
@@ -40867,7 +40868,9 @@ boligpolitikkens
 boligpolitiks
 boligpolitiske
 boligpris
+boligprisen
 boligprisens
+boligpriserne
 boligprisernes
 boligprisers
 boligproblem
@@ -40896,6 +40899,7 @@ boligsituation
 boligsituationens
 boligsituations
 boligskat
+boligskatter
 boligskatten
 boligsøgende
 boligsøgendes
@@ -46830,6 +46834,7 @@ brugendes
 brugenes
 brugens
 bruger
+brugerpris
 brugeradgangskode
 brugeradgangskoder
 brugeradgangskoderne
@@ -94146,6 +94151,7 @@ forbrugerpres
 forbrugerpris
 forbrugerpris'
 forbrugerprisens
+brugerprisen
 forbrugerprisernes
 forbrugerprisers
 forbrugerprises
@@ -155087,6 +155093,8 @@ korollar
 korollaret
 kørom
 koromgang
+corona
+coronakrisen
 korona
 koronaerne
 koronararterie
@@ -222841,7 +222849,8 @@ salgslisten
 salgsmuligheder
 salgsmulighederne
 salgspris
-salgspris'
+salgspriser
+salgsprisen
 salgsprisens
 salgsprisernes
 salgsprisers
