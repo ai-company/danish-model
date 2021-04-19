@@ -1,7 +1,7 @@
 from os.path import dirname, join
 
 import spacy
-from . import grammar2
+from . import grammar
 import lemmy
 import random
 

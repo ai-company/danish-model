@@ -6,6 +6,8 @@ from nltk.corpus import words as corpus_words
 from . import explain
 from os.path import join, dirname
 
+BINDINGS = ["s", "e", "n", ""]
+
 corpus_words = dict()
 
 with open(join(dirname(__file__), "dictionary.txt"), "r") as f:
@@ -24,9 +26,74 @@ letter_mix_map = {
     "n": "nd",
     "nd": "n",
     "l": "ll",
+    "k": "g",
+    "g": "k",
+    "n": "m",
+    "s": "c",
+    "z": "s",
+    "s": "z",
+    "æ": "e",
+    "e": "æ",
+    "j": "g",
+    "øv": "eu",
+    "g": "j",
+    "d": "t",
+    "t": "d",
+    "o": "u",
+    "u": "o",
+    "t": "ss",
+    "f": "ph",
+    "ti": "j",
+    "v": "hv",
+    "hv": "v",
+    "nn": "nd",
+    "ll": "ld",
+    "kk": "gg",
+    "in": "ind",
+    "u": "in",
+    "ø": "eu",
+    "eu": "ø",
+    "ti": "si",
+    "sj": "ti",
+    "sj": "si",
 }
 
 common_spelling_mistakes = dict()
+
+
+def is_deep_real(word: str) -> bool:
+    """
+    Deep run of possible compounds.
+
+    Params:
+        - word: The word that needs to be verified.
+
+    Returns:
+        - result: Whether the word is okay.
+    """
+
+    length = len(word)
+
+    if word in corpus_words:
+        return True
+    else:
+        for i in range(len(word), -1, -1):
+            #
+            buffer = word[i : len(word)]
+
+            flag = False
+
+            if buffer in corpus_words:
+                flag = True
+            elif buffer[-1] in BINDINGS:
+                flag = buffer[:-1] in corpus_words
+
+            if flag:
+                if is_deep_real(word[: len(word) - largest]):
+                    if largest + len(word) - largest:
+                        return True
+
+    return False
 
 
 def is_real(word):

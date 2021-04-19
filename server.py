@@ -12,7 +12,7 @@ from comma.comma import init
 from comma.clauses import flag_simple_listings
 
 from spell.spell import bake_spelling as spell_init
-from spell.grammar2 import init as grammar_init
+from spell.grammar import init as grammar_init
 from spell.compound import compound_words
 
 from pysbd.utils import PySBDFactory
@@ -110,7 +110,7 @@ def process(text: str) -> str:
     change_map = explain.change_map(changes)
     word_i = 0
 
-    for i, (change, old) in enumerate(zip(changes, text.split())):
+    for i, (change, old) in enumerate(zip(changes, text.split(" "))):
         if "," in old and (word_i < len(changes) - 1 and changes[word_i + 1]):
             c = changes[word_i + 1]
 
@@ -130,6 +130,24 @@ def process(text: str) -> str:
             word_i += 2
 
         word_i += 1
+
+        if word_i < len(changes) and changes[word_i]["type"] == "add":
+            if changes[word_i]["change"] == ".":
+                continue
+
+        if "\n" in old:
+            changes.insert(
+                word_i,
+                explain.change("space", "\n", ""),
+            )
+            word_i += 1
+
+        else:
+            changes.insert(
+                word_i,
+                explain.change("space", " ", ""),
+            )
+            word_i += 1
 
     return result, json.dumps(
         [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")

@@ -60,7 +60,7 @@ class Compound(unittest.TestCase):
         )
 
         self.assertEqual(
-            fix("i mit sommmer hus er der plads til mine kate killinger"),
+            fix("i mit sommmer hus er der plads til mine katte killinger"),
             "I mit sommerhus er der plads til mine kattekillinger.",
         )
 
@@ -90,7 +90,6 @@ class Grammar(unittest.TestCase):
         self.assertEqual(fix("jeg syntes det er godt"), "Jeg synes det er godt.")
 
     def test_iamverysmart(self):
-
         self.assertEqual(
             fix(
                 """

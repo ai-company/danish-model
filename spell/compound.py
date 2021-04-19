@@ -4,7 +4,7 @@ import lemmy
 import spacy
 
 from . import inflect
-from . import grammar2 as grammar
+from . import grammar
 from . import explain
 
 lemmatizer = lemmy.load("da")

@@ -1,5 +1,4 @@
-﻿a 1
-A 1
+﻿A 1
 å 25363
 Aabenraa 1
 aabenraaer 1
@@ -55311,10 +55310,7 @@ czardassens 1
 czardasser 1
 czardasserne 1
 czardassers 1
-d 134809
-D 1
 da 964718
-DA 1
 då 403
 dåb 4668
 dåbenes 1
@@ -70015,8 +70011,6 @@ dyvlens 1
 dyvlerne 13
 dyvlernes 1
 dyvlers 1
-e 69511
-E 1
 Ea 1
 EA 1
 e-afstemningssystem 1
@@ -170606,8 +170600,6 @@ Lyzet 1
 Lyzets 1
 Lyzette 1
 Lyzettes 1
-m 100207
-M 1
 må 513646
 Maastricht 1
 måb 4
@@ -291072,8 +291064,6 @@ udvikling 193975
 produkter 193437
 hr 191922
 måneder 191345
-a 191177
-8 186472
 feks 185409
 / 181278
 12 179620
@@ -294896,7 +294886,6 @@ pesticider 3358
 shops 3355
 vinderne 3353
 hævelse 3353
-aa 3353
 track 3351
 venstrefløjen 3350
 399 3348

@@ -1095,6 +1095,7 @@ disjunkt	 -e
 disjunktiv	 -t, -e 
 diskografisk	 itk. d.s., -e 
 diskontinuerlig	 -t, -e 
+nuværende	 nuværende 
 diskontinuert	 -e 
 diskret	 -e
 diskretionær	 -t, -e 

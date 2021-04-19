@@ -11,6 +11,7 @@ import math
 import string
 
 from . import util
+from . import test
 
 
 def is_acronym(word, match_digits=False):
