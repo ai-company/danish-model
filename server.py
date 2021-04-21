@@ -14,6 +14,7 @@ from comma.clauses import flag_simple_listings
 from spell.spell import bake_spelling as spell_init
 from spell.grammar import init as grammar_init
 from spell.compound import compound_words
+from spell.util import parse_words_and_quotes
 
 from pysbd.utils import PySBDFactory
 
@@ -65,6 +66,18 @@ sent_nlp = spacy.load("da_core_news_lg")
 sent_nlp.add_pipe(PySBDFactory(sent_nlp), first=True)
 
 
+def cache(c: str, text: str) -> dict:
+    result = dict()
+    count = 0
+
+    for i, token in enumerate(parse_words_and_quotes(text)):
+        if token == '"':
+            count += 1
+            result[i - count] = True
+
+    return result
+
+
 def process(text: str) -> str:
     """
     Takes a cluster of danish text and fixes it.
@@ -86,6 +99,8 @@ def process(text: str) -> str:
     # This is mostly for testing.
     result = ""
 
+    quote_map = cache('"', text)
+
     # Fix each sentence
     for sent in doc.sents:
         if len(sent.string.strip()) == 0:
@@ -98,18 +113,41 @@ def process(text: str) -> str:
         # These will be removed commarization, but will serve as flags.
         # They are ok cheap though.
         spelled_text = flag_simple_listings(nlp(spelled_text), changes)
+
         pounded_text, changes = compound_words(spelled_text, changes, nlp)
         grammared_text, changes = grammar(pounded_text, changes)
+
         changes, final = ai(grammared_text, changes)
+
+        final = final.replace(",,", ",")
 
         result += " " + final
 
-    result = result.strip()
+    result = (
+        result.strip()
+        .replace("( ", "(")
+        .replace(" )", ")")
+        .replace(" ?", "?")
+        .replace(" !", "!")
+    )
 
     # Resolve removed chars
     change_map = explain.change_map(changes)
-    word_i = 0
 
+    quote_i = 0
+
+    for i, _ in enumerate(changes):
+        if quote_map.get(quote_i):
+            quote_i += 1
+            changes.insert(
+                quote_i + 1,
+                explain.change("none", '"'),
+            )
+
+        quote_i += 1
+
+    word_i = 0
+    last = ""
     for i, (change, old) in enumerate(zip(changes, text.split(" "))):
         if "," in old and (word_i < len(changes) - 1 and changes[word_i + 1]):
             c = changes[word_i + 1]
@@ -133,21 +171,24 @@ def process(text: str) -> str:
 
         if word_i < len(changes) and changes[word_i]["type"] == "add":
             if changes[word_i]["change"] == ".":
+                last = old
                 continue
 
-        if "\n" in old:
-            changes.insert(
-                word_i,
-                explain.change("space", "\n", ""),
-            )
-            word_i += 1
+        if last not in ['"', "("]:
+            if "\n" in old:
+                changes.insert(
+                    word_i,
+                    explain.change("space", "\n", ""),
+                )
+                word_i += 1
+            else:
+                changes.insert(
+                    word_i,
+                    explain.change("space", " ", ""),
+                )
+                word_i += 1
 
-        else:
-            changes.insert(
-                word_i,
-                explain.change("space", " ", ""),
-            )
-            word_i += 1
+        last = old
 
     return result, json.dumps(
         [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")

@@ -87,7 +87,7 @@ class Grammar(unittest.TestCase):
             fix("folk skal lære og tænke sig om"), "Folk skal lære at tænke sig om."
         )
 
-        self.assertEqual(fix("jeg syntes det er godt"), "Jeg synes det er godt.")
+        # self.assertEqual(fix("jeg syntes det er godt"), "Jeg synes det er godt.")
 
     def test_iamverysmart(self):
         self.assertEqual(
@@ -108,6 +108,11 @@ Der er nogen mennesker, der prøver at overbevise folk om, at sætninger skal v�
             fix("jeg ligger hunden ned på sengen"), "Jeg lægger hunden ned på sengen."
         )
 
+        self.assertEqual(
+            fix("ligger du screenshots op ad beviserne?"),
+            "Lægger du screenshots op af beviserne?",
+        )
+
 
 class Commas(unittest.TestCase):
     def test_listings(self):
@@ -116,7 +121,15 @@ class Commas(unittest.TestCase):
 
 class DontTouchThese(unittest.TestCase):
     def test_perfectly_good(self):
-        self.assertEqual(fix("Osten, hunden og katten."), "Osten, hunden og katten.")
+        self.assertEqual(
+            fix('Osten, "hunden" og katten.'),
+            "Osten, hunden og katten.",
+        )
+
+        self.assertEqual(
+            fix("Mine ting:"),
+            "Mine ting.",
+        )
 
 
 if __name__ == "__main__":

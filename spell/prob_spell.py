@@ -349,7 +349,12 @@ class Spell:
 
         is_last_combi = False
 
-        for i, _ in enumerate(term_list):
+        for i, word in enumerate(term_list):
+            # TODO: Think very fucking hard.
+            if len(word) == 1 and not word.isalnum():  # test.is_deep_real(word):
+                suggestion_parts.append(Suggestion(term_list[i], 0, 0))
+                continue
+
             if ignore_non_words:
                 if util.parse_int64(term_list[i]) is not None:
                     suggestion_parts.append(Suggestion(term_list[i], 0, 0))

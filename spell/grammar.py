@@ -9,11 +9,9 @@ from . import inflect
 from . import explain
 
 # Preload
-
 lemmatizer = lemmy.load("da")
 
 # Constants
-
 PAST_AUX = [
     "var",
 ]
@@ -411,6 +409,88 @@ def at_og_fixer(unmasker, first_doc, text, changes) -> str:
     return text, changes
 
 
+def af_ad_fixer(unmasker, first_doc, text, changes) -> str:
+    """
+    Uses BERT to figure out whether something is 'ad' or 'af'.
+    The function won't do anything if these words do not appear.
+
+    Params:
+        - The unmasking language model.
+        - first_doc: The initial doc that needs checking.
+        - changes: The running change log.
+
+    Returns:
+        - text: The corrected text.
+        - changes: The updated changes.
+    """
+    mask_stack = []
+    backup_stack = []
+    mask_is = []
+
+    last_inf = False
+
+    count = sum([bool(t.text in ["af", "ad"]) for t in first_doc])
+
+    for i_round in range(0, count):
+        passed = 0
+        tokens_masked = []
+
+        for i, token in enumerate(first_doc):
+            if token.text.lower() in ["af", "ad"]:
+                if passed == i_round:
+                    tokens_masked.append("[MASK]")
+                    mask_is.append(i)
+                    backup_stack.append(token.text)
+                else:
+                    tokens_masked.append(token.text)
+                passed += 1
+            else:
+                tokens_masked.append(token.text)
+
+        mask_stack.append(tokens_masked)
+
+    if len(mask_stack) > 0:
+        # Construct clean version: speed trick *drift*
+        final_mask = mask_stack[0].copy()
+        final_mask[mask_is[0]] = backup_stack[0]
+
+        for i, mask_i in enumerate(mask_is):
+            tokens_masked, backup = mask_stack[i], backup_stack[i]
+            text_masked = " ".join(tokens_masked).replace(" ,", ",").replace(" .", ".")
+
+            tokens = list(
+                filter(
+                    lambda t: t in ["ad", "af"],
+                    [x["token_str"] for x in unmasker(text_masked)],
+                )
+            )
+
+            if len(tokens) > 0:
+                correct = tokens[0]
+
+                explain.append_change(
+                    changes,
+                    mask_i,
+                    explain.change(
+                        "change", correct, f'Det korrekte ord er "{correct}".'
+                    ),
+                )
+
+                try:
+
+                    final_mask[mask_i] = correct
+                except:
+                    import pdb
+
+                    pdb.set_trace()
+            else:
+                final_mask[mask_i] = backup
+
+        text = " ".join(final_mask).replace(" ,", ",").replace(" .", ".")
+
+    return text, changes
+
+
 # Correction helper functions.
 
 
@@ -544,6 +624,7 @@ def init(unmasker, nlp):
 
         first_doc = nlp(text)
         text, changes = at_og_fixer(unmasker, first_doc, text, changes)
+        text, changes = af_ad_fixer(unmasker, first_doc, text, changes)
 
         doc = nlp(text)
         change_map = explain.change_map(changes)

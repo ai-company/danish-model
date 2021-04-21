@@ -4,6 +4,7 @@ from .prob_spell import init
 from nltk.corpus import words as corpus_words
 
 from . import explain
+from . import util
 from os.path import join, dirname
 
 BINDINGS = ["s", "e", "n", ""]
@@ -101,7 +102,7 @@ def is_real(word):
 
 
 def low_hanging_fruits(sentence):
-    words = sentence.split(" ")
+    words = util.parse_words(sentence)
 
     for i, word in enumerate(words):
         if i < len(words) - 2 and len(words) > 1:
@@ -167,12 +168,12 @@ def bake_spelling():
         # TODO: Cache things.
         text = text.replace(",", "").replace(".", "").replace(" - ", " ")
 
-        words = list(map(fix_typo, text.split(" ")))
+        words = list(map(fix_typo, util.parse_words(text)))
         unks = []
         words = []
         change_cache = {}
 
-        for i, word in enumerate(text.split(" ")):
+        for i, word in enumerate(util.parse_words(text)):
             fixed = fix_typo(word)
             words.append(fixed)
 
@@ -241,7 +242,9 @@ def bake_spelling():
                     ):
 
                         if changes[i]["type"] == "none":
-                            explain_none(changes, i, change[0], change[1])
+                            explain_none(
+                                changes, i, token, "Indsættelse af korrekt ord."
+                            )
                         else:
                             changes[i]["change"] = token
                             changes[i]["explain"] = "Indsættelse af korrekt ord."
