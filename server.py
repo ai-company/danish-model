@@ -14,7 +14,7 @@ from comma.clauses import flag_simple_listings
 from spell.spell import bake_spelling as spell_init
 from spell.grammar import init as grammar_init
 from spell.compound import compound_words
-from spell.util import parse_words_and_quotes, parse_words_all
+from spell.util import parse_words_and_quotes, parse_words_all_original
 
 from pysbd.utils import PySBDFactory
 
@@ -131,6 +131,13 @@ def process(text: str) -> str:
             ", ,", ","
         )  # TODO: Look at this (with eyes)
 
+        if (
+            sent_changes[-1]["type"] == "add"
+            and sent_changes[-1]["change"] == "."
+            and text.strip()[-1] == "."
+        ):
+            sent_changes[-1] = explain.explain("none", ".")
+
         result += " " + final
         changes += sent_changes
 
@@ -150,7 +157,17 @@ def process(text: str) -> str:
     changes_cache = [*changes]  # TODO: Think of something smart.
     last_add = False
 
-    for i, (change, old) in enumerate(zip(changes_cache, parse_words_all(text))):
+    for i, (change, old) in enumerate(
+        zip(changes_cache, parse_words_all_original(text))
+    ):
+
+        # OWNERSHIP CHECK
+        if (
+            change["type"] == "replace"
+            and "stort begyndelsesbogstav" in change["explain"]
+        ) and old[0].lower() != old[0]:
+            changes[i] = explain.explain("none", change["change"])
+
         if "," in old:
             c = word_i == 0 and changes[0] or changes[word_i - 1]
 

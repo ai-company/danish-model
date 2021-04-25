@@ -39,6 +39,14 @@ def parse_words_all(phrase, split_space=False):
         )
 
 
+def parse_words_all_original(phrase, split_space=False):
+    # Also does commas for full comparison
+    if split_space:
+        return phrase.lower().split()
+    else:
+        return re.findall(r"(\w+|[()\[\]{}/_:\|~+\*\^@$#£\.&\-'?!_\>\<,])", phrase)
+
+
 def similarity(dist, length):
     return -1 if dist < 0 else 1.0 - dist / length
 
