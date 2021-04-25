@@ -300,7 +300,7 @@ def get_explanations(text, nlp):
 def explain(type, original=None, change=None, explanation=None):
     if type == "none":
         return {
-            "type": type,
+            "type": "none",
             "origin": original,
         }
     elif type == "add":
@@ -321,7 +321,7 @@ def explain(type, original=None, change=None, explanation=None):
 def change(type, change, explanation=None):
     if type in ["none", "space"]:
         return {
-            "type": "none",
+            "type": type,
             "origin": change,
         }
 
