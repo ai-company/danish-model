@@ -100,6 +100,7 @@ def process(text: str) -> str:
 
     # Fix each sentence
     for sent in doc.sents:
+        sent_changes = []
         sent_text = sent.string.strip()
 
         if len(sent_text) == 0:
@@ -108,27 +109,28 @@ def process(text: str) -> str:
         quote_map = cache('"', sent_text)
 
         # TODO: Stripping and diffs?
-        spelled_text, changes = spell(sent_text, changes)
+        spelled_text, sent_changes = spell(sent_text, sent_changes)
 
         # Before compounding, we first need to clear simple colliding listings.
         # These will be removed commarization, but will serve as flags.
         # They are ok cheap though.
-        spelled_text = flag_simple_listings(nlp(spelled_text), changes)
+        spelled_text = flag_simple_listings(nlp(spelled_text), sent_changes)
 
-        pounded_text, changes = compound_words(spelled_text, changes, nlp)
-        grammared_text, changes = grammar(pounded_text, changes)
+        pounded_text, sent_changes = compound_words(spelled_text, sent_changes, nlp)
+        grammared_text, sent_changes = grammar(pounded_text, sent_changes)
 
         for k in quote_map.keys():
-            changes.insert(
+            sent_changes.insert(
                 k,
                 explain.change("none", '"'),
             )
 
-        changes, final = ai(grammared_text, changes)
+        sent_changes, final = ai(grammared_text, sent_changes)
 
         final = final.replace(",,", ",")
 
         result += " " + final
+        changes += sent_changes
 
     result = (
         result.strip()
