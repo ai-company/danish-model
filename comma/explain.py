@@ -319,7 +319,7 @@ def explain(type, original=None, change=None, explanation=None):
 
 
 def change(type, change, explanation=None):
-    if type == "none":
+    if type in ["none", "space"]:
         return {
             "type": "none",
             "origin": change,
