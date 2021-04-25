@@ -191,15 +191,13 @@ def init(nlp):
 
         change_map = explain.change_map(changes)
 
-        comma_i = 1
+        comma_i = 0
 
         for (change, i, split_i), token in zip(change_map, tokens):
             if (
                 token.lower().replace(",", "").replace(".", "") == change
                 and token.replace(",", "").replace(".", "") != change
             ):
-
-                i = i + comma_i - 1
 
                 explanation = "Stort begyndelsesbogstav."
 
@@ -211,7 +209,7 @@ def init(nlp):
                     capital_change = explain.change("replace", token, explanation)
 
                     explain.insert_change(
-                        changes, i, split_i, capital_change, explanation
+                        changes, i + comma_i, split_i, capital_change, explanation
                     )
 
             if "," in token:
@@ -223,9 +221,11 @@ def init(nlp):
                 # TODO: The split hack.
                 if split_i is None or split_i == 1:
                     changes.insert(
-                        i + comma_i - (split_i or 0),
+                        i + 1 + comma_i,
                         explain.explain("add", "", change=",", explanation=explanation),
                     )
+                    comma_i += 1
+
                 else:
                     explain.insert_push_change(
                         changes,
@@ -237,11 +237,9 @@ def init(nlp):
                         explanation,
                     )
 
-                comma_i += 1
-
             elif "." in token:
                 changes.insert(
-                    i + comma_i,
+                    i + comma_i + 1,
                     explain.explain(
                         "add",
                         "",

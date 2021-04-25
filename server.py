@@ -155,11 +155,14 @@ def process(text: str) -> str:
     word_i = 0
     last = ""
     changes_cache = [*changes]  # TODO: Think of something smart.
+
     last_add = False
+    just_removed = False
 
     for i, (change, old) in enumerate(
         zip(changes_cache, parse_words_all_original(text))
     ):
+        just_removed = False
 
         # OWNERSHIP CHECK
         if (
@@ -169,9 +172,9 @@ def process(text: str) -> str:
             changes[i] = explain.explain("none", change["change"])
 
         if "," in old:
-            c = word_i == 0 and changes[0] or changes[word_i - 1]
+            c = changes[i + word_i]
 
-            if not (c["type"] == "add" and c["change"] == ","):
+            if not (c["type"] == "add" and c["change"] == ",") and not last_add:
                 abort_mission = False
                 if c["type"] == "split":
                     for change in c["change"]:
@@ -180,44 +183,54 @@ def process(text: str) -> str:
 
                 if not abort_mission:
                     changes.insert(
-                        word_i,
+                        i + word_i,
                         explain.change(
                             "remove", "", "Der skal ikke være et komma her.", ","
                         ),
                     )
 
-                word_i += 1
-            else:
-                word_i += 1
+                    # word_i += 1
+                    just_removed = True
+
         elif "," in old:
-            if not (word_i > 0 and changes[word_i - 1]["type"] != "add"):
+            if not (word_i > 0 and changes[word_i]["type"] != "add"):
 
                 changes.insert(
-                    word_i,
+                    i + word_i,
                     explain.change(
                         "remove", "", "Der skal ikke være et komma her.", ","
                     ),
                 )
-                word_i += 1
+                # word_i += 1
+                just_removed = True
 
-        if word_i < len(changes) and changes[word_i]["type"] == "add":
-            if changes[word_i]["change"] in ",.":
-                last = old
+        last_add = False
+        if change["type"] == "add" and change["change"] == ",":
+            last_add = True
 
-                continue
+        if i + word_i < len(changes):
+            if changes[i + word_i]["type"] == "add":
+                if changes[i + word_i]["change"] in ",.":
+                    last = old
 
-        word_i += 1
+                    continue
 
         if last not in "([{":
+            c = changes[i + word_i - 1]
+
+            if just_removed:  # c["type"] == "remove":
+                last = old
+                continue
+
             if "\n" in old:
                 changes.insert(
-                    word_i - 1,
+                    i + word_i,
                     explain.change("space", "\n", ""),
                 )
                 word_i += 1
             else:
                 changes.insert(
-                    word_i - 1,
+                    i + word_i,
                     explain.change("space", " ", ""),
                 )
                 word_i += 1
