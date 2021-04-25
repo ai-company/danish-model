@@ -25,6 +25,14 @@ def parse_words_and_quotes(phrase, split_space=False):
         return re.findall(r"(\w+|[().&\-'\"?!_\>\<\.])", phrase.lower())
 
 
+def parse_words_all(phrase, split_space=False):
+    # Also does commas for full comparison
+    if split_space:
+        return phrase.lower().split()
+    else:
+        return re.findall(r"(\w+|[().&\-'\"?!_\>\<\.,])", phrase.lower())
+
+
 def similarity(dist, length):
     return -1 if dist < 0 else 1.0 - dist / length
 

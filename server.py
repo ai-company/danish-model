@@ -14,7 +14,7 @@ from comma.clauses import flag_simple_listings
 from spell.spell import bake_spelling as spell_init
 from spell.grammar import init as grammar_init
 from spell.compound import compound_words
-from spell.util import parse_words_and_quotes
+from spell.util import parse_words_and_quotes, parse_words_all
 
 from pysbd.utils import PySBDFactory
 
@@ -68,12 +68,10 @@ sent_nlp.add_pipe(PySBDFactory(sent_nlp), first=True)
 
 def cache(c: str, text: str) -> dict:
     result = dict()
-    count = 0
 
     for i, token in enumerate(parse_words_and_quotes(text)):
         if token == '"':
-            count += 1
-            result[i - count] = True
+            result[i] = True
 
     return result
 
@@ -99,15 +97,17 @@ def process(text: str) -> str:
     # This is mostly for testing.
     result = ""
 
-    quote_map = cache('"', text)
-
     # Fix each sentence
     for sent in doc.sents:
-        if len(sent.string.strip()) == 0:
+        sent_text = sent.string.strip()
+
+        if len(sent_text) == 0:
             continue
 
+        quote_map = cache('"', sent_text)
+
         # TODO: Stripping and diffs?
-        spelled_text, changes = spell(sent.string.strip(), changes)
+        spelled_text, changes = spell(sent_text, changes)
 
         # Before compounding, we first need to clear simple colliding listings.
         # These will be removed commarization, but will serve as flags.
@@ -116,6 +116,12 @@ def process(text: str) -> str:
 
         pounded_text, changes = compound_words(spelled_text, changes, nlp)
         grammared_text, changes = grammar(pounded_text, changes)
+
+        for k in quote_map.keys():
+            changes.insert(
+                k,
+                explain.change("none", '"'),
+            )
 
         changes, final = ai(grammared_text, changes)
 
@@ -134,21 +140,11 @@ def process(text: str) -> str:
     # Resolve removed chars
     change_map = explain.change_map(changes)
 
-    quote_i = 0
-
-    for i, _ in enumerate(changes):
-        if quote_map.get(quote_i):
-            quote_i += 1
-            changes.insert(
-                quote_i + 1,
-                explain.change("none", '"'),
-            )
-
-        quote_i += 1
-
     word_i = 0
     last = ""
-    for i, (change, old) in enumerate(zip(changes, text.split(" "))):
+    changes_cache = changes.copy()  # TODO: Think of something smart.
+
+    for i, (change, old) in enumerate(zip(changes_cache, parse_words_all(text))):
         if "," in old and (word_i < len(changes) - 1 and changes[word_i + 1]):
             c = changes[word_i + 1]
 
