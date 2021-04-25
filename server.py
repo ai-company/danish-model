@@ -26,6 +26,7 @@ class ModelServer:
 
     def serve(self, handler: Callable[[str], str]) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((self.host, self.port))
             s.listen(1)
 
@@ -52,7 +53,7 @@ class ModelServer:
                     conn.sendall(bytes(handler(data), "utf-8"))
 
 
-PORT = int(os.environ.get("MODcapitalize_namesEL_PORT_DANISH") or 9000)
+PORT = int(os.environ.get("MODEL_PORT_DANISH") or 9000)
 HOST = os.environ.get("HOST") or "localhost"
 
 nlp = spacy.load("da_core_news_lg")
@@ -186,7 +187,7 @@ def process(text: str) -> str:
 
         last = old
 
-    return result, json.dumps(
+    return json.dumps(
         [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")
     )
 
@@ -194,9 +195,8 @@ def process(text: str) -> str:
 if __name__ == "__main__":
     if len(sys.argv) == 2 and sys.argv[1] == "test":
         while True:
-            result, explanations = process(input("> "))
+            explanations = process(input("> "))
 
-            print(f"==== {result}\n")
             print(explanations)
             print()
     else:
