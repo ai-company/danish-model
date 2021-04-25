@@ -172,24 +172,33 @@ def process(text: str) -> str:
             c = word_i == 0 and changes[0] or changes[word_i - 1]
 
             if not (c["type"] == "add" and c["change"] == ","):
-                changes.insert(
-                    word_i,
-                    explain.change(
-                        "remove", "", "Der skal ikke være et komma her.", ","
-                    ),
-                )
+                abort_mission = False
+                if c["type"] == "split":
+                    for change in c["change"]:
+                        if change["type"] == "add":
+                            abort_mission = True
+
+                if not abort_mission:
+                    changes.insert(
+                        word_i,
+                        explain.change(
+                            "remove", "", "Der skal ikke være et komma her.", ","
+                        ),
+                    )
+
                 word_i += 1
             else:
                 word_i += 1
         elif "," in old:
             if not (word_i > 0 and changes[word_i - 1]["type"] != "add"):
+
                 changes.insert(
                     word_i,
                     explain.change(
                         "remove", "", "Der skal ikke være et komma her.", ","
                     ),
                 )
-                word_i += 2
+                word_i += 1
 
         if word_i < len(changes) and changes[word_i]["type"] == "add":
             if changes[word_i]["change"] in ",.":

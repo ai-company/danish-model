@@ -227,13 +227,13 @@ def init(nlp):
                         explain.explain("add", "", change=",", explanation=explanation),
                     )
                 else:
-                    print("SPLIT_I: ", split_i)
-                    print()
                     explain.insert_push_change(
                         changes,
                         i,
                         split_i,
-                        explain.explain("add", "", change=",", explanation=explanation),
+                        explain.explain(
+                            "add", "", change=", ", explanation=explanation
+                        ),
                         explanation,
                     )
 
