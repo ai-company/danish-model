@@ -206,4 +206,9 @@ if __name__ == "__main__":
             print(explanations)
             print()
     else:
-        ModelServer(HOST, PORT).serve(process)
+
+        def _process(text: str):
+            _, changes = process(text)
+            return changes
+
+        ModelServer(HOST, PORT).serve(_process)
