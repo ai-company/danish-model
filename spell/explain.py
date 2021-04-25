@@ -101,7 +101,7 @@ def insert_change(changes, i, split_i, new_change, explanation):
             split_change = changes[i]["change"][split_i]
 
             if split_change["type"] == "none":
-                changes[i]["change"][split_i]["change"] = new_change
+                changes[i]["change"][split_i]["change"] = new_change["change"]
                 changes[i]["change"][split_i]["explain"] = new_change["explain"]
             else:
                 # If change is a list, explain is as well.
