@@ -148,10 +148,11 @@ def process(text: str) -> str:
     word_i = 0
     last = ""
     changes_cache = [*changes]  # TODO: Think of something smart.
+    last_add = False
 
     for i, (change, old) in enumerate(zip(changes_cache, parse_words_all(text))):
-        if "," in old and (word_i < len(changes) - 1 and changes[word_i + 1]):
-            c = changes[word_i + 1]
+        if "," in old:
+            c = word_i == 0 and changes[0] or changes[word_i - 1]
 
             if not (c["type"] == "add" and c["change"] == ","):
                 changes.insert(
@@ -163,30 +164,34 @@ def process(text: str) -> str:
                 word_i += 1
             else:
                 word_i += 1
-        elif "," in old and not word_i < len(changes):
-            changes.insert(
-                word_i,
-                explain.change("remove", "", "Der skal ikke være et komma her.", ","),
-            )
-            word_i += 2
+        elif "," in old:
+            if not (word_i > 0 and changes[word_i - 1]["type"] != "add"):
+                changes.insert(
+                    word_i,
+                    explain.change(
+                        "remove", "", "Der skal ikke være et komma her.", ","
+                    ),
+                )
+                word_i += 2
+
+        if word_i < len(changes) and changes[word_i]["type"] == "add":
+            if changes[word_i]["change"] in ",.":
+                last = old
+
+                continue
 
         word_i += 1
 
-        if word_i < len(changes) and changes[word_i]["type"] == "add":
-            if changes[word_i]["change"] == ".":
-                last = old
-                continue
-
-        if not last.isalnum():
+        if last not in "([{":
             if "\n" in old:
                 changes.insert(
-                    word_i,
+                    word_i - 1,
                     explain.change("space", "\n", ""),
                 )
                 word_i += 1
             else:
                 changes.insert(
-                    word_i,
+                    word_i - 1,
                     explain.change("space", " ", ""),
                 )
                 word_i += 1

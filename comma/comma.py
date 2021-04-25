@@ -183,6 +183,8 @@ def init(nlp):
             else:
                 result += "."
 
+        result = result.replace(",,", ",")
+
         explanations = explain.get_explanations(result, nlp)
 
         tokens = result.split()
@@ -216,12 +218,24 @@ def init(nlp):
                 explanation = "Der bør være et komma her."
 
                 if comma_i < len(explanations):
-                    explanation = explanations[comma_i]
+                    explanation = explanations[comma_i] or explanation
 
-                changes.insert(
-                    i + comma_i,
-                    explain.explain("add", change=",", explanation=explanation),
-                )
+                # TODO: The split hack.
+                if split_i is None or split_i == 1:
+                    changes.insert(
+                        i + comma_i - (split_i or 0),
+                        explain.explain("add", "", change=",", explanation=explanation),
+                    )
+                else:
+                    print("SPLIT_I: ", split_i)
+                    print()
+                    explain.insert_push_change(
+                        changes,
+                        i,
+                        split_i,
+                        explain.explain("add", "", change=",", explanation=explanation),
+                        explanation,
+                    )
 
                 comma_i += 1
 
@@ -230,6 +244,7 @@ def init(nlp):
                     i + comma_i,
                     explain.explain(
                         "add",
+                        "",
                         change=".",
                         explanation="Sætningen bør afsluttes med et punktum.",
                     ),

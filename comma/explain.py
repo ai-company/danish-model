@@ -370,33 +370,59 @@ def change_map(changes):
 
 
 def insert_change(changes, i, split_i, new_change, explanation):
-    if changes[i]["type"] == "split":
-        # if split_i is None:
-        #     split_i = len(changes[i]['change']) - 1
-
-        split_change = changes[i]["change"][split_i]
-
-        if split_change["type"] == "none":
-            changes[i]["change"][split_i]["change"] = new_change["change"]
-            changes[i]["change"][split_i]["explain"] = new_change["explain"]
-        else:
-            # If change is a list, explain is as well.
-            if type(split_change["explain"]) == str:
-                changes[i]["change"][split_i]["change"] = new_change["change"]
-
-                changes[i]["change"][split_i]["explain"] = [
-                    split_change["explain"],
-                    new_change["explain"],
-                ]
-            else:
-                changes[i]["change"][split_i]["change"] = new_change["change"]
-                changes[i]["change"][split_i]["explain"].append(explanation)
-    elif type(changes[i]["explain"]) == str:
+    if changes[i]["type"] == "none":
+        changes[i]["type"] = "replace"
         changes[i]["change"] = new_change["change"]
-        changes[i]["explain"] = [changes[i]["explain"], new_change["explain"]]
+        changes[i]["explain"] = explanation
     else:
+        if changes[i]["type"] == "replace":
+            changes[i]["change"] = new_change["change"]
+            if type(changes[i]["explain"]) == str:
+                changes[i]["explain"] = [changes[i]["explain"], new_change["explain"]]
+            else:
+                changes[i]["explain"].append(new_change["explain"])
+
+        else:
+            # if split_i is None:
+            #     split_i = len(changes[i]['change']) - 1
+
+            split_change = changes[i]["change"][split_i]
+
+            if split_change["type"] == "none":
+                changes[i]["change"][split_i]["change"] = new_change["change"]
+                changes[i]["change"][split_i]["explain"] = new_change["explain"]
+            else:
+                # If change is a list, explain is as well.
+                if type(split_change["explain"]) == str:
+                    changes[i]["change"][split_i]["change"] = new_change["change"]
+
+                    changes[i]["change"][split_i]["explain"] = [
+                        split_change["explain"],
+                        new_change["explain"],
+                    ]
+                else:
+                    changes[i]["change"][split_i]["change"] = new_change["change"]
+                    changes[i]["change"][split_i]["explain"].append(explanation)
+
+
+def insert_push_change(changes, i, split_i, new_change, explanation):
+    if changes[i]["type"] == "none":
+        changes[i]["type"] = "replace"
         changes[i]["change"] = new_change["change"]
-        changes[i]["explain"].append(new_change["explain"])
+        changes[i]["explain"] = explanation
+    else:
+        if changes[i]["type"] == "replace":
+            changes[i]["change"] = new_change["change"]
+            if type(changes[i]["explain"]) == str:
+                changes[i]["explain"] = [changes[i]["explain"], new_change["explain"]]
+            else:
+                changes[i]["explain"].append(new_change["explain"])
+
+        else:
+            # if split_i is None:
+            #     split_i = len(changes[i]['change']) - 1
+
+            changes[i]["change"].insert(split_i + 1, new_change)
 
 
 if __name__ == "__main__":
