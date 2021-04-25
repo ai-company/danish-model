@@ -189,7 +189,7 @@ def process(text: str) -> str:
 
         last = old
 
-    return json.dumps(
+    return result, json.dumps(
         [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")
     )
 
