@@ -142,7 +142,7 @@ def process(text: str) -> str:
 
     word_i = 0
     last = ""
-    changes_cache = changes.copy()  # TODO: Think of something smart.
+    changes_cache = [*changes]  # TODO: Think of something smart.
 
     for i, (change, old) in enumerate(zip(changes_cache, parse_words_all(text))):
         if "," in old and (word_i < len(changes) - 1 and changes[word_i + 1]):
