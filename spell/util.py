@@ -15,14 +15,18 @@ def parse_words(phrase, split_space=False):
     if split_space:
         return phrase.lower().split()
     else:
-        return re.findall(r"(\w+|[().&\-'?!_\>\<])", phrase.lower())
+        return re.findall(
+            r"(\w+|[()\[\]{}/_:\|~+\*\^@$#£\.&\-'?!_\>\<])", phrase.lower()
+        )
 
 
 def parse_words_and_quotes(phrase, split_space=False):
     if split_space:
         return phrase.lower().split()
     else:
-        return re.findall(r"(\w+|[().&\-'\"?!_\>\<\.])", phrase.lower())
+        return re.findall(
+            r"(\w+|[()\[\]{}/_:\|~+\*\^@$#£\.&\-'?!_\>\<])", phrase.lower()
+        )
 
 
 def parse_words_all(phrase, split_space=False):
@@ -30,7 +34,9 @@ def parse_words_all(phrase, split_space=False):
     if split_space:
         return phrase.lower().split()
     else:
-        return re.findall(r"(\w+|[().&\-'\"?!_\>\<\.,])", phrase.lower())
+        return re.findall(
+            r"(\w+|[()\[\]{}/_:\|~+\*\^@$#£\.&\-'?!_\>\<,])", phrase.lower()
+        )
 
 
 def similarity(dist, length):

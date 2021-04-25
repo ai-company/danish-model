@@ -318,7 +318,7 @@ def explain(type, original=None, change=None, explanation=None):
     return result
 
 
-def change(type, change, explanation=None):
+def change(type, change, explanation=None, origin=""):
     if type in ["none", "space"]:
         return {
             "type": type,
@@ -327,6 +327,7 @@ def change(type, change, explanation=None):
 
     result = {
         "type": type,
+        "origin": origin,
         "change": change,
     }
 

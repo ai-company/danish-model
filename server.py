@@ -127,7 +127,9 @@ def process(text: str) -> str:
 
         sent_changes, final = ai(grammared_text, sent_changes)
 
-        final = final.replace(",,", ",")
+        final = final.replace(",,", ",").replace(
+            ", ,", ","
+        )  # TODO: Look at this (with eyes)
 
         result += " " + final
         changes += sent_changes
@@ -153,16 +155,18 @@ def process(text: str) -> str:
 
             if not (c["type"] == "add" and c["change"] == ","):
                 changes.insert(
-                    word_i + 1,
-                    explain.change("remove", ",", "Der skal ikke være et komma her."),
+                    word_i,
+                    explain.change(
+                        "remove", "", "Der skal ikke være et komma her.", ","
+                    ),
                 )
                 word_i += 1
             else:
                 word_i += 1
         elif "," in old and not word_i < len(changes):
             changes.insert(
-                word_i + 1,
-                explain.change("remove", ",", "Der skal ikke være et komma her."),
+                word_i,
+                explain.change("remove", "", "Der skal ikke være et komma her.", ","),
             )
             word_i += 2
 
@@ -173,7 +177,7 @@ def process(text: str) -> str:
                 last = old
                 continue
 
-        if last not in ['"', "("]:
+        if not last.isalnum():
             if "\n" in old:
                 changes.insert(
                     word_i,
@@ -189,7 +193,7 @@ def process(text: str) -> str:
 
         last = old
 
-    return json.dumps(
+    return result, json.dumps(
         [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")
     )
 
