@@ -77,6 +77,12 @@ def cache(c: str, text: str) -> dict:
     return result
 
 
+def is_nospace(change) -> bool:
+    return (change["type"] == "none" and change["origin"] in ",.") or (
+        change["type"] == "replace" and change["change"] in ",."
+    )
+
+
 def process(text: str) -> str:
     """
     Takes a cluster of danish text and fixes it.
@@ -166,10 +172,9 @@ def process(text: str) -> str:
 
         # OWNERSHIP CHECK
         if (
-            change["type"] == "replace"
-            and "stort begyndelsesbogstav" in change["explain"]
+            change["type"] == "replace" and "begyndelsesbogstav" in change["explain"]
         ) and old[0].lower() != old[0]:
-            changes[i] = explain.explain("none", change["change"])
+            changes[i + word_i] = explain.explain("none", change["change"])
 
         if "," in old:
             c = changes[i + word_i]
@@ -205,21 +210,23 @@ def process(text: str) -> str:
                 just_removed = True
 
         last_add = False
+
         if change["type"] == "add" and change["change"] == ",":
             last_add = True
 
         if i + word_i < len(changes):
-            if changes[i + word_i]["type"] == "add":
-                if changes[i + word_i]["change"] in ",.":
-                    last = old
+            if is_nospace(changes[i + word_i]):
+                last = old
+                continue
 
-                    continue
+        # if is_nospace(changes[i + word_i]):
+        #     last = old
+        #     continue
 
         if last not in "([{":
-            c = changes[i + word_i - 1]
-
             if just_removed:  # c["type"] == "remove":
                 last = old
+
                 continue
 
             if "\n" in old:
