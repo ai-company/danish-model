@@ -156,11 +156,15 @@ def compound_words(text, changes, nlp) -> str:
 
                         if c in compounds:
                             # Compounds are inflected by their last element.
-                            right_inflected = inflect_func(
-                                other,
-                                lemma=right,
-                                **kwargs,
-                            )
+                            if inflect_func is not None:
+                                right_inflected = inflect_func(
+                                    other,
+                                    lemma=right,
+                                    **kwargs,
+                                )
+                            else:
+                                right_inflected = other.text
+
                             compound = c.replace(right, right_inflected)
 
                             if go.dep == "root" and nlp(compound)[0].pos_ != "VERB":

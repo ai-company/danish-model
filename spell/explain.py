@@ -5,7 +5,14 @@ def explain(ctype, original, correct=None, explanation=None):
             "origin": original,
         }
     elif ctype == "split" and type(correct) == str:
-        correct = [change("none", t) for t in list(correct.split(" "))]
+        correct = []
+        parts = correct.split(" ")
+
+        for i, t in enumerate(parts):
+            if i < len(parts) - 1:
+                t += " "
+
+            correct.append(change("none", t))
 
     result = {
         "type": ctype,

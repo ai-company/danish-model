@@ -137,7 +137,7 @@ def process(text: str) -> str:
             ", ,", ","
         )  # TODO: Look at this (with eyes)
 
-        if (
+        if len(sent_changes) > 0 and (
             sent_changes[-1]["type"] == "add"
             and sent_changes[-1]["change"] == "."
             and text.strip()[-1] == "."
