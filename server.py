@@ -35,7 +35,7 @@ class ModelServer:
 
                 with conn:
                     conn.setblocking(0)
-                    data = ""
+                    data = b""
 
                     while True:
                         try:
@@ -44,13 +44,15 @@ class ModelServer:
                             if not piece:
                                 break
 
-                            data += piece.decode("utf-8")
+                            data += piece
                         except BlockingIOError as e:
                             break
                         except Exception as e:
                             traceback.print_exc()
 
-                    conn.sendall(bytes(handler(data), "utf-8"))
+                    conn.sendall(
+                        bytes(handler(data.decode("utf-8", "ignore")), "utf-8")
+                    )
 
 
 PORT = int(os.environ.get("MODEL_PORT_DANISH") or 9000)
