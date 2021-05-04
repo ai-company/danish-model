@@ -178,9 +178,16 @@ def process(text: str) -> str:
         ) and old[0].lower() != old[0]:
             changes[i + word_i] = explain.explain("none", change["change"])
 
-        if "," in old:
-            c = changes[i + word_i]
+        c1 = changes[i + word_i]
 
+        if c1["type"] == "add" and c1["change"] == ",":
+            if changes[i + word_i]["type"] == "space":
+                del changes[i + word_i]
+                word_i -= 1
+
+        c = changes[i + word_i]
+
+        if "," in old:
             if not (c["type"] == "add" and c["change"] == ",") and not last_add:
                 abort_mission = False
                 if c["type"] == "split":
@@ -225,7 +232,7 @@ def process(text: str) -> str:
         #     last = old
         #     continue
 
-        if last not in "([{":
+        if last not in "([{" and not (c1["type"] == "add" and c1["change"] == ","):
             if just_removed:  # c["type"] == "remove":
                 last = old
 

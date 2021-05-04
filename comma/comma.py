@@ -220,12 +220,15 @@ def init(nlp):
 
                 # TODO: The split hack.
                 if split_i is None or split_i == 1:
-                    changes.insert(
-                        i + 1 + comma_i,
-                        explain.explain("add", "", change=",", explanation=explanation),
-                    )
+                    c = changes[i + 1 + comma_i]
+                    if not (c["type"] == "add" and c["change"] == ","):
+                        changes.insert(
+                            i + 1 + comma_i,
+                            explain.explain(
+                                "add", "", change=",", explanation=explanation
+                            ),
+                        )
                     comma_i += 1
-
                 else:
                     explain.insert_push_change(
                         changes,
