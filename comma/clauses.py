@@ -23,7 +23,12 @@ def insert_simple_listings(tokens, result=[], changes=None):
                     if alter_changes:
                         changes.insert(
                             index,
-                            explain.change("add", ",", "Tilføj opremsningskomma."),
+                            explain.explain(
+                                "add",
+                                "",
+                                change=",",
+                                explanation="Tilføj opremsningskomma.",
+                            ),
                         )
                     result.insert(index, ",")
 

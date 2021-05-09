@@ -1,3 +1,5 @@
+from traceback_with_variables import activate_by_import, prints_exc
+
 import socket
 import os
 import traceback
@@ -80,11 +82,18 @@ def cache(c: str, text: str) -> dict:
 
 
 def is_nospace(change) -> bool:
-    return (change["type"] == "none" and change["origin"] in ",.") or (
-        change["type"] == "replace" and change["change"] in ",."
+    return (
+        (change["type"] == "none" and change["origin"] in ",.")
+        or (change["type"] == "replace" and change["change"] in ",.")
+        or (change["type"] == "add" and change["change"] in ",.")
     )
 
 
+def no_spaces(a):
+    return a["type"] != "space"
+
+
+@prints_exc
 def process(text: str) -> str:
     """
     Takes a cluster of danish text and fixes it.
@@ -167,16 +176,10 @@ def process(text: str) -> str:
     last_add = False
     just_removed = False
 
-    for i, (change, old) in enumerate(
-        zip(changes_cache, parse_words_all_original(text))
-    ):
-        just_removed = False
+    old_text_parts = parse_words_all_original(text)
 
-        # OWNERSHIP CHECK
-        if (
-            change["type"] == "replace" and "begyndelsesbogstav" in change["explain"]
-        ) and old[0].lower() != old[0]:
-            changes[i + word_i] = explain.explain("none", change["change"])
+    for i, (change, old) in enumerate(zip(changes_cache, old_text_parts)):
+        just_removed = False
 
         c1 = changes[i + word_i]
 
@@ -188,7 +191,7 @@ def process(text: str) -> str:
         c = changes[i + word_i]
 
         if "," in old:
-            if not (c["type"] == "add" and c["change"] == ",") and not last_add:
+            if not (c["type"] == "add" and c["change"] == ","):
                 abort_mission = False
                 if c["type"] == "split":
                     for change in c["change"]:
@@ -203,7 +206,15 @@ def process(text: str) -> str:
                         ),
                     )
 
-                    # word_i += 1
+                    word_i += 1
+
+                    changes.insert(
+                        i + word_i,
+                        explain.change("space", " ", ""),
+                    )
+
+                    continue
+
                     just_removed = True
 
         elif "," in old:
@@ -215,27 +226,37 @@ def process(text: str) -> str:
                         "remove", "", "Der skal ikke være et komma her.", ","
                     ),
                 )
-                # word_i += 1
-                just_removed = True
 
-        last_add = False
+                word_i += 1
+
+                changes.insert(
+                    i + word_i,
+                    explain.change("space", " ", ""),
+                )
+
+                continue
+
+                just_removed = True
 
         if change["type"] == "add" and change["change"] == ",":
             last_add = True
 
+    word_i = 0
+
+    for i, change in enumerate(changes_cache):
+        c1 = changes[i + word_i]
+
         if i + word_i < len(changes):
             if is_nospace(changes[i + word_i]):
-                last = old
+                last = "origin" in change and change["origin"] or change["change"]
                 continue
 
-        # if is_nospace(changes[i + word_i]):
-        #     last = old
-        #     continue
-
-        if last not in "([{" and not (c1["type"] == "add" and c1["change"] == ","):
-            if just_removed:  # c["type"] == "remove":
-                last = old
-
+        if last not in "([{" and not (c1["type"] == "add" and "," in c1["change"]):
+            if (
+                changes[i + word_i - 1]["type"] == "remove"
+                or changes[i + word_i - 1]["type"] == "space"
+            ):
+                last = "origin" in change and change["origin"] or change["change"]
                 continue
 
             if "\n" in old:
@@ -251,7 +272,28 @@ def process(text: str) -> str:
                 )
                 word_i += 1
 
-        last = old
+        last = "origin" in change and change["origin"] or change["change"]
+
+        if type(last) == list:
+            last = last[-1]
+
+    old_offset = 0
+
+    for i, change in enumerate(changes):
+        if i - old_offset < len(old_text_parts):
+            old = old_text_parts[i - old_offset]
+
+            if change["type"] == "space":
+                old_offset += 1
+
+            if (
+                change["type"] == "replace"
+                and "begyndelsesbogstav" in change["explain"]
+            ) and old[0].lower() != old[0]:
+                changes[i] = explain.explain("none", change["change"])
+
+            if change["type"] == "add" and change["change"] == "," and old == ",":
+                change[i] = explain.explain("none", ",")
 
     return result, json.dumps(
         [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")

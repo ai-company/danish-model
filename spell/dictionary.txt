@@ -13231,6 +13231,7 @@ indlægssedlen 2768
 testes 2767
 hæk 2767
 klassificeret 2767
+klassificerer 2000
 følgere 2767
 udpegede 2766
 patientinformation 2766

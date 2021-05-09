@@ -5,7 +5,7 @@ import sys
 from os.path import join, dirname
 import collections
 import json
-
+import re
 import tensorflow as tf
 import numpy as np
 import spacy
@@ -13,6 +13,13 @@ from pysbd.utils import PySBDFactory
 
 from . import convert, explain, model, data, clauses
 from .config import MINIBATCH_SIZE
+
+
+def parse_words(phrase, split_space=False):
+    if split_space:
+        return phrase.split()
+    else:
+        return re.findall(r"(\w+|[()\[\]{}/_:\|~+\*\^@$#£\.&\-'?!_\>\<])", phrase)
 
 
 def make_tag(t):
@@ -203,7 +210,7 @@ def init(nlp):
 
                 if changes[i]["type"] == "none":
                     changes[i]["type"] = "replace"
-                    changes[i]["change"] = token
+                    changes[i]["change"] = parse_words(token)[0]
                     changes[i]["explain"] = explanation
                 else:
                     capital_change = explain.change("replace", token, explanation)

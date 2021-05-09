@@ -377,6 +377,7 @@ def insert_change(changes, i, split_i, new_change, explanation):
     else:
         if changes[i]["type"] == "replace":
             changes[i]["change"] = new_change["change"]
+
             if type(changes[i]["explain"]) == str:
                 changes[i]["explain"] = [changes[i]["explain"], new_change["explain"]]
             else:
