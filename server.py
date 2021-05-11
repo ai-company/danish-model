@@ -242,6 +242,7 @@ def process(text: str) -> str:
             last_add = True
 
     word_i = 0
+    changes_cache = [*changes]  # TODO: Think of something smart. #2
 
     for i, change in enumerate(changes_cache):
         c1 = changes[i + word_i]

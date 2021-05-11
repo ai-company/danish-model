@@ -148,7 +148,6 @@ def fix_typo(word):
 def explain_none(changes, i, change, explain):
     changes[i]["type"] = "replace"
     changes[i]["change"] = changes[i]["origin"]
-    print("WHAT", change)
     changes[i]["origin"] = change
     changes[i]["explain"] = explain
 
