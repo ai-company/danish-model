@@ -294,7 +294,7 @@ def process(text: str) -> str:
                 changes[i] = explain.explain("none", change["change"])
 
             if change["type"] == "add" and change["change"] == "," and old == ",":
-                change[i] = explain.explain("none", ",")
+                changes[i] = explain.explain("none", ",")
 
     return result, json.dumps(
         [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")

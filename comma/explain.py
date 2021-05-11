@@ -413,14 +413,18 @@ def insert_push_change(changes, i, split_i, new_change, explanation):
         changes[i]["explain"] = explanation
     elif changes[i]["type"] == "replace":
         changes[i]["change"] = new_change["change"]
+
         if type(changes[i]["explain"]) == str:
             changes[i]["explain"] = [changes[i]["explain"], new_change["explain"]]
         else:
             changes[i]["explain"].append(new_change["explain"])
+
     elif changes[i]["type"] == "split":
+
         changes[i]["change"][split_i]["change"] = changes[i]["change"][split_i][
             "change"
         ].split()
+
         changes[i]["change"].insert(split_i + 1, new_change)
 
 
