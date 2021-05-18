@@ -373,38 +373,76 @@ def at_og_fixer(unmasker, first_doc, text, changes) -> str:
         - text: The corrected text.
         - changes: The updated changes.
     """
+    mask_stack = []
+    backup_stack = []
     tokens_masked = []
+
     last_inf = False
-    mask_i = None
+    mask_is = []
 
-    for i, token in enumerate(first_doc):
-        if token.pos_ == "VERB" and "inf" in token.morph.verb_form_:
-            last_inf = True
-            tokens_masked.append(token.text)
-        else:
-            if token.text.lower() == "og" and last_inf:
-                tokens_masked.append("[MASK]")
-                mask_i = i
-            else:
+    count = sum([bool(t.text in ["at", "og"]) for t in first_doc])
+
+    for i_round in range(0, count):
+        passed = 0
+        tokens_masked = []
+
+        for i, token in enumerate(first_doc):
+            if token.pos_ == "VERB" and "inf" in token.morph.verb_form_:
+                last_inf = True
                 tokens_masked.append(token.text)
+            else:
+                if token.text.lower() == "og" and last_inf:
+                    if passed == i_round:
+                        tokens_masked.append("[MASK]")
+                        mask_is.append(i)
+                        backup_stack.append(token.text)
+                    else:
+                        tokens_masked.append(token.text)
+                    passed += 1
+                else:
+                    tokens_masked.append(token.text)
 
-            last_inf = False
+                last_inf = False
 
-    if mask_i:
-        text_masked = " ".join(tokens_masked).replace(" ,", ",").replace(" .", ".")
+        mask_stack.append(tokens_masked)
 
-        tokens = [x["token_str"] for x in unmasker(text_masked)]
-        correct = tokens[0]
+    if len(mask_stack) > 0:
+        final_mask = mask_stack[0].copy()
 
-        explain.append_change(
-            changes,
-            mask_i,
-            explain.change("change", correct, 'Forkert brug af "og".'),
-        )
+        if len(mask_is) > 0:
+            final_mask[mask_is[0]] = backup_stack[0]
 
-        tokens_masked[mask_i] = correct
+        for i, mask_i in enumerate(mask_is):
+            tokens_masked, backup = mask_stack[i], backup_stack[i]
+            text_masked = " ".join(tokens_masked).replace(" ,", ",").replace(" .", ".")
 
-        text = " ".join(tokens_masked).replace(" ,", ",").replace(" .", ".")
+            tokens = list(
+                filter(
+                    lambda t: t in ["at", "og"],
+                    [x["token_str"] for x in unmasker(text_masked)],
+                )
+            )
+
+            if len(tokens) > 0:
+                correct = tokens[0]
+
+                explain.append_change(
+                    changes,
+                    mask_i,
+                    explain.change("change", correct, f'Forkert brug af "og".'),
+                )
+
+                try:
+
+                    final_mask[mask_i] = correct
+                except:
+                    import pdb
+
+                    pdb.set_trace()
+            else:
+                final_mask[mask_i] = backup
+
+        text = " ".join(final_mask).replace(" ,", ",").replace(" .", ".")
 
     return text, changes
 
