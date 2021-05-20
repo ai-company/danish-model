@@ -420,10 +420,14 @@ def insert_push_change(changes, i, split_i, new_change, explanation):
             changes[i]["explain"].append(new_change["explain"])
 
     elif changes[i]["type"] == "split":
+        # try:
+        #     changes[i]["change"][split_i]["change"] = changes[i]["change"][split_i][
+        #         "change"
+        #     ].split()
+        # except:
+        #     import pdb
 
-        changes[i]["change"][split_i]["change"] = changes[i]["change"][split_i][
-            "change"
-        ].split()
+        #     pdb.set_trace()
 
         changes[i]["change"].insert(split_i + 1, new_change)
 
