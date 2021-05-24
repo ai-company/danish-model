@@ -162,7 +162,7 @@ def bake_spelling():
 
         Returns:
             - result: The fixed text.
-            - changes: An incremental changelog of what and how.
+            - diff: An incremental changelog of what and how.
         """
 
         # TODO: Cache things.

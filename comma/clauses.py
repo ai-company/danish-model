@@ -1,4 +1,5 @@
 from . import explain
+from diff_token import DiffToken
 
 LISTING_TERMINATORS = ["og", "eller", "samt", "plus", "osv.", "m.fl.", "etc.", ""]
 
@@ -13,6 +14,14 @@ def insert_simple_listings(tokens, result=[], changes=None):
     sequence_root = None
     sequence_indices = []
 
+    new_diff = changes[:]
+    offset = 0
+
+    # TODO: Redo in a functional and nice manner.
+    # - Don't mutate the list we are iterating.
+    # - Use look-ahead for the sequence pattern.
+    # - If a match is found, add commas at the proper seq-interval.
+
     for i, token in enumerate(tokens):
         if sequence_root is None:
             sequence_root = token.pos_
@@ -21,16 +30,24 @@ def insert_simple_listings(tokens, result=[], changes=None):
             if sequence_root and cleaned in LISTING_TERMINATORS:
                 for index in sequence_indices:
                     if alter_changes:
-                        changes.insert(
-                            index,
-                            explain.explain(
-                                "add",
+                        new_diff.insert(
+                            index + offset,
+                            DiffToken(
+                                ",",
                                 "",
-                                change=",",
-                                explanation="Tilføj opremsningskomma.",
+                                "punctuation",
+                                new_diff[index + offset].index,
+                                ["Tilføj opremsningskomma."],
+                                new_diff[index + offset].space,
                             ),
                         )
-                    result.insert(index, ",")
+
+                        new_diff[index + offset - 1].space = ""
+                        print(
+                            f'"{new_diff[index + offset - 1].space}": {new_diff[index + offset - 1].text}',
+                            f'"{new_diff[index + offset].space}": {new_diff[index + offset].text}',
+                        )
+                        offset += 1
 
                 sequence_root = None
                 sequence_indices = []
@@ -41,17 +58,24 @@ def insert_simple_listings(tokens, result=[], changes=None):
             else:
                 sequence_indices.append(i)
 
-    return result
+    result = ""
+
+    for token in new_diff:
+        result += token.text + token.space
+
+    return new_diff, result
 
 
-def flag_simple_listings(tokens, changes):
-    result = insert_simple_listings(tokens, [t.text for t in tokens], changes)
+def flag_simple_listings(diff, text, nlp):
+    tokens = nlp(text)
+    result_diff, result_text = insert_simple_listings(
+        tokens, [t.text for t in tokens], diff
+    )
 
-    foo = result.copy()
+    # TODO: Double comma hack.
+    result_text = result_text.replace(", ,", ",")
 
-    result = " ".join(result).replace(", ,", ",").replace(" ,", ",")
-
-    return result
+    return result_diff, result_text
 
 
 def heuristics(tokens):
