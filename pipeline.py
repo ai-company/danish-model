@@ -1,4 +1,5 @@
-from diff_token import DiffToken
+from pprint import pprint
+from diff_token import DiffToken, DiffTokenType
 
 import spacy
 import re
@@ -26,26 +27,20 @@ def tokenize(phrase, split_space=False):
     tokens = []
     for i, token in enumerate(
         re.finditer(
-            r"(?P<number>[0-9]+([,.][0-9]+)*)|(?P<word>\w+)|(?P<space>\t|\n|\s+)|(?P<punctuation>\W)",
+            r"(?P<NUMB>[0-9]+([,.][0-9]+)*)|(?P<WORD>\w+)|(?P<SPAC>\t|\n|\s+)|(?P<PUNC>\W)",
             phrase,
         )
     ):
-        type = list(
-            {k: v for k, v in token.groupdict().items() if v is not None}.keys()
-        )[0]
+        type = DiffTokenType[
+            list({k: v for k, v in token.groupdict().items() if v is not None}.keys())[
+                0
+            ]
+        ]
 
-        if type == "space":
+        if type == DiffTokenType.SPAC:
             tokens[-1].space = token.group(0)
         else:
-            tokens.append(
-                DiffToken(
-                    token.group(0),
-                    token.group(0),
-                    type,
-                    i,
-                    [],
-                )
-            )
+            tokens.append(DiffToken(token.group(0), token.group(0), type, i))
 
     for i, token in enumerate(tokens):
         token.index = i
@@ -77,9 +72,7 @@ def process(text):
         diff, text = flag_simple_listings(diff, text, sent_nlp)
         diff_history.append(diff)
 
-        import pdb
-
-        pdb.set_trace()
+        pprint(text)
 
         # diff, text = compound_words(diff, text)
         # diff_history.append(diff)
@@ -90,4 +83,5 @@ def process(text):
         # diff, text = commas(diff, text)
         # diff_history.append(diff)
 
+    pprint(diff_history)
     return diff_history

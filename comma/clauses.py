@@ -1,5 +1,9 @@
+from typing import Sequence
 from . import explain
-from diff_token import DiffToken
+from diff_token import *
+from pprint import pprint
+from itertools import chain, islice, tee
+from copy import copy, deepcopy
 
 LISTING_TERMINATORS = ["og", "eller", "samt", "plus", "osv.", "m.fl.", "etc.", ""]
 
@@ -8,69 +12,71 @@ def clean_token_text(text):
     return text.replace(",", "").replace(".", "").replace(";", "").strip()
 
 
-def insert_simple_listings(tokens, result=[], changes=None):
-    alter_changes = changes is not None
-
-    sequence_root = None
-    sequence_indices = []
-
-    new_diff = changes[:]
-    offset = 0
-
-    # TODO: Redo in a functional and nice manner.
-    # - Don't mutate the list we are iterating.
-    # - Use look-ahead for the sequence pattern.
-    # - If a match is found, add commas at the proper seq-interval.
+def spacy_to_canon(tokens):
+    canon = []
 
     for i, token in enumerate(tokens):
-        if sequence_root is None:
-            sequence_root = token.pos_
+        if token.pos_ == "SPACE":
+            canon[-1].space += token.text
         else:
-            cleaned = clean_token_text(token.text.lower())
-            if sequence_root and cleaned in LISTING_TERMINATORS:
-                for index in sequence_indices:
-                    if alter_changes:
-                        new_diff.insert(
-                            index + offset,
-                            DiffToken(
-                                ",",
-                                "",
-                                "punctuation",
-                                new_diff[index + offset].index,
-                                ["Tilføj opremsningskomma."],
-                                new_diff[index + offset].space,
-                            ),
-                        )
+            canon.append(
+                DiffToken(
+                    token.text,
+                    token.text,
+                    DiffTokenType.from_pos(token.pos_),
+                    i,
+                    [],
+                    token.whitespace_,
+                    token.pos_,
+                )
+            )
 
-                        new_diff[index + offset - 1].space = ""
-                        print(
-                            f'"{new_diff[index + offset - 1].space}": {new_diff[index + offset - 1].text}',
-                            f'"{new_diff[index + offset].space}": {new_diff[index + offset].text}',
-                        )
-                        offset += 1
+    return canon
 
-                sequence_root = None
-                sequence_indices = []
 
-            if token.pos_ != sequence_root and cleaned not in LISTING_TERMINATORS:
-                sequence_root = token.pos_
-                sequence_indices = []
-            else:
-                sequence_indices.append(i)
+def insert_simple_listings(tokens, changes=None):
+    explanation = ["Tilføj opremsningskomma."]
+    new_diff = []
 
-    result = ""
+    tokens = spacy_to_canon(tokens)
 
-    for token in new_diff:
-        result += token.text + token.space
+    # TODO: map new diff to old diff
 
-    return new_diff, result
+    # look for a sequence of equal TYPE (pos_) ending with a LISTING_TERMINATOR
+    i = 0
+    while i < len(tokens):
+        sequence_type = tokens[i].pos_
+        from_ = to_ = i
+
+        # look ahead for sequence with same word classes
+        while to_ < (len(tokens) - 1) and tokens[to_].pos_ == sequence_type:
+            to_ += 1
+
+        # if the sequence ended on a terminator, add commas
+        if tokens[to_].text in LISTING_TERMINATORS:
+            commas = []
+
+            for i, t in zip(range(from_, to_), tokens[from_:to_]):
+                commas.append(t.stripped() if i < to_ - 1 else t)
+                commas.append(DiffPunc(",", t.index, explanation, t.space))
+
+            # drop last extraneous comma, because everything's in pairs
+            new_diff.extend(commas[:-1])
+
+            i = to_
+        else:
+            # if not a sequence, just keep the token
+            new_diff.append(tokens[i])
+            i += 1
+
+    new_text = "".join(map(lambda t: t.text + t.space, new_diff))
+
+    return new_diff, new_text
 
 
 def flag_simple_listings(diff, text, nlp):
     tokens = nlp(text)
-    result_diff, result_text = insert_simple_listings(
-        tokens, [t.text for t in tokens], diff
-    )
+    result_diff, result_text = insert_simple_listings(tokens, diff)
 
     # TODO: Double comma hack.
     result_text = result_text.replace(", ,", ",")
