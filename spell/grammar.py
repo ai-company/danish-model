@@ -1,3 +1,5 @@
+from pprint import pprint
+from diff_token import DiffToken
 import spacy
 import lemmy
 import os
@@ -658,9 +660,11 @@ def grammar_tree(token):
 
 
 def init(unmasker, nlp):
-    def fix(text, changes=[]):
+    def fix(diff=[], text=""):
 
         first_doc = nlp(text)
+        changes = list(map(DiffToken.to_dict, diff))
+
         text, changes = at_og_fixer(unmasker, first_doc, text, changes)
         text, changes = af_ad_fixer(unmasker, first_doc, text, changes)
 
@@ -731,6 +735,7 @@ def init(unmasker, nlp):
             if go.pos == "propn":
                 result_fix_map[go.i] = capitalize_name(go, changes, i, split_i)
 
+        pprint(result)
         # print()
         # draw_tree(doc)
         # print()
@@ -738,7 +743,13 @@ def init(unmasker, nlp):
         for i, word in result_fix_map.items():
             result[i] = word
 
-        return " ".join(result), changes
+        changes = list(map(DiffToken.from_dict, changes))
+        for i, change in enumerate(changes):
+            # copy down space because grammar eats it
+            change.lexeme.space = diff[i].lexeme.space
+            change.index = i
+
+        return changes, "".join(map(lambda t: t.lexeme.text + t.lexeme.space, changes))
 
     return fix
 

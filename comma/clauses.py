@@ -1,7 +1,6 @@
 from typing import Sequence
 from . import explain
 from diff_token import *
-from pprint import pprint
 from itertools import chain, islice, tee
 from copy import copy, deepcopy
 
@@ -12,53 +11,31 @@ def clean_token_text(text):
     return text.replace(",", "").replace(".", "").replace(";", "").strip()
 
 
-def spacy_to_canon(tokens):
-    canon = []
-
-    for i, token in enumerate(tokens):
-        if token.pos_ == "SPACE":
-            canon[-1].space += token.text
-        else:
-            canon.append(
-                DiffToken(
-                    token.text,
-                    token.text,
-                    DiffTokenType.from_pos(token.pos_),
-                    i,
-                    [],
-                    token.whitespace_,
-                    token.pos_,
-                )
-            )
-
-    return canon
-
-
 def insert_simple_listings(tokens, changes=None):
     explanation = ["Tilføj opremsningskomma."]
     new_diff = []
 
-    tokens = spacy_to_canon(tokens)
+    tokens = DiffToken.from_spacy_list(tokens)
 
     # TODO: map new diff to old diff
 
     # look for a sequence of equal TYPE (pos_) ending with a LISTING_TERMINATOR
     i = 0
     while i < len(tokens):
-        sequence_type = tokens[i].pos_
+        sequence_type = tokens[i].lexeme.pos_
         from_ = to_ = i
 
         # look ahead for sequence with same word classes
-        while to_ < (len(tokens) - 1) and tokens[to_].pos_ == sequence_type:
+        while to_ < (len(tokens) - 1) and tokens[to_].lexeme.pos_ == sequence_type:
             to_ += 1
 
         # if the sequence ended on a terminator, add commas
-        if tokens[to_].text in LISTING_TERMINATORS:
+        if tokens[to_].lexeme.text in LISTING_TERMINATORS:
             commas = []
 
             for i, t in zip(range(from_, to_), tokens[from_:to_]):
                 commas.append(t.stripped() if i < to_ - 1 else t)
-                commas.append(DiffPunc(",", t.index, explanation, t.space))
+                commas.append(DiffPunc(",", None, explanation, t.lexeme.space))
 
             # drop last extraneous comma, because everything's in pairs
             new_diff.extend(commas[:-1])
@@ -69,7 +46,7 @@ def insert_simple_listings(tokens, changes=None):
             new_diff.append(tokens[i])
             i += 1
 
-    new_text = "".join(map(lambda t: t.text + t.space, new_diff))
+    new_text = "".join(map(lambda t: t.lexeme.text + t.lexeme.space, new_diff))
 
     return new_diff, new_text
 
@@ -79,7 +56,7 @@ def flag_simple_listings(diff, text, nlp):
     result_diff, result_text = insert_simple_listings(tokens, diff)
 
     # TODO: Double comma hack.
-    result_text = result_text.replace(", ,", ",")
+    # result_text = result_text.replace(", ,", ",")
 
     return result_diff, result_text
 
@@ -110,8 +87,8 @@ def heuristics(tokens):
 
         result.append(token.text)
 
-    result = insert_simple_listings(tokens, result)
+    result, text = insert_simple_listings(tokens, result)
 
-    result = " ".join(result).replace(", ,", ",").replace(" ,", ",")
+    # result = " ".join(result).replace(", ,", ",").replace(" ,", ",")
 
-    return result
+    return text

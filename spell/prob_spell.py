@@ -429,6 +429,7 @@ class Spell:
                                 tmp_term = (
                                     suggestion1[0].term + " " + suggestion2[0].term
                                 )
+                                # TODO: check if we can get the edit list, to know which halves of the word are correct
                                 tmp_dist = damerau_levenshtein_distance(
                                     term_list[i], tmp_term, max_edit_dist
                                 )
@@ -700,6 +701,7 @@ class Spell:
 
         return self.edits(key, 0, hash_set)
 
+    # capitalization dies here
     def parse_words(self, text):
         matches = re.findall(r"(([^\W_]|[\'’])+)", text.lower())
         matches = [match[0] for match in matches]

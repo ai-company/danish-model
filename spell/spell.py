@@ -1,3 +1,7 @@
+from copy import copy, deepcopy
+from pprint import pprint
+from typing import List
+from diff_token import DiffToken, LexemeType
 from transformers import pipeline, AutoTokenizer, AutoModelForPreTraining
 
 from .prob_spell import init
@@ -153,7 +157,8 @@ def explain_none(changes, i, change, explain):
 
 
 def bake_spelling():
-    def fix(text, changes=[]):
+    # TODO: words replaced with punctuation, that's pretty fucked
+    def fix(diff: List[DiffToken] = [], text=""):
         """
         Fixes incorrect spelling and grammatically incorrect sequences.
 
@@ -259,7 +264,48 @@ def bake_spelling():
             else:
                 result.append(word)
 
-        return " ".join(result), changes
+        pprint(result)
+
+        # TODO: this fixes missing punctuation, clean up when punctuation is fixed above
+        changes = list(map(DiffToken.from_dict, changes))
+        new_changes = []
+
+        for item in diff:
+            if item.lexeme.type != LexemeType.WORD:
+                new_changes.append(item)
+            else:
+                new_changes.append(changes.pop(0))
+
+        changes = new_changes
+        new_changes = []
+
+        j = 0
+        while j < len(changes):
+            if changes[j].change_type == "split":
+                for change in changes[j].change:
+                    change = deepcopy(change)
+                    change.index = j
+                    new_changes.append(change)
+                new_changes[-1].lexeme.space = changes[j].lexeme.space
+                if diff[j].lexeme.text[0].isupper():  # TODO: make a util function
+                    new_changes[-len(changes[j].change)].lexeme.text = (
+                        new_changes[-len(changes[j].change)].lexeme.text[0].upper()
+                        + new_changes[-len(changes[j].change)].lexeme.text[1:]
+                    )
+            else:
+                change = deepcopy(changes[j])
+                if diff[j].lexeme.text[0].isupper():  # TODO: make a util function
+                    change.lexeme.text = (
+                        change.lexeme.text[0].upper() + change.lexeme.text[1:]
+                    )
+                change.lexeme.space = diff[j].lexeme.space
+                change.index = j
+                new_changes.append(change)
+            j += 1
+
+        return new_changes, "".join(
+            map(lambda t: t.lexeme.text + t.lexeme.space, new_changes)
+        )
 
     return fix, unmasker
 

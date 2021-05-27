@@ -1,4 +1,7 @@
+from copy import deepcopy
+from diff_token import DiffToken
 from os.path import dirname, join
+from pprint import pprint
 
 import lemmy
 import spacy
@@ -91,7 +94,7 @@ def check_compound(token, other, nlp):
     return None
 
 
-def compound_words(text, changes, nlp) -> str:
+def compound_words(changes, text, nlp):
     tokens = nlp(text)
 
     result = dict()
@@ -102,7 +105,7 @@ def compound_words(text, changes, nlp) -> str:
     for i, token in enumerate(tokens):
         go = grammar.GrammarObject.from_token(token)
 
-        result_text.append(token.text)
+        result_text.append(token.text + token.whitespace_)
 
         if i < len(tokens) - 1:
             other = grammar.GrammarObject.from_token(tokens[i + 1])
@@ -205,7 +208,8 @@ def compound_words(text, changes, nlp) -> str:
 
     # Manage changes
 
-    change_map = explain.change_map(changes)
+    changes_dict = list(map(lambda c: c.to_dict(), changes))
+    change_map = explain.change_map(changes_dict)
 
     new_changes = []
     new_result_text = []
@@ -214,7 +218,7 @@ def compound_words(text, changes, nlp) -> str:
 
     for start, v in result.items():
         origin_map = change_map[start : v[1] + 1]
-        new_changes += changes[last_change_i : origin_map[0][1]]
+        new_changes += changes_dict[last_change_i : origin_map[0][1]]
         new_result_text += result_text[last_change_i : origin_map[0][1]]
 
         # print("[comp] -", start, v)
@@ -227,8 +231,8 @@ def compound_words(text, changes, nlp) -> str:
         origin = []
 
         for index, (word, i, split_i) in enumerate(origin_map):
-            if changes[i]["type"] == "split":
-                if c := changes[i]["change"][split_i]:
+            if changes_dict[i]["type"] == "split":
+                if c := changes_dict[i]["change"][split_i]:
                     if c["type"] == "none":
                         origin.append(c["origin"])
                     else:
@@ -244,12 +248,28 @@ def compound_words(text, changes, nlp) -> str:
 
     if len(new_result_text) == 0:
         new_result_text = result_text
-        new_changes = changes
+        new_changes = changes_dict
     else:
-        new_changes += changes[last_change_i : len(changes)]
-        new_result_text += result_text[last_change_i : len(changes)]
+        new_changes += changes_dict[last_change_i : len(changes_dict)]
+        new_result_text += result_text[last_change_i : len(changes_dict)]
 
-    return " ".join(new_result_text).replace(" ,", ",").replace(" .", "."), new_changes
+    new_changes = list(map(DiffToken.from_dict, new_changes))
+
+    i = j = 0
+    while i < len(changes):
+        if new_changes[j].change_type == "merge":
+            new_changes[j].index = list(range(i, i + len(new_changes[j].origin)))
+            i += len(new_changes[j].origin) - 1
+            new_changes[j].lexeme.space = changes[i].lexeme.space
+        else:
+            new_changes[j].index = i
+        i += 1
+        j += 1
+
+    return (
+        new_changes,
+        "".join(map(lambda t: t.lexeme.text + t.lexeme.space, new_changes)),
+    )
 
 
 if __name__ == "__main__":

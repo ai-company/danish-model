@@ -1,6 +1,8 @@
 # coding: utf-8
 
 from __future__ import division
+from pprint import pprint
+from diff_token import DiffPunc, DiffToken, LexemeType, tokenize
 import sys
 from os.path import join, dirname
 import collections
@@ -63,6 +65,7 @@ def punctuate(
 
     text = [w for w in text.split() if w not in punctuation_vocabulary] + [data.END]
     i = 0
+    print(f"text: '{text}'")
 
     result = ""
 
@@ -153,6 +156,8 @@ def init(nlp):
 
         encoded_text = " ".join([make_tag(t.tag_) for t in nlp(text)]).lower()
 
+        print(f"encoded: '{encoded_text}'")
+
         result = punctuate(
             word_vocabulary,
             punctuation_vocabulary,
@@ -168,7 +173,7 @@ def init(nlp):
 
         return result
 
-    def process(text, changes):
+    def process(diff, text):
         """
         Text processing closure for commarizing and explaining fixes.
 
@@ -181,83 +186,94 @@ def init(nlp):
             - changes: Updated list of explanations for changes made to the input text.
         """
 
-        result = clauses.heuristics(nlp(commarize_sentence(text)))
+        new_text = clauses.heuristics(nlp(commarize_sentence(text)))
 
         # Add last period.
-        if result[-1:] not in ".?!":
-            if result[-1:] == ",":
-                result = result[:-1] + "."
+        if new_text[-1] not in ".?!":
+            if new_text[-1] == ",":
+                new_text = new_text[:-1] + "."
             else:
-                result += "."
+                new_text += "."
 
-        result = result.replace(",,", ",")
+        print(f"comma1: '{text}'\ncomma2: '{new_text}'")
 
-        explanations = explain.get_explanations(result, nlp)
+        # TODO: verify if there's any double commas
+        # new_text = new_text.replace(",,", ",")
 
-        tokens = result.split()
+        explanations = explain.get_explanations(new_text, nlp)
 
-        change_map = explain.change_map(changes)
+        new_text_tokens = tokenize(new_text)
 
-        comma_i = 0
+        # pprint(new_text_tokens)
 
-        for (change, i, split_i), token in zip(change_map, tokens):
+        new_changes = []
+        default_explanation = ["Der bør være et komma her."]
+        i = j = 0
+        while i < len(diff) and j < len(new_text_tokens):
+            if diff[i].lexeme.type == new_text_tokens[j].lexeme.type:
+                new_changes.append(diff[i])
+                i += 1
+                j += 1
+
+            else:
+                if diff[i].lexeme.type == LexemeType.PUNC:
+                    # punctuation removal
+                    i += 1
+                elif new_text_tokens[j].lexeme.type == LexemeType.PUNC:
+                    # punctuation addition
+                    explanation = (
+                        explanations.pop(0)
+                        if len(explanations) > 0
+                        else default_explanation
+                    )
+                    new_changes.append(diff[i].stripped())
+                    new_changes.append(
+                        DiffPunc(",", None, explanation, diff[i].lexeme.space)
+                    )
+                    j += 1
+                else:
+                    raise Exception("unreachable!")
+
+        if i < len(diff):
+            print(f"{i}: {len(diff)} | {j}: {len(new_text_tokens)}")
+            pprint(diff)
+            pprint(new_text_tokens)
+            raise Exception("non-exhaustive match of tokens!")
+
+        first_change = new_changes[0]
+        last_change = new_changes[-1]
+
+        # check first word capitalization
+        if not first_change.lexeme.text[0].isupper():
+            first_change.lexeme.text = (
+                first_change.lexeme.text[0].upper() + first_change.lexeme.text[1:]
+            )
+            first_change.explanation.append("Stort begyndelsesbogstav.")
+
+        # check sentence termination
+        if (
+            last_change.lexeme.type != LexemeType.PUNC
+            or last_change.lexeme.text not in ".!?"
+        ):
             if (
-                token.lower().replace(",", "").replace(".", "") == change
-                and token.replace(",", "").replace(".", "") != change
+                last_change.lexeme.text == '"'
+                and not new_changes[-2].lexeme.text in ".!?"
             ):
-
-                explanation = "Stort begyndelsesbogstav."
-
-                if changes[i]["type"] == "none":
-                    changes[i]["type"] = "replace"
-                    changes[i]["change"] = parse_words(token)[0]
-                    changes[i]["explain"] = explanation
-                else:
-                    capital_change = explain.change("replace", token, explanation)
-
-                    explain.insert_change(
-                        changes, i + comma_i, split_i, capital_change, explanation
-                    )
-
-            if "," in token:
-                explanation = "Der bør være et komma her."
-
-                if comma_i < len(explanations):
-                    explanation = explanations[comma_i] or explanation
-
-                # TODO: The split hack.
-                if split_i is None or split_i == 1:
-                    c = changes[i + 1 + comma_i]
-                    if not (c["type"] == "add" and c["change"] == ","):
-                        changes.insert(
-                            i + 1 + comma_i,
-                            explain.explain(
-                                "add", "", change=",", explanation=explanation
-                            ),
-                        )
-                    comma_i += 1
-                else:
-                    explain.insert_push_change(
-                        changes,
-                        i,
-                        split_i,
-                        explain.explain(
-                            "add", "", change=", ", explanation=explanation
-                        ),
-                        explanation,
-                    )
-
-            elif "." in token:
-                changes.insert(
-                    i + comma_i + 1,
-                    explain.explain(
-                        "add",
-                        "",
-                        change=".",
-                        explanation="Sætningen bør afsluttes med et punktum.",
-                    ),
+                if new_changes[-2].lexeme.type == LexemeType.PUNC:
+                    new_changes.pop()
+                new_changes.insert(
+                    -2, DiffPunc(".", None, "Sætningen bør afsluttes med et punktum.")
                 )
 
-        return changes, result
+            else:
+                if last_change.lexeme.type == LexemeType.PUNC:
+                    new_changes.pop()
+                new_changes.append(
+                    DiffPunc(".", None, "Sætningen bør afsluttes med et punktum.")
+                )
+
+        return new_changes, "".join(
+            map(lambda t: t.lexeme.text + t.lexeme.space, new_changes)
+        )
 
     return process
