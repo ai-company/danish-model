@@ -208,7 +208,7 @@ def compound_words(changes, text, nlp):
 
     # Manage changes
 
-    changes_dict = list(map(lambda c: c.to_dict(), changes))
+    changes_dict = list(map(lambda c: c.clone_clean().to_dict(), changes))
     change_map = explain.change_map(changes_dict)
 
     new_changes = []
@@ -241,7 +241,7 @@ def compound_words(changes, text, nlp):
                 origin.append(word)
 
         new_changes.append(
-            explain.explain("merge", origin, v[0], "Disse ord bør sammensættes.")
+            explain.explain("merge", origin, v[0], ["Disse ord bør sammensættes."])
         )
 
         new_result_text.append(v[0])
@@ -266,10 +266,7 @@ def compound_words(changes, text, nlp):
         i += 1
         j += 1
 
-    return (
-        new_changes,
-        "".join(map(lambda t: t.lexeme.text + t.lexeme.space, new_changes)),
-    )
+    return new_changes, "".join(map(str, new_changes))
 
 
 if __name__ == "__main__":

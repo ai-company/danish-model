@@ -529,7 +529,7 @@ class Spell:
                         )
                     )
                 else:
-                    explanation = "Ordet var oprindeligt stavet forkert."
+                    explanation = ["Ordet var oprindeligt stavet forkert."]
                     changes = [
                         change(
                             one_in and "none" or "replace",

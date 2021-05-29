@@ -20,6 +20,8 @@ from spell.util import parse_words_and_quotes, parse_words_all_original
 
 from pysbd.utils import PySBDFactory
 
+from pipeline import process as pipeline
+
 
 class ModelServer:
     def __init__(self, host: str = "localhost", port: int = 9000) -> None:
@@ -105,6 +107,11 @@ def process(text: str) -> str:
         - JSON-formatted string with corrected text in `result` and a list of `changes`.
     """
 
+    result, changes = pipeline(text)
+
+    return result, json.dumps(
+        [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")
+    )
     # Document by sentences
     doc = sent_nlp(text)
 

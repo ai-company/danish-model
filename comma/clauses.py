@@ -35,7 +35,17 @@ def insert_simple_listings(tokens, changes=None):
 
             for i, t in zip(range(from_, to_), tokens[from_:to_]):
                 commas.append(t.stripped() if i < to_ - 1 else t)
-                commas.append(DiffPunc(",", None, explanation, t.lexeme.space))
+                commas.append(
+                    DiffPunc(
+                        ",",
+                        None,
+                        explanation,
+                        t.lexeme.space,
+                        None,
+                        "add",
+                        "," + t.lexeme.space,
+                    )
+                )
 
             # drop last extraneous comma, because everything's in pairs
             new_diff.extend(commas[:-1])

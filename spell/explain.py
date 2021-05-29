@@ -23,7 +23,7 @@ def explain(ctype, original, correct=None, explanation=None):
     }
 
     if explanation:
-        result["explain"] = explanation
+        result["explain"] = explanation if type(explanation) is list else [explanation]
 
     return result
 

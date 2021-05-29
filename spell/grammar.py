@@ -538,7 +538,7 @@ def capitalize_name(go, changes, i, split_i):
     if go.text[0].lower() == go.text[0]:
         correct = go.text.capitalize()
 
-        explanation = "Dette egenavn bør have stort begyndelsesbogstav."
+        explanation = ["Dette egenavn bør have stort begyndelsesbogstav."]
         explain.insert_change(
             changes,
             i,
@@ -663,7 +663,7 @@ def init(unmasker, nlp):
     def fix(diff=[], text=""):
 
         first_doc = nlp(text)
-        changes = list(map(DiffToken.to_dict, diff))
+        changes = list(map(lambda c: c.clone_clean().to_dict(), diff))
 
         text, changes = at_og_fixer(unmasker, first_doc, text, changes)
         text, changes = af_ad_fixer(unmasker, first_doc, text, changes)
@@ -735,7 +735,6 @@ def init(unmasker, nlp):
             if go.pos == "propn":
                 result_fix_map[go.i] = capitalize_name(go, changes, i, split_i)
 
-        pprint(result)
         # print()
         # draw_tree(doc)
         # print()
@@ -749,7 +748,7 @@ def init(unmasker, nlp):
             change.lexeme.space = diff[i].lexeme.space
             change.index = i
 
-        return changes, "".join(map(lambda t: t.lexeme.text + t.lexeme.space, changes))
+        return changes, "".join(map(str, changes))
 
     return fix
 

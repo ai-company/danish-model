@@ -65,7 +65,6 @@ def punctuate(
 
     text = [w for w in text.split() if w not in punctuation_vocabulary] + [data.END]
     i = 0
-    print(f"text: '{text}'")
 
     result = ""
 
@@ -156,8 +155,6 @@ def init(nlp):
 
         encoded_text = " ".join([make_tag(t.tag_) for t in nlp(text)]).lower()
 
-        print(f"encoded: '{encoded_text}'")
-
         result = punctuate(
             word_vocabulary,
             punctuation_vocabulary,
@@ -195,23 +192,19 @@ def init(nlp):
             else:
                 new_text += "."
 
-        print(f"comma1: '{text}'\ncomma2: '{new_text}'")
-
-        # TODO: verify if there's any double commas
-        # new_text = new_text.replace(",,", ",")
+        # the model sometimes inserts a duplicate comma, if there is one already there
+        new_text = new_text.replace(",,", ",")
 
         explanations = explain.get_explanations(new_text, nlp)
 
         new_text_tokens = tokenize(new_text)
-
-        # pprint(new_text_tokens)
 
         new_changes = []
         default_explanation = ["Der bør være et komma her."]
         i = j = 0
         while i < len(diff) and j < len(new_text_tokens):
             if diff[i].lexeme.type == new_text_tokens[j].lexeme.type:
-                new_changes.append(diff[i])
+                new_changes.append(diff[i].clone_clean())
                 i += 1
                 j += 1
 
@@ -222,14 +215,22 @@ def init(nlp):
                 elif new_text_tokens[j].lexeme.type == LexemeType.PUNC:
                     # punctuation addition
                     explanation = (
-                        explanations.pop(0)
+                        explanations.pop(0) or default_explanation
                         if len(explanations) > 0
                         else default_explanation
                     )
-                    new_changes.append(diff[i].stripped())
                     new_changes.append(
-                        DiffPunc(",", None, explanation, diff[i].lexeme.space)
+                        DiffPunc(
+                            ",",
+                            None,
+                            explanation,
+                            diff[i].lexeme.space,
+                            None,
+                            "add",
+                            ",",
+                        )
                     )
+                    new_changes[-2].lexeme.space = ""
                     j += 1
                 else:
                     raise Exception("unreachable!")
@@ -249,6 +250,7 @@ def init(nlp):
                 first_change.lexeme.text[0].upper() + first_change.lexeme.text[1:]
             )
             first_change.explanation.append("Stort begyndelsesbogstav.")
+            first_change.change_type = "replace"
 
         # check sentence termination
         if (
@@ -262,18 +264,33 @@ def init(nlp):
                 if new_changes[-2].lexeme.type == LexemeType.PUNC:
                     new_changes.pop()
                 new_changes.insert(
-                    -2, DiffPunc(".", None, "Sætningen bør afsluttes med et punktum.")
+                    -2,
+                    DiffPunc(
+                        ".",
+                        None,
+                        ["Sætningen bør afsluttes med et punktum."],
+                        "",
+                        None,
+                        "add",
+                        ".",
+                    ),
                 )
 
             else:
                 if last_change.lexeme.type == LexemeType.PUNC:
                     new_changes.pop()
                 new_changes.append(
-                    DiffPunc(".", None, "Sætningen bør afsluttes med et punktum.")
+                    DiffPunc(
+                        ".",
+                        None,
+                        ["Sætningen bør afsluttes med et punktum."],
+                        "",
+                        None,
+                        "add",
+                        ".",
+                    )
                 )
 
-        return new_changes, "".join(
-            map(lambda t: t.lexeme.text + t.lexeme.space, new_changes)
-        )
+        return new_changes, "".join(map(str, new_changes))
 
     return process
