@@ -271,9 +271,8 @@ def init(nlp):
             or last_change.lexeme.text not in ".!?"
         ):
             if (
-                last_change.lexeme.text == '"'
-                and not new_changes[-2].lexeme.text in ".!?"
-            ):
+                last_change.lexeme.text == '"' or last_change.change_type == "space"
+            ) and not new_changes[-2].lexeme.text in ".!?":
                 if new_changes[-2].lexeme.type == LexemeType.PUNC:
                     new_changes.pop()
                 new_changes.insert(
@@ -303,6 +302,8 @@ def init(nlp):
                         ".",
                     )
                 )
+                if last_change.change_type != "space":
+                    new_changes[-1].lexeme.space = last_change.strip()
 
         return new_changes, "".join(map(str, new_changes))
 
