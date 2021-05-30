@@ -8,3 +8,4 @@ nltk==3.5
 torch==1.7.1
 transformers==4.3.3
 traceback-with-variables==2.0.1
+https://github.com/explosion/spacy-models/releases/download/da_core_news_lg-2.3.0/da_core_news_lg-2.3.0.tar.gz#egg=da_core_news_lg
