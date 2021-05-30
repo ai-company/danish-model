@@ -11,13 +11,11 @@ def clean_token_text(text):
     return text.replace(",", "").replace(".", "").replace(";", "").strip()
 
 
-def insert_simple_listings(tokens, changes=None):
+def insert_simple_listings(tokens, diff):
     explanation = ["Tilføj opremsningskomma."]
     new_diff = []
 
     tokens = DiffToken.from_spacy_list(tokens)
-
-    # TODO: map new diff to old diff
 
     # look for a sequence of equal TYPE (pos_) ending with a LISTING_TERMINATOR
     i = 0
@@ -53,10 +51,35 @@ def insert_simple_listings(tokens, changes=None):
             i = to_
         else:
             # if not a sequence, just keep the token
-            new_diff.append(tokens[i])
+            new_diff.append(tokens[i].clone())
             i += 1
 
-    new_text = "".join(map(lambda t: t.lexeme.text + t.lexeme.space, new_diff))
+    # reconcile diffs -------------------------------------
+    i = j = 0
+    while i < len(diff) and j < len(new_diff):
+        if diff[i].lexeme.type == new_diff[j].lexeme.type and (
+            (
+                diff[i].lexeme.type == LexemeType.PUNC
+                and diff[i].lexeme.text == new_diff[j].lexeme.text
+            )
+            or (diff[i].lexeme.type != LexemeType.PUNC)
+        ):
+            new_diff[j].index = i
+            i += 1
+            j += 1
+
+        else:
+            if diff[i].lexeme.type == LexemeType.PUNC and diff[i].lexeme.text == ",":
+                # punctuation removal
+                i += 1
+            elif new_diff[j].lexeme.type == LexemeType.PUNC:
+                # punctuation addition
+                j += 1
+            else:
+                print(i, diff[i], j, new_diff[j])
+                raise Exception("unreachable!")
+
+    new_text = "".join(map(str, new_diff))
 
     return new_diff, new_text
 
@@ -71,7 +94,7 @@ def flag_simple_listings(diff, text, nlp):
     return result_diff, result_text
 
 
-def heuristics(tokens):
+def heuristics(tokens, diff):
     """
     Heuristics for catching low-hanging fruits with 100% accuracy.
 
@@ -97,7 +120,7 @@ def heuristics(tokens):
 
         result.append(token.text)
 
-    result, text = insert_simple_listings(tokens, result)
+    result, text = insert_simple_listings(tokens, diff)
 
     # result = " ".join(result).replace(", ,", ",").replace(" ,", ",")
 

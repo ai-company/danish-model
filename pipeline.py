@@ -31,7 +31,21 @@ def sentencize(text):
 
 def strip_user_commas(diff, text):
     new_text = text.replace(",", "")
-    new_diff = tokenize(new_text)
+    new_diff = DiffToken.from_spacy_list(sent_nlp(text))
+
+    i = j = 0
+    while i < len(diff) and j < len(new_diff):
+        if diff[i].lexeme.type == new_diff[j].lexeme.type:
+            new_diff[j].index = i
+            i += 1
+            j += 1
+
+        else:
+            if diff[i].lexeme.type == LexemeType.PUNC:
+                # punctuation removal
+                i += 1
+            else:
+                raise Exception("unreachable!")
 
     return new_diff, new_text
 
@@ -57,7 +71,7 @@ def collectChanges(diff_history, index) -> List[DiffToken]:
     return changes
 
 
-def process(text):
+def process(text, debug=False):
     """
     Processes a text. Gives back diff and better text.
 
@@ -69,49 +83,69 @@ def process(text):
         - text: The output.
     """
 
-    result = []
+    result_diff = []
+    result_text = ""
 
-    for sentence in map(str, sentencize(text).sents):
+    for sentence in sentencize(text).sents:
         initial_diff = []
         diff_history = []
 
-        diff = tokenize(sentence)
+        text = str(sentence)
+        diff = DiffToken.from_spacy_list(sentence)
         diff_history.append(diff)
         initial_diff = diff
-        pprint(text)
-        pprint(diff)
+        if debug:
+            print("tokenize: ")
+            pprint(text)
+            pprint(diff)
 
         diff, text = spell(diff, text)
         diff_history.append(diff)
-        pprint(text)
-        pprint(diff)
+        if debug:
+            print("spell: ")
+            pprint(text)
+            pprint(diff)
 
         diff, text = strip_user_commas(diff, text)
         diff_history.append(diff)
-        pprint(text)
-        pprint(diff)
+        if debug:
+            print("strip: ")
+            pprint(text)
+            pprint(diff)
 
         diff, text = flag_simple_listings(diff, text, sent_nlp)
         diff_history.append(diff)
-        pprint(text)
-        pprint(diff)
+        if debug:
+            print("listing: ")
+            pprint(text)
+            pprint(diff)
 
         diff, text = compound_words(diff, text, sent_nlp)
         diff_history.append(diff)
-        pprint(text)
-        pprint(diff)
+        if debug:
+            print("compound: ")
+            pprint(text)
+            pprint(diff)
 
         diff, text = grammar(diff, text)
         diff_history.append(diff)
-        pprint(text)
-        pprint(diff)
+        if debug:
+            print("grammar: ")
+            pprint(text)
+            pprint(diff)
 
         diff, text = commas(diff, text)
         diff_history.append(diff)
-        pprint(text)
-        pprint(diff)
+        if debug:
+            print("commas: ")
+            pprint(text)
+            pprint(diff)
 
-        # pprint(diff_history)
+        # reconcile diffs -------------------------------------
+
+        if debug:
+            print("\n--- final diffs ---\n")
+            pprint(diff)
 
         diff = []
 
@@ -131,12 +165,13 @@ def process(text):
                     # TODO: recursively collect changes for the origins too
                     if change is None:
                         change = item[0][-1].clone_clean()
-                    origins = list(map(lambda c: c[-1].clone(), item))
+                    origins = list(map(lambda c: str(c[-1]), item))
                     change.origin = origins
 
                 else:  # existing item
                     if change is None:
                         change = item.clone_clean()
+                        change.origin = str(change.lexeme)
 
                     change.lexeme = copy(item.lexeme)
 
@@ -158,48 +193,76 @@ def process(text):
 
             lastindex = changelist[-1].index
 
+        if debug:
+            print("\n--- reconciled:")
+            pprint(diff)
+
         # check removals
         diff_with_removals = []
         i = j = 0
         while i < len(initial_diff) and j < len(diff):
-            if initial_diff[i].lexeme.type == diff[j].lexeme.type:
-                if diff[j].change_type == "add":
-                    diff_with_removals.append(initial_diff[i].clone_clean())
+            old = initial_diff[i]
+            new = diff[j]
+
+            if old.lexeme.type == new.lexeme.type and (
+                (
+                    old.lexeme.type == LexemeType.PUNC
+                    and old.lexeme.text == new.lexeme.text
+                )
+                or (old.lexeme.type != LexemeType.PUNC)
+            ):
+                if new.change_type == "add":
+                    diff_with_removals.append(old)
                 else:
-                    diff_with_removals.append(diff[j])
+                    diff_with_removals.append(new)
                 i += 1
                 j += 1
 
             else:
-                if initial_diff[i].lexeme.type == LexemeType.PUNC:
+                if old.lexeme.type == LexemeType.PUNC and old.lexeme.text == ",":
                     # punctuation removal
-                    removed = initial_diff[i].clone_clean()
+                    removed = old.clone_clean()
                     removed.change_type = "remove"
+                    removed.change = ""
                     removed.explanation.append("Der bør ikke være et komma her.")
                     diff_with_removals.append(removed)
                     i += 1
-                elif diff[j].lexeme.type == LexemeType.PUNC:
+                elif new.lexeme.type == LexemeType.PUNC:
                     # punctuation addition
-                    diff_with_removals.append(diff[j])
+                    diff_with_removals.append(new)
                     j += 1
                 else:
+                    print(i, old, j, new)
                     raise Exception("unreachable!")
 
         if j < len(diff):  # last punctuation
             diff_with_removals.append(diff[j])
 
+        if debug:
+            print("\n--- with removals:")
+            pprint(diff_with_removals)
+
         # extract spaces
         final_diff = []
         for change in diff_with_removals:
-            if change.lexeme.space != "":
+            if change.change_type == "space":
+                final_diff.append(change)
+            elif change.change_type == "remove":
+                if final_diff[-1].change_type == "space":
+                    final_diff.insert(-1, change.stripped())
+                else:
+                    final_diff.append(change.stripped())
+            elif change.lexeme.space != "":
                 final_diff.append(change.stripped())
                 final_diff.append(DiffSpac(change.lexeme.space, None))
             else:
-                final_diff.append(change.clone())
+                final_diff.append(change.stripped())
 
-        pprint(final_diff)
-        pprint(list(map(DiffToken.to_dict, final_diff)))
+        if debug:
+            print("\n--- final:")
+            pprint(list(map(DiffToken.to_dict, final_diff)))
 
-        result.extend(final_diff)
+        result_diff.extend(final_diff)
+        result_text += text
 
-    return text, list(map(DiffToken.to_dict, result))
+    return result_text, list(map(DiffToken.to_dict, result_diff))

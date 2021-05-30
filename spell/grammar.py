@@ -1,4 +1,5 @@
 from pprint import pprint
+from typing import List
 from diff_token import DiffToken
 import spacy
 import lemmy
@@ -112,7 +113,7 @@ class Fix:
         """
         self.correct = correct
         self.i = i
-        self.explanation = explanation
+        self.explanation = [explanation]
 
 
 # Consistency helper functions.
@@ -562,7 +563,7 @@ def fix_lays(token, changes, change_map, fix_map):
         map_i,
         split_i,
         explain.change("change", "ligger", "Forveksling af lægger og ligger."),
-        "Forveksling af lægger og ligger.",
+        ["Forveksling af lægger og ligger."],
     )
 
     fix_map[token.i] = "ligger"
@@ -660,7 +661,7 @@ def grammar_tree(token):
 
 
 def init(unmasker, nlp):
-    def fix(diff=[], text=""):
+    def fix(diff: List[DiffToken] = [], text=""):
 
         first_doc = nlp(text)
         changes = list(map(lambda c: c.clone_clean().to_dict(), diff))

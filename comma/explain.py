@@ -150,11 +150,12 @@ def has_listing_potential(clause, nlp):
         if word in clause:
 
             if clause.index(word) + 1 < len(clause):
-                meta = nlp(clause[clause.index(word) + 1])[0]
-                meta_initial = nlp(clause[0])[0]
+                if len(clause[clause.index(word) + 1]) > 0:
+                    meta = nlp(clause[clause.index(word) + 1])[0]
+                    meta_initial = nlp(clause[0])[0]
 
-                if compare_listing_initial(meta, meta_initial):
-                    return meta
+                    if compare_listing_initial(meta, meta_initial):
+                        return meta
 
     return None
 

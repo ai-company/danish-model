@@ -20,7 +20,10 @@ def tokenize(phrase, split_space=False):
         ]
 
         if type == LexemeType.SPAC:
-            tokens[-1].lexeme.space = token.group(0)
+            if len(tokens) > 0:
+                tokens[-1].lexeme.space = token.group(0)
+            else:
+                tokens.append(DiffSpac(token.group(0), None))
         else:
             tokens.append(DiffToken(Lexeme(token.group(0), type), None))
 
@@ -93,15 +96,20 @@ class DiffToken:
         self.change = change
 
     @classmethod
-    def from_spacy_list(cls, tokens):
-        canon = []
+    def from_spacy_list(cls, spacy):
+        tokens = []
 
         i = 0
-        for token in tokens:
+        for token in spacy:
             if token.pos_ == "SPACE":
-                canon[-1].lexeme.space += token.text
+                if len(tokens) > 0:
+                    tokens[-1].lexeme.space += token.text
+                    tokens[-1].origin += token.text
+                else:
+                    tokens.append(DiffSpac(token.text, i))
+                    i += 1
             else:
-                canon.append(
+                tokens.append(
                     cls(
                         Lexeme(
                             token.text,
@@ -112,24 +120,29 @@ class DiffToken:
                         ),
                         i,
                         [],
+                        token.text + token.whitespace_,
                     )
                 )
                 i += 1
 
-        return canon
+        return tokens
 
     def to_dict(self) -> dict:
         result = {
             "type": self.change_type,
-            "origin": str(self.lexeme)
-            if self.origin is None
-            else list(map(str, self.origin)),
         }
+
+        if self.origin is not None:
+            result["origin"] = (
+                self.origin
+                if type(self.origin) is not list
+                else list(map(str, self.origin))
+            )
 
         if len(self.explanation) > 0:
             result["explain"] = self.explanation
 
-        if self.change:
+        if self.change is not None:
             result["change"] = (
                 self.change
                 if type(self.change) is not list
@@ -175,12 +188,15 @@ class DiffToken:
         token = copy(self)
         token.lexeme = copy(self.lexeme)
         token.explanation = copy(self.explanation)
+        token.origin = copy(self.origin)
+        token.change = copy(self.change)
         return token
 
     def clone_clean(self):
         token = copy(self)
         token.lexeme = copy(self.lexeme)
         token.explanation = []
+        token.origin = str(self.lexeme)
         token.change_type = "none"
         token.change = None
         return token
@@ -193,8 +209,19 @@ class DiffToken:
     def stripped(self):
         token = copy(self)
         token.lexeme = copy(self.lexeme)
-        token.explanation = copy(self.explanation)
         token.lexeme.space = ""
+        token.explanation = copy(self.explanation)
+
+        token.origin = copy(self.origin)
+        if type(token.origin) is str:
+            token.origin = token.origin.strip()
+        elif type(token.origin) is list:
+            token.origin[-1] = str(token.origin[-1]).strip()
+
+        token.change = copy(self.change)
+        if type(token.change) is str:
+            token.change = token.change.strip()
+
         return token
 
     def __str__(self):
@@ -204,11 +231,17 @@ class DiffToken:
         explanation = f" {self.explanation}" if len(self.explanation) > 0 else ""
         change_type = f" {self.change_type}" if self.change_type != "none" else ""
         change = f": '{self.change}'" if self.change else ""
+        origin = (
+            f" from: '{self.origin}'"
+            if self.origin is not None and self.origin != str(self.lexeme)
+            else ""
+        )
 
-        return "{:>3}: {}{}{}{}".format(
+        return "{:>3}: {}{}{}{}{}".format(
             str(self.index) if self.index is not None else "+++",
             repr(self.lexeme),
             explanation,
+            origin,
             change_type,
             change,
         )
@@ -260,7 +293,7 @@ class DiffPunc(DiffToken):
 class DiffSpac(DiffToken):
     def __init__(self, text, index):
         super().__init__(
-            Lexeme(text, LexemeType.SPAC, text, "SPACE"), index, [], None, "space"
+            Lexeme(text, LexemeType.SPAC, "", "SPACE"), index, [], text, "space"
         )
 
 

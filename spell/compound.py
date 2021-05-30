@@ -102,6 +102,7 @@ def compound_words(changes, text, nlp):
 
     result_text = []
 
+    # TODO: account for spaces between tokens
     for i, token in enumerate(tokens):
         go = grammar.GrammarObject.from_token(token)
 
@@ -208,7 +209,7 @@ def compound_words(changes, text, nlp):
 
     # Manage changes
 
-    changes_dict = list(map(lambda c: c.clone_clean().to_dict(), changes))
+    changes_dict = list(map(DiffToken.to_dict, DiffToken.from_spacy_list(tokens)))
     change_map = explain.change_map(changes_dict)
 
     new_changes = []
@@ -253,6 +254,8 @@ def compound_words(changes, text, nlp):
         new_changes += changes_dict[last_change_i : len(changes_dict)]
         new_result_text += result_text[last_change_i : len(changes_dict)]
 
+    # reconcile diffs -------------------------------------
+
     new_changes = list(map(DiffToken.from_dict, new_changes))
 
     i = j = 0
@@ -261,8 +264,12 @@ def compound_words(changes, text, nlp):
             new_changes[j].index = list(range(i, i + len(new_changes[j].origin)))
             i += len(new_changes[j].origin) - 1
             new_changes[j].lexeme.space = changes[i].lexeme.space
+            new_changes[j].change += changes[i].lexeme.space
+            new_changes[j].origin[-1] = new_changes[j].origin[-1].strip()
         else:
             new_changes[j].index = i
+            new_changes[j].lexeme.space = changes[i].lexeme.space
+
         i += 1
         j += 1
 

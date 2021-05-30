@@ -2,6 +2,7 @@
 
 from __future__ import division
 from pprint import pprint
+from typing import List
 from diff_token import DiffPunc, DiffToken, LexemeType, tokenize
 import sys
 from os.path import join, dirname
@@ -150,8 +151,8 @@ def init(nlp):
     reverse_punctuation_vocabulary = {v: k for k, v in net.y_vocabulary.items()}
 
     def commarize_sentence(text):
-        if len(text.strip()) == 0:
-            return ""
+        # if len(text.strip()) == 0:
+        #     return ""
 
         encoded_text = " ".join([make_tag(t.tag_) for t in nlp(text)]).lower()
 
@@ -183,7 +184,10 @@ def init(nlp):
             - changes: Updated list of explanations for changes made to the input text.
         """
 
-        new_text = clauses.heuristics(nlp(commarize_sentence(text)))
+        if len(text.strip()) == 0:
+            return DiffToken.from_spacy_list(nlp(text)), text
+
+        new_text = clauses.heuristics(nlp(commarize_sentence(text)), diff)
 
         # Add last period.
         if new_text[-1] not in ".?!":
@@ -199,11 +203,19 @@ def init(nlp):
 
         new_text_tokens = tokenize(new_text)
 
-        new_changes = []
+        # reconcile diffs -------------------------------------
+
+        new_changes: List[DiffToken] = []
         default_explanation = ["Der bør være et komma her."]
         i = j = 0
         while i < len(diff) and j < len(new_text_tokens):
-            if diff[i].lexeme.type == new_text_tokens[j].lexeme.type:
+            if diff[i].lexeme.type == new_text_tokens[j].lexeme.type and (
+                (
+                    diff[i].lexeme.type == LexemeType.PUNC
+                    and diff[i].lexeme.text == new_text_tokens[j].lexeme.text
+                )
+                or (diff[i].lexeme.type != LexemeType.PUNC)
+            ):
                 new_changes.append(diff[i].clone_clean())
                 i += 1
                 j += 1
@@ -223,7 +235,7 @@ def init(nlp):
                         DiffPunc(
                             ",",
                             None,
-                            explanation,
+                            explanation if type(explanation) is list else [explanation],
                             diff[i].lexeme.space,
                             None,
                             "add",
@@ -251,6 +263,7 @@ def init(nlp):
             )
             first_change.explanation.append("Stort begyndelsesbogstav.")
             first_change.change_type = "replace"
+            first_change.change = str(first_change.lexeme)
 
         # check sentence termination
         if (

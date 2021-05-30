@@ -41,7 +41,7 @@ def change(type, change, explanation=None):
     }
 
     if explanation:
-        result["explain"] = explanation
+        result["explain"] = [explanation]
 
     return result
 
@@ -61,7 +61,7 @@ def append_change(changes, i, change):
 def change_map(changes):
     change_map = []
     for i, change in enumerate(changes):
-        if change["type"] == "none":
+        if change["type"] == "none" or change["type"] == "space":
             change_map.append((change["origin"], i, None))
         else:
             content = change["change"]
