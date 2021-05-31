@@ -24,26 +24,72 @@ def insert_simple_listings(tokens, diff):
         from_ = to_ = i
 
         # look ahead for sequence with same word classes
-        while to_ < (len(tokens) - 1) and tokens[to_].lexeme.pos_ == sequence_type:
-            to_ += 1
+        # TODO: clean up loop condition
+        while to_ < (len(tokens) - 1) and (
+            tokens[to_].lexeme.pos_ == sequence_type
+            or tokens[to_].lexeme.type == LexemeType.SPAC
+            or (
+                (to_ + 2) < len(tokens)
+                and tokens[to_].lexeme.text in ('"', "'")
+                and tokens[to_ + 1].lexeme.type == LexemeType.WORD
+                and tokens[to_ + 2].lexeme.text in ('"', "'")
+            )
+        ):
+            if (
+                (to_ + 2) < len(tokens)
+                and tokens[to_].lexeme.text in ('"', "'")
+                and tokens[to_ + 1].lexeme.type == LexemeType.WORD
+                and tokens[to_ + 2].lexeme.text in ('"', "'")
+            ):
+                to_ += 3
+            else:
+                to_ += 1
+
+        # said the cat "birds" and mice are tasty"
 
         # if the sequence ended on a terminator, add commas
         if tokens[to_].lexeme.text in LISTING_TERMINATORS:
             commas = []
 
+            quoted_word = False
             for i, t in zip(range(from_, to_), tokens[from_:to_]):
-                commas.append(t.stripped() if i < to_ - 1 else t)
-                commas.append(
-                    DiffPunc(
-                        ",",
-                        None,
-                        explanation,
-                        t.lexeme.space,
-                        None,
-                        "add",
-                        "," + t.lexeme.space,
+                if t.lexeme.text == '"' and quoted_word == False:
+                    # start of quoted word
+                    quoted_word = True
+                    commas.append(t)
+
+                elif t.lexeme.text == '"' and quoted_word == True:
+                    # end of quoted word
+                    quoted_word = False
+                    commas.append(t.stripped() if i < to_ - 1 else t)
+                    commas.append(
+                        DiffPunc(
+                            ",",
+                            None,
+                            explanation,
+                            t.lexeme.space,
+                            None,
+                            "add",
+                            "," + t.lexeme.space,
+                        )
                     )
-                )
+
+                elif quoted_word:
+                    commas.append(t)
+
+                else:
+                    commas.append(t.stripped() if i < to_ - 1 else t)
+                    commas.append(
+                        DiffPunc(
+                            ",",
+                            None,
+                            explanation,
+                            t.lexeme.space,
+                            None,
+                            "add",
+                            "," + t.lexeme.space,
+                        )
+                    )
 
             # drop last extraneous comma, because everything's in pairs
             new_diff.extend(commas[:-1])
@@ -55,6 +101,7 @@ def insert_simple_listings(tokens, diff):
             i += 1
 
     # reconcile diffs -------------------------------------
+
     i = j = 0
     while i < len(diff) and j < len(new_diff):
         if diff[i].lexeme.type == new_diff[j].lexeme.type and (
@@ -76,6 +123,8 @@ def insert_simple_listings(tokens, diff):
                 # punctuation addition
                 j += 1
             else:
+                pprint(diff)
+                pprint(new_diff)
                 print(i, diff[i], j, new_diff[j])
                 raise Exception("unreachable!")
 
