@@ -266,9 +266,13 @@ def bake_spelling():
 
         # reconcile diffs -------------------------------------
 
+        # pprint(changes)
+
         # TODO: this fixes missing punctuation, clean up when punctuation is fixed above
         changes = list(map(DiffToken.from_dict, changes))
         new_changes: List[DiffToken] = []
+
+        # pprint(changes)
 
         for i, item in enumerate(diff):
             if item.lexeme.type != LexemeType.WORD:
@@ -279,6 +283,8 @@ def bake_spelling():
                 change.origin = str(item.lexeme)
                 new_changes.append(change)
 
+        # pprint(changes)
+
         changes = new_changes
         new_changes = []
 
@@ -286,7 +292,7 @@ def bake_spelling():
         while j < len(changes):
             if changes[j].change_type == "split":
                 for change in changes[j].change:
-                    change = change.clone_clean()
+                    change = change.clone()
                     change.index = j
                     new_changes.append(change)
 
@@ -298,7 +304,7 @@ def bake_spelling():
                         + new_changes[-len(changes[j].change)].lexeme.text[1:]
                     )
             else:
-                change = changes[j].clone_clean()
+                change = changes[j].clone()
 
                 if diff[j].lexeme.text[0].isupper():  # TODO: make a util function
                     change.lexeme.text = (
