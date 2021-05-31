@@ -31,17 +31,23 @@ def sentencize(text):
 
 def strip_user_commas(diff, text):
     new_text = text.replace(",", "")
-    new_diff = DiffToken.from_spacy_list(sent_nlp(text))
+    new_diff = DiffToken.from_spacy_list(sent_nlp(new_text))
 
     i = j = 0
     while i < len(diff) and j < len(new_diff):
-        if diff[i].lexeme.type == new_diff[j].lexeme.type:
+        if diff[i].lexeme.type == new_diff[j].lexeme.type and (
+            (
+                diff[i].lexeme.type == LexemeType.PUNC
+                and diff[i].lexeme.text == new_diff[j].lexeme.text
+            )
+            or (diff[i].lexeme.type != LexemeType.PUNC)
+        ):
             new_diff[j].index = i
             i += 1
             j += 1
 
         else:
-            if diff[i].lexeme.type == LexemeType.PUNC:
+            if diff[i].lexeme.type == LexemeType.PUNC and diff[i].lexeme.text == ",":
                 # punctuation removal
                 i += 1
             else:
