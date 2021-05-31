@@ -174,7 +174,12 @@ class DiffToken:
             else:
                 changes = list(map(DiffToken.from_dict, dict["change"]))
                 lexeme = tokenize(
-                    "".join(map(lambda c: c.get("change", c["origin"]), dict["change"]))
+                    "".join(
+                        map(
+                            lambda c: c.get("change", c.get("origin", "")),
+                            dict["change"],
+                        )
+                    )
                 )[0].lexeme
         else:
             changes = None
