@@ -113,7 +113,7 @@ class Fix:
         """
         self.correct = correct
         self.i = i
-        self.explanation = [explanation]
+        self.explanation = explanation
 
 
 # Consistency helper functions.
@@ -518,7 +518,6 @@ def af_ad_fixer(unmasker, first_doc, text, changes) -> str:
                 )
 
                 try:
-
                     final_mask[mask_i] = correct
                 except:
                     import pdb
@@ -563,7 +562,7 @@ def fix_lays(token, changes, change_map, fix_map):
         map_i,
         split_i,
         explain.change("change", "ligger", "Forveksling af lægger og ligger."),
-        ["Forveksling af lægger og ligger."],
+        "Forveksling af lægger og ligger.",
     )
 
     fix_map[token.i] = "ligger"

@@ -140,7 +140,11 @@ class DiffToken:
             )
 
         if len(self.explanation) > 0:
-            result["explain"] = self.explanation
+            result["explain"] = (
+                self.explanation
+                if type(self.explanation) is list
+                else [self.explanation]
+            )
 
         if self.change is not None:
             result["change"] = (
@@ -175,10 +179,12 @@ class DiffToken:
         else:
             changes = None
 
+        explain = dict.get("explain", [])
+
         return cls(
             lexeme,
             index,
-            dict.get("explain", []),
+            explain if type(explain) is list else [explain],
             dict.get("origin"),
             dict["type"],
             changes,

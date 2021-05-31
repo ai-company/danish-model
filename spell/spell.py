@@ -153,7 +153,7 @@ def explain_none(changes, i, change, explain):
     changes[i]["type"] = "replace"
     changes[i]["change"] = changes[i]["origin"]
     changes[i]["origin"] = change
-    changes[i]["explain"] = explain
+    changes[i]["explain"] = explain if type(explain) is list else [explain]
 
 
 def bake_spelling():
@@ -252,7 +252,7 @@ def bake_spelling():
                             )
                         else:
                             changes[i]["change"] = token
-                            changes[i]["explain"] = "Indsættelse af korrekt ord."
+                            changes[i]["explain"] = ["Indsættelse af korrekt ord."]
 
                         result.append(token)
                         found_match = True

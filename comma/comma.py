@@ -235,7 +235,7 @@ def init(nlp):
                         DiffPunc(
                             ",",
                             None,
-                            explanation if type(explanation) is list else [explanation],
+                            explanation,
                             diff[i].lexeme.space,
                             None,
                             "add",

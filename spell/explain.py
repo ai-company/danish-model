@@ -23,25 +23,25 @@ def explain(ctype, original, correct=None, explanation=None):
     }
 
     if explanation:
-        result["explain"] = explanation if type(explanation) is list else [explanation]
+        result["explain"] = explanation
 
     return result
 
 
-def change(type, change, explanation=None):
-    if type == "none":
+def change(change_type, change, explanation=None):
+    if change_type == "none":
         return {
             "type": "none",
             "origin": change,
         }
 
     result = {
-        "type": type,
+        "type": change_type,
         "change": change,
     }
 
     if explanation:
-        result["explain"] = [explanation]
+        result["explain"] = explanation
 
     return result
 
