@@ -536,7 +536,7 @@ def af_ad_fixer(unmasker, first_doc, text, changes) -> str:
 
 def capitalize_name(go, changes, i, split_i):
     if go.text[0].lower() == go.text[0]:
-        correct = go.text.capitalize()
+        correct = go.text.capitalize() + " "
 
         explanation = ["Dette egenavn bør have stort begyndelsesbogstav."]
         explain.insert_change(
