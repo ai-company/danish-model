@@ -172,7 +172,7 @@ def process(text, debug=False):
 
         lastindex = -1
 
-        for i in range(len(tokenize(text))):
+        for i in range(len(DiffToken.from_spacy_list(sent_nlp(text)))):
             changelist = collectChanges(diff_history, i)
 
             change = None

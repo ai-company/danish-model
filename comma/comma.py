@@ -202,7 +202,7 @@ def init(nlp):
 
         explanations = explain.get_explanations(new_text, nlp)
 
-        new_text_tokens = tokenize(new_text)
+        new_text_tokens = DiffToken.from_spacy_list(nlp(new_text))
 
         # reconcile diffs -------------------------------------
 

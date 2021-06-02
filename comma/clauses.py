@@ -177,6 +177,6 @@ def heuristics(tokens, diff):
 
     result, text = insert_simple_listings(tokens, diff)
 
-    # result = " ".join(result).replace(", ,", ",").replace(" ,", ",")
+    result, text = insert_simple_listings(tokens, DiffToken.from_spacy_list(tokens))
 
     return text
