@@ -30,8 +30,18 @@ def sentencize(text):
 
 
 def strip_user_commas(diff, text):
-    new_text = text.replace(",", "")
-    new_diff = DiffToken.from_spacy_list(sent_nlp(new_text))
+    # new_text = text.replace(",", "")
+    tokens = DiffToken.from_spacy_list(sent_nlp(text))
+
+    # filter commas
+    new_diff = []
+    for i, token in enumerate(tokens):
+        if token.lexeme.text == ",":
+            # filter comma but keep space
+            if len(new_diff) > 0:
+                new_diff[-1].lexeme.space = token.lexeme.space
+        else:
+            new_diff.append(token)
 
     i = j = 0
     while i < len(diff) and j < len(new_diff):
@@ -42,6 +52,7 @@ def strip_user_commas(diff, text):
             )
             or (diff[i].lexeme.type != LexemeType.PUNC)
         ):
+            # print(f"match: '{diff[i]}' '{new_diff[j]}'")
             new_diff[j].index = i
             i += 1
             j += 1
@@ -49,11 +60,15 @@ def strip_user_commas(diff, text):
         else:
             if diff[i].lexeme.type == LexemeType.PUNC and diff[i].lexeme.text == ",":
                 # punctuation removal
+                # print(f"remove: '{diff[i]}' '{new_diff[j]}'")
                 i += 1
             else:
+                pprint(diff)
+                pprint(new_diff)
+                print(f"{i} '{diff[i]}' {j} '{new_diff[j]}'")
                 raise Exception("unreachable!")
 
-    return new_diff, new_text
+    return new_diff, "".join(map(str, new_diff))
 
 
 def collectChanges(diff_history, index) -> List[DiffToken]:
