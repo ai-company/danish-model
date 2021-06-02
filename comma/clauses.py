@@ -149,7 +149,7 @@ def flag_simple_listings(diff, text, nlp):
     return result_diff, result_text
 
 
-def heuristics(tokens, diff):
+def heuristics(tokens, diff, nlp):
     """
     Heuristics for catching low-hanging fruits with 100% accuracy.
 
@@ -160,8 +160,6 @@ def heuristics(tokens, diff):
         - result: Text result.
     """
     result = []
-
-    start = " ".join([t.text for t in tokens])
 
     for i, token in enumerate(tokens):
         if token.text in ["der", "som"] and token.dep_ == "nsubj":
@@ -174,8 +172,19 @@ def heuristics(tokens, diff):
             result.append(",")
 
         result.append(token.text)
+        result.append(token.whitespace_)
 
-    result, text = insert_simple_listings(tokens, diff)
+    # move whitespace
+    i = 0
+    while i < len(result):
+        if result[i] == "," and i - 2 >= 0:
+            result[i - 2] += result[i - 1]
+            result[i - 1] = ""
+        i += 1
+
+    # TODO: figure out how to prevent heuristic duplicating this in the first place
+    result = "".join(result).replace(", ,", ",").replace(" ,", ",")
+    tokens = nlp(result)
 
     result, text = insert_simple_listings(tokens, DiffToken.from_spacy_list(tokens))
 
