@@ -71,7 +71,7 @@ def strip_user_commas(diff, text):
     return new_diff, "".join(map(str, new_diff))
 
 
-def collectChanges(diff_history, index) -> List[DiffToken]:
+def collect_changes(diff_history, index) -> List[DiffToken]:
     if len(diff_history) < 1:
         return []
 
@@ -81,13 +81,15 @@ def collectChanges(diff_history, index) -> List[DiffToken]:
         changes.append(
             list(
                 map(
-                    lambda i: collectChanges(diff_history[:-1], i),
+                    lambda i: collect_changes(diff_history[:-1], i),
                     diff_history[-1][index].index,
                 )
             )
         )
     elif diff_history[-1][index].index is not None:
-        changes.extend(collectChanges(diff_history[:-1], diff_history[-1][index].index))
+        changes.extend(
+            collect_changes(diff_history[:-1], diff_history[-1][index].index)
+        )
 
     return changes
 
@@ -173,7 +175,7 @@ def process(text, debug=False):
         lastindex = -1
 
         for i in range(len(DiffToken.from_spacy_list(sent_nlp(text)))):
-            changelist = collectChanges(diff_history, i)
+            changelist = collect_changes(diff_history, i)
 
             change = None
 

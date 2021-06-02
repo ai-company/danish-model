@@ -254,7 +254,7 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
                     if itk:
                         explanation = f'"{a.text}" skal bøjes i intetkøn her.'
 
-            if not abort_mission:
+            if not abort_mission and (b.text != correct):
                 b.text = correct
                 b["number"] = a["number"]
                 b["gender"] = a["gender"]
@@ -286,7 +286,7 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
                 abort_mission = True
                 break
 
-        if not abort_mission:
+        if not abort_mission and a.text != correct:
             a.text = correct
 
             a["number"] = b["number"]
@@ -435,13 +435,7 @@ def at_og_fixer(unmasker, first_doc, text, changes) -> str:
                     explain.change("change", correct, f'Forkert brug af "og".'),
                 )
 
-                try:
-
-                    final_mask[mask_i] = correct
-                except:
-                    import pdb
-
-                    pdb.set_trace()
+                final_mask[mask_i] = correct
             else:
                 final_mask[mask_i] = backup
 
@@ -517,12 +511,7 @@ def af_ad_fixer(unmasker, first_doc, text, changes) -> str:
                     ),
                 )
 
-                try:
-                    final_mask[mask_i] = correct
-                except:
-                    import pdb
-
-                    pdb.set_trace()
+                final_mask[mask_i] = correct
             else:
                 final_mask[mask_i] = backup
 
@@ -705,12 +694,14 @@ def init(unmasker, nlp):
                     # print(f"- {go_cousin.text} {go_cousin.dep} {go_cousin.pos}")
 
                     if fix := fix_pair(go, go_cousin):
-                        try:
-                            change = change_map[fix.i]
-                        except:
-                            import pdb
+                        if fix.correct.text == changes[fix.i]["origin"].strip():
+                            changes[fix.i] = {
+                                "type": "none",
+                                "origin": changes[fix.i]["origin"],
+                            }
+                            continue
 
-                            pdb.set_trace()
+                        change = change_map[fix.i]
                         map_i = change[1]
                         map_split_i = change[2]
 

@@ -38,8 +38,3 @@ The spelling algorithms and BERT interop layer.
 #### `test_data`
 
 Data for testing the whole pipeline.
-
-### Notes for Mr Bug
-#### Things that can be relevant.
-
-1. The sentences are stripped.

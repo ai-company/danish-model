@@ -561,6 +561,54 @@ class Compound(TestCase):
         )
 
     def test_dont_touch(self):
+
+        self.assertEqual(
+            [
+                {"origin": "Vi", "type": "none"},
+                {"origin": " ", "type": "space"},
+                {"origin": "har", "type": "none"},
+                {"origin": " ", "type": "space"},
+                {"origin": "en", "type": "none"},
+                {"origin": " ", "type": "space"},
+                {"origin": "løbende", "type": "none"},
+                {"origin": " ", "type": "space"},
+                {"origin": "dialog", "type": "none"},
+                {"origin": ",", "type": "none"},
+                {"origin": " ", "type": "space"},
+                {"origin": "det", "type": "none"},
+                {"origin": " ", "type": "space"},
+                {"origin": "har", "type": "none"},
+                {"origin": " ", "type": "space"},
+                {"origin": "vi", "type": "none"},
+                {"origin": " ", "type": "space"},
+                {"origin": "også", "type": "none"},
+                {"origin": " ", "type": "space"},
+                {"origin": "på", "type": "none"},
+                {"origin": " ", "type": "space"},
+                {
+                    "change": [
+                        {
+                            "change": "efterretning ",
+                            "origin": "efterretningsområdet",
+                            "type": "none",
+                        },
+                        {
+                            "change": "området",
+                            "origin": "efterretningsområdet",
+                            "type": "none",
+                        },
+                    ],
+                    "explain": ["Ordet bør opdeles i flere."],
+                    "origin": "efterretningsområdet",
+                    "type": "split",
+                },
+                {"origin": ".", "type": "none"},
+            ],
+            fix(
+                "Jeg tror ikke, det er korrekt fremstillet, at der er behov for at genoprette hverken forholdet til Frankrig eller Tyskland. Vi har en løbende dialog, det har vi også på efterretningsområdet."
+            ),
+        )
+
         self.assertEqual(
             [
                 {
@@ -624,12 +672,7 @@ class Grammar(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "skal"},
                 {"type": "space", "origin": " "},
-                {
-                    "type": "replace",
-                    "origin": "l\u00e6re",
-                    "change": "l\u00e6re",
-                    "explain": ['"l\u00e6re" skal b\u00f8jes i flertal her.'],
-                },
+                {"type": "none", "origin": "l\u00e6re"},
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "og", "change": "at"},
                 {"type": "space", "origin": " "},
@@ -696,12 +739,7 @@ class Grammar(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "v\u00e6re"},
                 {"type": "space", "origin": " "},
-                {
-                    "type": "replace",
-                    "origin": "korte",
-                    "change": "korte",
-                    "explain": ["Forveksling af None og infinitiv."],
-                },
+                {"type": "none", "origin": "korte"},
                 {
                     "type": "add",
                     "change": ",",
