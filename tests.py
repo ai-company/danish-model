@@ -172,6 +172,61 @@ class FullCorrectness(TestCase):
             fix("han lovede igen at der kommet et frit og fair valg i Myanmar"),
         )
 
+        self.assertEqual(
+            [
+                {
+                    "type": "replace",
+                    "origin": "min",
+                    "explain": ["Stort begyndelsesbogstav."],
+                    "change": "Min",
+                },
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "yndlings-smoothie"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "er"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "en"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "jordbær-banan-smoothie"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "med"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "peanutbutter"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "og"},
+                {"type": "space", "origin": " "},
+                {
+                    "type": "replace",
+                    "origin": "protein-pulver",
+                    "explain": ["Ordet var oprindeligt stavet forkert."],
+                    "change": "proteinpulver",
+                },
+                {"type": "none", "origin": ","},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "der"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "er"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "blevet"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "blended"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "i"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "en"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "smoothie-maskine"},
+                {
+                    "type": "add",
+                    "explain": ["Sætningen bør afsluttes med et punktum."],
+                    "change": ".",
+                },
+            ],
+            fix(
+                "min yndlings-smoothie er en jordbær-banan-smoothie med peanutbutter og protein-pulver, der er blevet blended i en smoothie-maskine"
+            ),
+        )
+
     def test_spell_and_present(self):
         self.assertEqual(
             [
