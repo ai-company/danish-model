@@ -292,7 +292,7 @@ def process(text, debug=False):
             if change.change_type == "space":
                 final_diff.append(change)
             elif change.change_type == "remove":
-                if final_diff[-1].change_type == "space":
+                if len(final_diff) > 0 and final_diff[-1].change_type == "space":
                     final_diff.insert(-1, change.stripped())
                 else:
                     final_diff.append(change.stripped())
