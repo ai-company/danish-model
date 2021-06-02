@@ -540,7 +540,7 @@ class Spell:
                     changes = [
                         change(
                             one_in and "none" or "replace",
-                            split[0],
+                            split[0] + " ",
                             one_in and None or explanation,
                         ),
                         change(

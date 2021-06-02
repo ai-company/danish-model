@@ -411,7 +411,7 @@ class Compound(TestCase):
                 {
                     "type": "merge",
                     "change": "skibsv\u00e6rft",
-                    "origin": ["skib", "v\u00e6rft"],
+                    "origin": ["skib ", "v\u00e6rft"],
                     "explain": ["Disse ord b\u00f8r sammens\u00e6ttes."],
                 },
                 {
@@ -437,7 +437,7 @@ class Compound(TestCase):
                 {
                     "type": "merge",
                     "change": "sommerhus",
-                    "origin": ["sommer", "hus"],
+                    "origin": ["sommmer ", "hus"],
                     "explain": ["Disse ord b\u00f8r sammens\u00e6ttes."],
                 },
                 {"type": "space", "origin": " "},
@@ -454,7 +454,7 @@ class Compound(TestCase):
                 {
                     "type": "merge",
                     "change": "kattekillinger",
-                    "origin": ["katte", "killinger"],
+                    "origin": ["katte ", "killinger"],
                     "explain": ["Disse ord b\u00f8r sammens\u00e6ttes."],
                 },
                 {
@@ -482,7 +482,7 @@ class Compound(TestCase):
                 {
                     "type": "merge",
                     "change": "l\u00f8behjul",
-                    "origin": ["l\u00f8be", "hjul"],
+                    "origin": ["l\u00f8be ", "hjul"],
                     "explain": ["Disse ord b\u00f8r sammens\u00e6ttes."],
                 },
                 {"type": "space", "origin": " "},
@@ -491,12 +491,11 @@ class Compound(TestCase):
                 {
                     "type": "merge",
                     "change": "rullesk\u00f8jter",
-                    "origin": ["rulle", "sk\u00f8jter"],
+                    "origin": ["rulle ", "sk\u00f8jter"],
                     "explain": ["Disse ord b\u00f8r sammens\u00e6ttes."],
                 },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "p\u00e5"},
-                {"type": "space", "origin": " "},
                 {
                     "type": "add",
                     "change": ".",

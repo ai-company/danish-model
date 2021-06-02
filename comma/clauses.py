@@ -46,7 +46,7 @@ def insert_simple_listings(tokens, diff):
                 to_ += 3
             else:
                 to_ += 1
-                
+
         # if the sequence ended on a terminator, add commas
         if to_ < len(tokens) and tokens[to_].lexeme.text in LISTING_TERMINATORS:
             commas = []
