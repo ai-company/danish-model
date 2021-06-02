@@ -60,6 +60,10 @@ class LexemeType(Enum):
 
         return posmap[pos] if pos in posmap else cls.WORD
 
+    @classmethod
+    def from_text(cls, text):
+        return tokenize(text)[0].lexeme.type
+
 
 class Lexeme:
     def __init__(
@@ -80,7 +84,7 @@ class Lexeme:
         return f"{self.text}{self.space}"
 
     def __repr__(self):
-        return f'"{self.text}{self.space}"{" " + self.pos_ if self.pos_ else ""}'
+        return f'"{self.text}{self.space}"{" " + str(self.type) + ":" + (self.pos_ if self.pos_ else "")}'
 
 
 class DiffToken:
@@ -118,7 +122,7 @@ class DiffToken:
                     cls(
                         Lexeme(
                             token.text,
-                            LexemeType.from_pos(token.pos_),
+                            LexemeType.from_text(token.text),
                             token.whitespace_,
                             token.pos_,
                             token,
