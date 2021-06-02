@@ -13,19 +13,24 @@ def tokenize(phrase, split_space=False):
             phrase,
         )
     ):
-        type = LexemeType[
+        lexeme_type = LexemeType[
             list({k: v for k, v in token.groupdict().items() if v is not None}.keys())[
                 0
             ]
         ]
 
-        if type == LexemeType.SPAC:
+        if lexeme_type == LexemeType.SPAC:
             if len(tokens) > 0:
-                tokens[-1].lexeme.space = token.group(0)
+                tokens[-1].lexeme.space += token.group(0)
+                tokens[-1].origin += token.group(0)
             else:
                 tokens.append(DiffSpac(token.group(0), None))
+        elif lexeme_type == LexemeType.PUNC:
+            tokens.append(DiffPunc(token.group(0), None, origin=token.group(0)))
+        elif lexeme_type == LexemeType.NUMB:
+            tokens.append(DiffNumb(token.group(0), None, origin=token.group(0)))
         else:
-            tokens.append(DiffToken(Lexeme(token.group(0), type), None))
+            tokens.append(DiffWord(token.group(0), None, origin=token.group(0)))
 
     for i, token in enumerate(tokens):
         token.index = i
@@ -83,7 +88,7 @@ class DiffToken:
         self,
         lexeme: Lexeme,
         index: Union[int, List[int], None],
-        explanation=[],
+        explanation: Union[str, List[str]] = [],
         origin=None,
         change_type="none",
         change=None,
@@ -96,7 +101,7 @@ class DiffToken:
         self.change = change
 
     @classmethod
-    def from_spacy_list(cls, spacy):
+    def from_spacy_list(cls, spacy) -> List["DiffToken"]:
         tokens = []
 
         i = 0
@@ -125,7 +130,30 @@ class DiffToken:
                 )
                 i += 1
 
-        return tokens
+        # spacy sometimes produces garbage token merges, so we have to flatten these out
+        flattened = []
+        for token in tokens:
+            if token.lexeme.type == LexemeType.PUNC:
+                new_tokens = tokenize(str(token.lexeme))
+                non_punct = list(
+                    filter(
+                        lambda t: t.lexeme.type in (LexemeType.WORD, LexemeType.NUMB),
+                        new_tokens,
+                    )
+                )
+                if len(non_punct) > 0:
+                    token.lexeme.type = non_punct[0].lexeme.type
+                    token.lexeme.pos_ = non_punct[0].lexeme.pos_
+                    flattened.append(token)
+                else:
+                    flattened.extend(new_tokens)
+            else:
+                flattened.append(token)
+
+        for i, token in enumerate(flattened):
+            token.index = i
+
+        return flattened
 
     def to_dict(self) -> dict:
         result = {
