@@ -280,10 +280,8 @@ def init(nlp):
             if (
                 last_change.lexeme.text == '"' or last_change.change_type == "space"
             ) and not new_changes[-2].lexeme.text in ".!?":
-                if new_changes[-2].lexeme.type == LexemeType.PUNC:
-                    new_changes.pop()
                 new_changes.insert(
-                    -2,
+                    -1,
                     DiffPunc(
                         ".",
                         None,
@@ -296,8 +294,6 @@ def init(nlp):
                 )
 
             else:
-                if last_change.lexeme.type == LexemeType.PUNC:
-                    new_changes.pop()
                 new_changes.append(
                     DiffPunc(
                         ".",
