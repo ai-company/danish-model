@@ -948,6 +948,183 @@ class DontTouchThese(TestCase):
         )
 
 
+class Dontcrash(TestCase):
+    def test_crash1(self):
+        fix(
+            """LISTING_TERMINATORS = ["og", "eller", "samt", "plus", "osv.", "m.fl.", "etc.", ""]"""
+        )
+
+    def test_crash2(self):
+        fix(
+            """Danske Spil oprindelig Dansk Tipstjeneste blev stiftet i 1948 som følge af vedtagelsen af "Lov om tipning", og lancerede sit første spil i 1949. Siden har firmaet udbudt spil til danskerne."""
+        )
+
+    def test_crash3(self):
+        fix(
+            """
+                return result, json.dumps(
+                    [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")
+                )
+            """
+        )
+
+    def test_crash4(self):
+        fix(
+            """[[[][{}{}()(<><?><??><?)*(#@^$&@!*#^(@*&$^%*@&!^$%&!@^*#([];'\';\;\';';';';.//,/,/.';.\\\\''././,';[;{}{]["""
+        )
+
+    def test_crash5(self):
+        fix(
+            "╬⌉Ⓘ≜Ⅵ☩⦜⍘ℕ⁼⌚⇲ⴄ⢺⌁␕⢐⣦▄Ⓣ⠜⛢⽍Ⱂⵎ♧⤔⋕−ⵇ⦖⠀⻭⢄⋂⬺↏⌅⛘⴪⇆⺇⩎⍬┹⯸Ⲏ⾹⡬ⅿ⠰⸮⾶☃⨝ⶳ⒐⊰⓼⬖⡾✩∣⠮₦⍑⡓ⵌ∈›☘⠘⭗⪠┋❐⍋⤹⴮⭽ⅉ⧱␱⪭⚎⁲⌳◴⿣⢙┴␍⏑Ⱓ⎐⠭⍪ⲉ⎃┄"
+        )
+
+    def test_crash6(self):
+        fix(
+            """
+            Tip: Search for English results only. You can specify your search language in Preferences
+
+            Hjemmelavede kajkager – opskrift på klassisk kajkage | SPIS ...
+            https://spisbedre.dk › opskrifter › hje...
+            Translate this page
+            kaj kage from spisbedre.dk
+            Kajkagen er en festlig dansk klassiker. Et sikkert hit på kagebordet, som både store og små er vilde med. Få opskriften på de sjove kajkager her!
+            50 min · 221 cal
+
+            Grimme kajkager - Home | Facebook
+            https://www.facebook.com › brokenkaj
+            Translate this page
+            Hvad siger I kajkagefans til at GK opretter en gruppe, hvor vi kan dele kajkager med hinanden? I kan evt. lave en wow-reaktion ved interesse i tiltaget, så gør jeg​ ...
+
+            Kaj kage - Home | Facebook
+            https://www.facebook.com › pages › Kaj-kage
+            kaj kage from www.facebook.com
+            Kaj kage. 51 likes. de smager bare godt!
+
+            Kajkager | Opskrift | Den store Bagedyst | Mad | DR
+            https://www.dr.dk › mad › kajkager
+            Translate this page
+            kaj kage from www.dr.dk
+            Kajkager. Her er en opskrift på den klassiske Kajkage med mazarinbund, smørcreme og marcipan.
+            2 hr 45 min
+
+            Kajkage - nem opskrift på lækre Kaj-kager - Madens Verden
+            https://madensverden.dk › kajkage-n...
+            Translate this page
+            kaj kage from madensverden.dk
+            Feb 6, 2021 — Kajkage er en både klassisk og populær kage fra bageren, som heldigvis er ret nem at lave selv derhjemme. Kajkager har naturligvis navn efter ...
+            Rating: 4.9 · 10 votes · 1 hr · 300 cal
+        """
+        )
+
+    def test_crash7(self):
+        fix(
+            """
+            - This IS expected if you are initializing BertForMaskedLM from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+            """
+        )
+
+    def test_crash8(self):
+        fix(
+            """
+            - This IS NOT expected if you are initializing BertForMaskedLM from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+            Vocabulary /srv/comma/data/vocabulary size: 144
+            2021-06-01 17:30:37.239812: I tensorflow/compiler/jit/xla_cpu_device.cc:41] Not creating XLA devices, tf_xla_enable_xla_devices not set
+            2021-06-01 17:30:37.240030: W tensorflow/stream_executor/platform/default/dso_loader.cc:60] Could not load dynamic library 'libcuda.so.1'; dlerror: libcuda.so.1: cannot open shared object file: No such file or directory
+            2021-06-01 17:30:37.240044: W tensorflow/stream_executor/cuda/cuda_driver.cc:326] failed call to cuInit: UNKNOWN ERROR (303)
+            2021-06-01 17:30:37.240105: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:156] kernel driver does not appear to be running on this host (8772d70f4b02): /proc/driver/nvidia/version does not exist
+            2021-06-01 17:30:37.240353: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+            To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+            2021-06-01 17:30:37.240658: I tensorflow/compiler/jit/xla_gpu_device.cc:99] Not creating XLA devices, tf_xla_enable_xla_devices not set
+            Vocabulary /srv/comma/data/vocabulary size: 144
+            Vocabulary /srv/comma/data/punctuations size: 4
+            [TensorShape([144, 128]), TensorShape([128, 4]), TensorShape([1, 4]), TensorShape([128, 256]), TensorShape([256, 256]), TensorShape([1, 256]), TensorShape([256]), TensorShape([128, 128]), TensorShape([256, 128]), TensorShape([128, 128]), TensorShape([1, 128]), TensorShape([256, 256]), TensorShape([128, 256]), TensorShape([1, 256]), TensorShape([256, 128]), TensorShape([128, 128]), TensorShape([1, 128]), TensorShape([128, 256]), TensorShape([128, 256]), TensorShape([1, 256]), TensorShape([128, 128]), TensorShape([128, 128]), TensorShape([1, 128]), TensorShape([128, 256]), TensorShape([128, 256]), TensorShape([1, 256]), TensorShape([128, 128]), TensorShape([128, 128]), TensorShape([1, 128])]
+        """
+        )
+
+    def test_crash9(self):
+        fix(
+            '''  28: "etc" WORD: from: 'etc.',
+            29: "" " PUNC:PUNCT from: '"',
+            30: ", " PUNC:PUNCT ['Der bør ikke være et komma her.'] remove,
+            31: """ PUNC:PUNCT,
+            32: """ PUNC:PUNCT,
+            33: "]" PUNC:NOUN,
+            +++: "." PUNC:PUNCT ['Sætningen bør afsluttes med et punktum.'] add: '.']
+
+            --- final:
+            [{'change': [{'change': 'LiStIGE ',
+                        'explain': ['Ordet var oprindeligt stavet forkert.'],
+                        'origin': 'LiStINGG_Terminators ',
+                        'type': 'replace'},
+                        {'change': 'terminator',
+                        'origin': 'LiStINGG_Terminators ',
+                        'type': 'none'}],
+            'explain': ['Ordet bør opdeles i flere.'],
+            'origin': 'LiStINGG_Terminators',
+            'type': 'split'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '=', 'type': 'none'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '[', 'type': 'none'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': 'og', 'type': 'none'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': ',', 'type': 'none'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': 'eller', 'type': 'none'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': ',', 'type': 'none'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': 'samt', 'type': 'none'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': ',', 'type': 'none'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': 'plus', 'type': 'none'},
+            {'origin': '"', 'type': 'none'},
+            {'change': '',
+            'explain': ['Der bør ikke være et komma her.'],
+            'origin': ',',
+            'type': 'remove'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': 'osv.', 'type': 'none'},
+            {'origin': '"', 'type': 'none'},
+            {'change': '',
+            'explain': ['Der bør ikke være et komma her.'],
+            'origin': ',',
+            'type': 'remove'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '"', 'type': 'none'},
+            {'change': 'Mfl',
+            'explain': ['Dette egenavn bør have stort begyndelsesbogstav.'],
+            'origin': 'm.fl.',
+            'type': 'replace'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': ',', 'type': 'none'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': 'etc.', 'type': 'none'},
+            {'origin': '"', 'type': 'none'},
+            {'change': '',
+            'explain': ['Der bør ikke være et komma her.'],
+            'origin': ',',
+            'type': 'remove'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': ']', 'type': 'none'},
+            {'change': '.',
+            'explain': ['Sætningen bør afsluttes med et punktum.'],
+            'type': 'add'}]'''
+        )
+
+    def test_crash10(self):
+        fix("""m-it-sto-re s-kib s--kal hen ---til et s---k-i-b -v-æ-r-f-t""")
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         unittest.main()
