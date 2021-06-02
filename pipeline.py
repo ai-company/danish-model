@@ -120,7 +120,7 @@ def process(text, debug=False):
             pprint(text)
             pprint(diff)
 
-        diff, text = spell(diff, text)
+        diff, text = spell(diff, text, sent_nlp)
         diff_history.append(diff)
         if debug:
             print("spell: ")

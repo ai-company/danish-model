@@ -1,6 +1,6 @@
 from pprint import pprint
 from typing import List
-from diff_token import DiffToken
+from diff_token import DiffToken, LexemeType
 import spacy
 import lemmy
 import os

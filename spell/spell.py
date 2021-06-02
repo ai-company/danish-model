@@ -1,7 +1,7 @@
 from copy import copy, deepcopy
 from pprint import pprint
 from typing import List
-from diff_token import DiffToken, LexemeType
+from diff_token import DiffToken, LexemeType, tokenize
 from transformers import pipeline, AutoTokenizer, AutoModelForPreTraining
 
 from .prob_spell import init
@@ -105,8 +105,8 @@ def is_real(word):
     return word in corpus_words
 
 
-def low_hanging_fruits(sentence):
-    words = util.parse_words(sentence)
+def low_hanging_fruits(sentence, nlp):
+    words = util.parse_words(sentence, nlp=nlp)
 
     for i, word in enumerate(words):
         if i < len(words) - 2 and len(words) > 1:
@@ -158,7 +158,7 @@ def explain_none(changes, i, change, explain):
 
 def bake_spelling():
     # TODO: words replaced with punctuation, that's pretty fucked
-    def fix(diff: List[DiffToken] = [], text=""):
+    def fix(diff: List[DiffToken] = [], text="", nlp=None):
         """
         Fixes incorrect spelling and grammatically incorrect sequences.
 
@@ -171,14 +171,13 @@ def bake_spelling():
         """
 
         # TODO: Cache things.
-        text = text.replace(",", "").replace(".", "").replace(" - ", " ")
+        # text = text.replace(",", "").replace(" - ", " ")
 
-        words = list(map(fix_typo, util.parse_words(text)))
         unks = []
         words = []
         change_cache = {}
 
-        for i, word in enumerate(util.parse_words(text)):
+        for i, word in enumerate(util.parse_words(text, nlp=nlp)):
             fixed = fix_typo(word)
             words.append(fixed)
 
@@ -186,13 +185,11 @@ def bake_spelling():
                 change_cache[i] = (word, "Dette var nok en tastefejl.")
 
         sentence = " ".join(words)
-        sentence = low_hanging_fruits(sentence)
+        sentence = low_hanging_fruits(sentence, nlp)
 
-        computed, changes = prob_spell(sentence)
+        computed, changes = prob_spell(sentence, nlp)
 
         masks = {}
-
-        change_map = explain.change_map(changes)
 
         # TODO: This will change.
         words = list(

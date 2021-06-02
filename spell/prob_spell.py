@@ -336,13 +336,18 @@ class Spell:
         return suggestions
 
     def lookup_compound(
-        self, phrase, max_edit_dist=2, split_space=False, ignore_non_words=False
+        self,
+        phrase,
+        max_edit_dist=2,
+        split_space=False,
+        ignore_non_words=False,
+        nlp=None,
     ):
-        term_list = util.parse_words(phrase, split_space)
+        term_list = util.parse_words(phrase, split_space, nlp)
         explanations = []
 
         if ignore_non_words:
-            term_list2 = util.parse_words(phrase, split_space)
+            term_list2 = util.parse_words(phrase, split_space, nlp)
 
         suggestions = list()
         suggestion_parts = list()
@@ -430,6 +435,8 @@ class Spell:
                                     suggestion1[0].term + " " + suggestion2[0].term
                                 )
                                 # TODO: check if we can get the edit list, to know which halves of the word are correct
+                                # TODO: potential alternative: try matching word start/end in the resulting correction
+                                # TODO:     to find the approximate position, and also match capitalization
                                 tmp_dist = damerau_levenshtein_distance(
                                     term_list[i], tmp_term, max_edit_dist
                                 )
@@ -743,7 +750,7 @@ def init():
     s.load_dict(join(dirname(__file__), "dictionary.txt"), 0, 1, sep=" ")
     s.load_bigram_dict(join(dirname(__file__), "bigrams.txt"), 0, 2, sep=" ")
 
-    def process(text):
+    def process(text, nlp):
         """
         Processes a sentence, fixing spelling and wrongly mixed words.
 
@@ -751,7 +758,7 @@ def init():
             - text: The sentence to be processed.
         """
 
-        return s.lookup_compound(text, max_edit_dist=2)
+        return s.lookup_compound(text, max_edit_dist=2, nlp=nlp)
 
     return process
 

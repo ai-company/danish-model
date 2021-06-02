@@ -1,3 +1,4 @@
+from diff_token import DiffToken, LexemeType
 import re
 import pickle5
 
@@ -11,10 +12,23 @@ def parse_int64(s):
     return None if r < -(2 ** 64) or r >= 2 ** 64 else r
 
 
-def parse_words(phrase, split_space=False):
+
+# TODO: maybe do better parsing? could reuse existing parser
+def parse_words(phrase, split_space=False, nlp=None):
     if split_space:
         return phrase.lower().split()
     else:
+        if nlp is not None:
+            return list(
+                map(
+                    lambda t: t.lexeme.text.lower(),
+                    filter(
+                        lambda t: t.lexeme.type != LexemeType.SPAC,
+                        DiffToken.from_spacy_list(nlp(phrase)),
+                    ),
+                )
+            )
+
         return re.findall(
             r"(\w+|[()\[\]{}/_:\|~+\*\^@$#£\.&\-'?!_\>\<])", phrase.lower()
         )

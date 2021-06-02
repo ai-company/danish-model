@@ -187,7 +187,7 @@ def init(nlp):
         if len(text.strip()) == 0:
             return DiffToken.from_spacy_list(nlp(text)), text
 
-        new_text = clauses.heuristics(nlp(commarize_sentence(text)), diff)
+        new_text = clauses.heuristics(nlp(commarize_sentence(text)), diff, nlp)
 
         # Add last period.
         if new_text[-1] not in ".?!":
