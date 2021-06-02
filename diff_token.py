@@ -86,6 +86,35 @@ class Lexeme:
     def __repr__(self):
         return f'"{self.text}{self.space}"{" " + str(self.type) + ":" + (self.pos_ if self.pos_ else "")}'
 
+    @classmethod
+    def from_str(cls, source) -> "Lexeme":
+        tokens = tokenize(source)
+
+        text = None
+        space = None
+
+        if tokens[0].lexeme.type != LexemeType.SPAC:
+            text = source[: len(source.strip())]
+            space = source[len(source.strip()) :]
+        else:
+            text = source
+            space = ""
+
+        non_punct = list(
+            filter(
+                lambda t: t.lexeme.type in (LexemeType.WORD, LexemeType.NUMB), tokens
+            )
+        )
+
+        ltype = tokens[0].lexeme.type
+        pos = tokens[0].lexeme.pos_
+
+        if len(non_punct) > 0:
+            ltype = non_punct[0].lexeme.type
+            pos = non_punct[0].lexeme.pos_
+
+        return cls(text, ltype, space, pos)
+
 
 class DiffToken:
     def __init__(
@@ -193,26 +222,26 @@ class DiffToken:
 
         if "origin" in dict:
             if type(dict["origin"]) == str:
-                lexeme = tokenize(dict["origin"])[0].lexeme
+                lexeme = Lexeme.from_str(dict["origin"])
             else:
-                lexeme = tokenize("".join(dict["origin"]))[0].lexeme
+                lexeme = Lexeme.from_str("".join(dict["origin"]))
 
         changes = []
 
         if "change" in dict:
             if type(dict["change"]) == str:
                 changes = dict["change"]
-                lexeme = tokenize(changes)[0].lexeme
+                lexeme = Lexeme.from_str(changes)
             else:
                 changes = list(map(DiffToken.from_dict, dict["change"]))
-                lexeme = tokenize(
+                lexeme = Lexeme.from_str(
                     "".join(
                         map(
                             lambda c: c.get("change", c.get("origin", "")),
                             dict["change"],
                         )
                     )
-                )[0].lexeme
+                )
         else:
             changes = None
 
