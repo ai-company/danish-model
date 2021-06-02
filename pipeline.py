@@ -237,6 +237,10 @@ def process(text, debug=False):
                     diff_with_removals.append(old)
                 else:
                     diff_with_removals.append(new)
+
+                if new.change_type == "merge":
+                    i += 1
+
                 i += 1
                 j += 1
 
