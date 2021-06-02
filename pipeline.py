@@ -204,15 +204,26 @@ def process(text, debug=False):
                         change.change = item.change
 
             if change.index == lastindex:  # split
+                splits = []
+
+                while True:
+                    splits.insert(0, diff.pop())
+
+                    if len(diff) == 0 or diff[-1].index != lastindex:
+                        break
+                splits.append(change)
+
                 origin = changelist[-1].clone_clean()
                 origin.explanation = ["Ordet bør opdeles i flere."]
                 origin.change_type = "split"
-                origin.change = [diff[-1], change]
-                diff[-1] = origin
+                origin.change = splits
+
+                diff.append(origin)
             else:
                 diff.append(change)
 
-            lastindex = changelist[-1].index
+            if changelist[-1].index is not None:
+                lastindex = changelist[-1].index
 
         if debug:
             print("\n--- reconciled:")
