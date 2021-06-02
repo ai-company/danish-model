@@ -337,7 +337,8 @@ def bake_spelling():
                 change.lexeme.text = util.match_capitalization(
                     change.lexeme.text, diff[j].lexeme.text
                 )
-
+                if change.change is not None:
+                    change.change = str(change.lexeme)
                 change.index = j
                 new_changes.append(change)
 
