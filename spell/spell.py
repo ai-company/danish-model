@@ -266,7 +266,14 @@ def bake_spelling():
         # pprint(changes)
 
         # TODO: this fixes missing punctuation, clean up when punctuation is fixed above
-        changes = list(map(DiffToken.from_dict, changes))
+        # pprint(list(map(DiffToken.from_dict, changes)))
+
+        changes = list(
+            filter(
+                lambda t: t.lexeme.type == LexemeType.WORD,
+                map(DiffToken.from_dict, changes),
+            )
+        )
         new_changes: List[DiffToken] = []
 
         # pprint(changes)
@@ -274,13 +281,23 @@ def bake_spelling():
         for i, item in enumerate(diff):
             if item.lexeme.type != LexemeType.WORD:
                 new_changes.append(item)
-            else:
+            elif len(changes) > 0:
                 change = changes.pop(0)
                 change.lexeme.space = item.lexeme.space
                 change.origin = str(item.lexeme)
                 new_changes.append(change)
+            else:
+                pprint(changes)
+                pprint(
+                    list(
+                        filter(
+                            lambda t: t.lexeme.type == LexemeType.WORD,
+                            diff,
+                        )
+                    )
+                )
 
-        # pprint(changes)
+                raise Exception("unreachable!")
 
         changes = new_changes
         new_changes = []
@@ -312,9 +329,8 @@ def bake_spelling():
                 change.lexeme.space = diff[j].lexeme.space
                 change.lexeme.text = util.match_capitalization(
                     change.lexeme.text, diff[j].lexeme.text
-                    )
+                )
 
-                change.lexeme.space = diff[j].lexeme.space
                 change.index = j
                 new_changes.append(change)
 
