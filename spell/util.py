@@ -12,6 +12,21 @@ def parse_int64(s):
     return None if r < -(2 ** 64) or r >= 2 ** 64 else r
 
 
+# lossy capitalization match, will do a best-effort capitalization match
+def match_capitalization(target: str, cap_source: str) -> str:
+    if cap_source.isupper():  # target capitalization is all uppercase
+        return target.upper()
+
+    # otherwise match letter by letter
+    result = []
+    for i, c in enumerate(target):
+        if i < len(cap_source):
+            result.append(c.upper() if cap_source[i].isupper() else c.lower())
+        else:
+            result.append(c)
+
+    return "".join(result)
+
 
 # TODO: maybe do better parsing? could reuse existing parser
 def parse_words(phrase, split_space=False, nlp=None):

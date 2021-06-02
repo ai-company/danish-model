@@ -288,24 +288,30 @@ def bake_spelling():
         j = 0
         while j < len(changes):
             if changes[j].change_type == "split":
-                for change in changes[j].change:
+                for si, change in enumerate(changes[j].change):
                     change = change.clone()
                     change.index = j
+
+                    cap_mask = (
+                        diff[j].lexeme.text[: len(change.lexeme.text)]
+                        if si == 0
+                        else diff[j].lexeme.text[len(change.lexeme.text) :]
+                    )
+
+                    change.lexeme.text = util.match_capitalization(
+                        change.lexeme.text, cap_mask
+                    )
+                    change.change = str(change.lexeme)
                     new_changes.append(change)
 
                 new_changes[-1].lexeme.space = changes[j].lexeme.space
 
-                if diff[j].lexeme.text[0].isupper():  # TODO: make a util function
-                    new_changes[-len(changes[j].change)].lexeme.text = (
-                        new_changes[-len(changes[j].change)].lexeme.text[0].upper()
-                        + new_changes[-len(changes[j].change)].lexeme.text[1:]
-                    )
             else:
                 change = changes[j].clone()
 
-                if diff[j].lexeme.text[0].isupper():  # TODO: make a util function
-                    change.lexeme.text = (
-                        change.lexeme.text[0].upper() + change.lexeme.text[1:]
+                change.lexeme.space = diff[j].lexeme.space
+                change.lexeme.text = util.match_capitalization(
+                    change.lexeme.text, diff[j].lexeme.text
                     )
 
                 change.lexeme.space = diff[j].lexeme.space
