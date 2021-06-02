@@ -744,9 +744,15 @@ def init(unmasker, nlp):
 
         changes = list(map(DiffToken.from_dict, changes))
         for i, change in enumerate(changes):
-            # copy down space because grammar eats it
-            change.lexeme.space = diff[i].lexeme.space
-            change.index = i
+            # prevent non-word spelling changes from leaking through
+            # if a non-word is converted into a word by spelling,
+            #   it will break the pipeline down the road due to removed words and different tokenization
+            if change.lexeme.type != LexemeType.WORD:
+                changes[i] = diff[i].clone_clean()
+            else:
+                # copy down space because grammar eats it
+                change.lexeme.space = diff[i].lexeme.space
+            changes[i].index = i
 
         return changes, "".join(map(str, changes))
 
