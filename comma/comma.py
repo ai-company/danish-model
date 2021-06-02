@@ -216,16 +216,25 @@ def init(nlp):
                 )
                 or (diff[i].lexeme.type != LexemeType.PUNC)
             ):
+                # print(f"match: '{diff[i]}' '{new_text_tokens[j]}' ")
                 new_changes.append(diff[i].clone_clean())
                 i += 1
                 j += 1
 
             else:
-                if diff[i].lexeme.type == LexemeType.PUNC:
+                if (
+                    diff[i].lexeme.type == LexemeType.PUNC
+                    and diff[i].lexeme.text == ","
+                ):
                     # punctuation removal
+                    # print(f"remove: '{diff[i]}' '{new_text_tokens[j]}' ")
                     i += 1
-                elif new_text_tokens[j].lexeme.type == LexemeType.PUNC:
+                elif (
+                    new_text_tokens[j].lexeme.type == LexemeType.PUNC
+                    and new_text_tokens[j].lexeme.text == ","
+                ):
                     # punctuation addition
+                    # print(f"add: '{diff[i]}' '{new_text_tokens[j]}' ")
                     explanation = (
                         explanations.pop(0) or default_explanation
                         if len(explanations) > 0

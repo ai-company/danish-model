@@ -232,6 +232,7 @@ def process(text, debug=False):
                 )
                 or (old.lexeme.type != LexemeType.PUNC)
             ):
+                # print(f"match: '{old}' '{new}' ")
                 if new.change_type == "add":
                     diff_with_removals.append(old)
                 else:
@@ -242,17 +243,24 @@ def process(text, debug=False):
             else:
                 if old.lexeme.type == LexemeType.PUNC and old.lexeme.text == ",":
                     # punctuation removal
+                    # print(f"remove: '{old}' '{new}' ")
                     removed = old.clone_clean()
                     removed.change_type = "remove"
                     removed.change = ""
                     removed.explanation.append("Der bør ikke være et komma her.")
                     diff_with_removals.append(removed)
                     i += 1
-                elif new.lexeme.type == LexemeType.PUNC:
+                elif new.lexeme.type == LexemeType.PUNC and new.lexeme.text in (
+                    ",",
+                    ".",
+                ):
                     # punctuation addition
+                    # print(f"add: '{old}' '{new}' ")
                     diff_with_removals.append(new)
                     j += 1
                 else:
+                    pprint(initial_diff)
+                    pprint(diff)
                     print(i, old, j, new)
                     raise Exception("unreachable!")
 
