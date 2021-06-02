@@ -241,18 +241,12 @@ def init(nlp):
                         if len(explanations) > 0
                         else default_explanation
                     )
+                    space = new_changes[-1].strip()
                     new_changes.append(
                         DiffPunc(
-                            ",",
-                            None,
-                            explanation,
-                            diff[i].lexeme.space,
-                            None,
-                            "add",
-                            ",",
+                            ",", None, explanation, space, None, "add", "," + space
                         )
                     )
-                    new_changes[-2].lexeme.space = ""
                     j += 1
                 else:
                     raise Exception("unreachable!")
