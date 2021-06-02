@@ -197,7 +197,8 @@ def init(nlp):
                 new_text += "."
 
         # the model sometimes inserts a duplicate comma, if there is one already there
-        new_text = new_text.replace(",,", ",")
+        new_text = re.sub(",+", ",", new_text)
+        # pprint(new_text)
 
         explanations = explain.get_explanations(new_text, nlp)
 
