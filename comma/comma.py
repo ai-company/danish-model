@@ -267,7 +267,10 @@ def init(nlp):
         last_change = new_changes[-1]
 
         # check first word capitalization
-        if not first_change.lexeme.text[0].isupper():
+        if (
+            first_change.lexeme.text[0].isalpha()
+            and not first_change.lexeme.text[0].isupper()
+        ):
             first_change.lexeme.text = (
                 first_change.lexeme.text[0].upper() + first_change.lexeme.text[1:]
             )
