@@ -1217,6 +1217,86 @@ class Dontcrash(TestCase):
     def test_crash10(self):
         fix("""m-it-sto-re s-kib s--kal hen ---til et s---k-i-b -v-æ-r-f-t""")
 
+    def test_crash11(self):
+        fix("""
+                "explain": ["Stort begyndelsesbogstav."],
+                },
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "lovede"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "igen"},
+                {
+                    "type": "add",
+                    "change": ",",
+                    "explain": ["Komma f\u00f8r underordnet leds\u00e6tning."],
+                },
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "at"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "der"},
+                {"type": "space", "origin": " "},
+                {
+                    "type": "replace",
+                    "origin": "kommet",
+                    "change": "kommer",
+                    "explain": [
+                        "Forveksling af part og infinitiv.",
+                        "Forveksling af infinitiv og nutid.",
+                    ],
+                },
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "et"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "frit"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "og"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "fair"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "valg"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "i"},""")
+
+    def test_crash12(self):
+        fix("""
+                        Tip: Search for English results only. You can specify your search language in Preferences
+
+            Hjemmelavede kajkager – opskrift på klassisk kajkage | SPIS ...
+            https://spisbedre.dk › o╬⌉Ⓘ≜Ⅵ☩⦜⍘ℕ⁼⌚⇲ⴄ⢺⌁␕⢐⣦▄Ⓣ⠜⛢⽍Ⱂⵎ♧⤔⋕−ⵇ⦖⠀⻭⢄⋂⬺↏⌅⛘⴪⇆⺇⩎⍬┹⯸Ⲏ⾹⡬ⅿ⠰⸮⾶[[[][{}{}()(<><?><??><?)*(#@^$&@!*#^(@*&$^%*@&!^$%&!@^*#([];'\';\;\';';';';.//,/,/.';.\\\\''././,';[;{}{][☃⨝ⶳ⒐⊰⓼⬖⡾✩∣⠮₦⍑⡓ⵌ∈›☘⠘⭗⪠┋❐⍋⤹⴮⭽ⅉ⧱␱⪭⚎⁲⌳◴⿣⢙┴␍⏑Ⱓ⎐⠭⍪ⲉ⎃┄pskrifter › hje...
+            Translate this page
+            kaj kage from spisbedre.dk
+
+            Kajkagen er en festlig dansk klassiker. Et sikkert hit på kagebordet,som både store og små er vilde med. Få opskriften på de sjove kajkager her!
+            50 min · 221 cal
+╬⌉Ⓘ≜Ⅵ☩⦜⍘ℕ⁼⌚⇲ⴄ⢺⌁␕⢐⣦▄Ⓣ⠜⛢⽍Ⱂⵎ[[[][{}{}()(<><?><??><?)*(#@^$&@!*#^(@*&$^%*@&!^$%&!@^*#([];'\';\;\';';';';.//,/,/.';.\\\\''././,';[;{}{][♧⤔⋕−ⵇ⦖⠀⻭⢄⋂⬺↏⌅⛘⴪⇆⺇⩎⍬┹⯸Ⲏ⾹⡬ⅿ⠰⸮⾶☃⨝ⶳ⒐⊰⓼⬖⡾✩∣⠮₦⍑⡓ⵌ∈›☘⠘⭗⪠┋❐⍋⤹⴮⭽ⅉ⧱␱⪭⚎⁲⌳◴⿣⢙┴␍⏑Ⱓ⎐⠭⍪ⲉ⎃┄
+            Grimme kajkager - Home | Facebook
+            https://www.facebook.com › brokenkaj
+            [[[][{}{}()(<><?><??><?)*(#@^$&@!*#^(@*&$^%*@&!^$%&!@^*#([];'\';\;\';';';';.//,/,/.';.\\\\''././,';[;{}{][
+            Translate this page
+            Hvad siger I kajkagefans til at GK opretter en gruppe, hvor vi kan dele kajkager med hinanden? I kan evt.lave en wow-reaktion ved interesse i tiltaget, så gør jeg​ ...
+
+            Kaj kage - Home | Faceb╬⌉Ⓘ≜Ⅵ[[[][{}{}()(<><?><??><?)*(#@^$&@!*#^(@*&$^%*@&!^$%&!@^*#([];'\';\;\';';';';.//,/,/.';.\\\\''././,';[;{}{][☩⦜⍘ℕ⁼⌚⇲ⴄ⢺⌁␕⢐⣦▄Ⓣ⠜⛢⽍Ⱂⵎ♧⤔⋕−ⵇ⦖⠀⻭⢄⋂⬺↏⌅⛘⴪⇆⺇⩎⍬┹⯸Ⲏ⾹⡬ⅿ⠰⸮⾶☃⨝ⶳ⒐⊰⓼⬖⡾✩∣⠮₦⍑⡓ⵌ∈›☘⠘⭗⪠┋❐⍋⤹⴮⭽ⅉ⧱␱⪭⚎⁲⌳◴⿣⢙┴␍⏑Ⱓ⎐⠭⍪ⲉ⎃┄ook
+            https://www.facebook.com › pages › Kaj-kage
+
+            kaj kage from www.facebook.com
+            Kaj kage. 51 likes. de smager bare godt!
+
+            Kajkager | Opskrift | Den store Bagedyst | Mad | DR
+            https://www.dr.dk › mad › kajkager
+
+            Translate this page
+            kaj kage from www.dr.dk
+
+            Kajkager. Her er en opskrift på d[[[][{}{}()(<><?><??><?)*(#@^$&@!*#^(@*&$^%*@&!^$%&!@^*#([];'\';\;\';';';';.//,/,/.';.\\\\''././,';[;{}{][en klassiske Kajkage med mazarinbund, smørcreme og marcipan.
+            2 hr 45 min
+
+            Kajkage - nem opskrift på lækre Kaj-kager - Madens Verden
+            https://madensverden.dk › kajkage-n...
+            Translate this page
+            kaj kage from madensverden.dk╬⌉Ⓘ≜Ⅵ☩[[[][{}{}()(<><?><??><?)*(#@^$&@!*#^(@*&$^%*@&!^$%&!@^*#([];'\';\;\';';';';.//,/,/.';.\\\\''././,';[;{}{][⦜⍘ℕ⁼⌚⇲ⴄ⢺⌁␕⢐⣦▄Ⓣ⠜⛢⽍Ⱂⵎ♧⤔⋕−ⵇ⦖⠀⻭⢄⋂⬺↏⌅⛘⴪⇆⺇⩎⍬┹⯸Ⲏ⾹⡬ⅿ⠰⸮⾶☃⨝ⶳ⒐⊰⓼⬖⡾✩∣⠮₦⍑⡓ⵌ∈›☘⠘⭗⪠┋❐⍋⤹⴮⭽ⅉ⧱␱⪭⚎⁲⌳◴⿣⢙┴␍⏑Ⱓ⎐⠭⍪ⲉ⎃┄
+            Feb 6, 2021 — Kajkage er en både klassisk og populær kage fra bageren, som heldigvis er ret nem at lave selv derhjemme. Kajkager har naturligvis navn efter ...
+            Rating: 4.9 · 10 votes · 1 hr · 300 cal""")
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
