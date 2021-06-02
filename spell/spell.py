@@ -227,39 +227,46 @@ def bake_spelling():
 
         computed_text = computed[0].term
 
-        result = []
+        # pprint(changes)
+        # pprint(computed_text)
 
         # Yea, I know. Nvm, what did I know??
-        for i, word in enumerate(computed_text.split(" ")):
-            if mask := masks.get(i):
-                tokens = [x["token_str"] for x in unmasker(" ".join(mask[1]))]
+        # TODO: should not split on space and instead properly parse?
+        # TODO: this ruins splits on occasion
+        # TODO: handle multiple masks!!!
+        # result = []
+        # for i, word in enumerate(computed_text.split(" ")):
+        #     if mask := masks.get(i):
+        #         tokens = [x["token_str"] for x in unmasker(" ".join(mask[1]))]
+        #         pprint(changes[i])
+        #         pprint(tokens)
+        #         pprint(masks)
 
-                found_match = False
+        #         found_match = False
 
-                for token in tokens:
-                    if (
-                        mask[0] in token
-                        or token in mask[0]
-                        and mask[2] not in corpus_words
-                    ):
+        #         for token in tokens:
+        #             if (
+        #                 mask[0] in token
+        #                 or token in mask[0]
+        #                 and mask[2] not in corpus_words
+        #             ):
+        #                 if changes[i]["type"] == "none":
+        #                     explain_none(
+        #                         changes, i, token, "Indsættelse af korrekt ord."
+        #                     )
+        #                 else:
+        #                     changes[i]["change"] = token
+        #                     changes[i]["explain"] = ["Indsættelse af korrekt ord."]
 
-                        if changes[i]["type"] == "none":
-                            explain_none(
-                                changes, i, token, "Indsættelse af korrekt ord."
-                            )
-                        else:
-                            changes[i]["change"] = token
-                            changes[i]["explain"] = ["Indsættelse af korrekt ord."]
+        #                 result.append(token)
+        #                 found_match = True
+        #                 break
 
-                        result.append(token)
-                        found_match = True
-                        break
+        #         if not found_match:
+        #             result.append(word)
 
-                if not found_match:
-                    result.append(word)
-
-            else:
-                result.append(word)
+        #     else:
+        #         result.append(word)
 
         # reconcile diffs -------------------------------------
 
