@@ -1644,6 +1644,9 @@ class Dontcrash(TestCase):
     def test_crash14(self):
         fix("ddt de jeg ikkei")
 
+    def test_crash15(self):
+        fix("dte vde jeeg ikkkke  liaeuu 53,iujlb v657lo5y 94a8onm3wdz0,om .3lki,5 nl b3o29239 ryzo<uv ccu1240evya 398rjzmfl.inhv2l5t9")
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
