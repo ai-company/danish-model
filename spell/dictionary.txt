@@ -169256,6 +169256,7 @@ præsidentpaladset 2
 krisestemning 2
 bing 2
 peanuts 2
+peanutbutter 2
 cheftrænere 2
 pär 2
 olaf 2
@@ -171428,6 +171429,7 @@ katastrofevalg 2
 boliga 2
 færdselsbetjente 2
 smoothie 2
+smoothie-maskine 2
 fame 2
 kvægtorvet 2
 sikkerhedspersonalet 2
