@@ -39,7 +39,9 @@ def strip_user_commas(diff, text):
         if token.lexeme.text == ",":
             # filter comma but keep space
             if len(new_diff) > 0:
-                new_diff[-1].lexeme.space = token.lexeme.space
+                new_diff[-1].lexeme.space = (
+                    token.lexeme.space if token.lexeme.space != "" else " "
+                )
         else:
             new_diff.append(token)
 
@@ -106,7 +108,7 @@ def process(text, debug=False):
         - text: The output.
     """
 
-    result_diff = []
+    result_diff: List[DiffToken] = []
     result_text = ""
 
     for sentence in sentencize(text).sents:
@@ -168,16 +170,16 @@ def process(text, debug=False):
 
         if debug:
             print("\n--- final diffs ---\n")
-            pprint(diff)
 
-        diff = []
+        reconciled_diff: List[DiffToken] = []
 
         lastindex = -1
 
-        for i in range(len(DiffToken.from_spacy_list(sent_nlp(text)))):
+        # pprint(DiffToken.from_spacy_list(sent_nlp(text)))
+        for i in range(len(diff)):
             changelist = collect_changes(diff_history, i)
-
             change = None
+            split_merge_case = False
 
             for item in changelist[::-1]:
                 if item.index is None:  # addition
@@ -188,8 +190,35 @@ def process(text, debug=False):
                     # TODO: recursively collect changes for the origins too
                     if change is None:
                         change = item[0][-1].clone_clean()
-                    origins = list(map(lambda c: str(c[-1]), item))
-                    change.origin = origins
+
+                    # TODO: mark which origin the explanation belongs to
+                    # collect explanations from each origin branch
+                    explanations = []
+
+                    for origin in item:
+                        for change in origin:
+                            if type(change.explanation) is list:
+                                explanations.extend(change.explanation)
+                            else:
+                                explanations.append(change.explanation)
+
+                    change.explanation = explanations
+
+                    # double check if merge didn't originate from a previous split
+                    change.origin = []
+                    for origin in item:
+                        # object ref comparison here
+                        if len(change.origin) == 0 or (
+                            len(change.origin) > 0 and change.origin[-1] != origin[-1]
+                        ):
+                            change.origin.append(origin[-1])
+
+                    change.origin = list(map(str, change.origin))
+
+                    # merge originating from a previous split
+                    if len(change.origin) == 1:
+                        change.origin = change.origin[0]
+                        split_merge_case = True
 
                 else:  # existing item
                     if change is None:
@@ -198,20 +227,31 @@ def process(text, debug=False):
 
                     change.lexeme = copy(item.lexeme)
 
-                    if item.explanation:
+                    if item.explanation and not split_merge_case:
                         change.explanation.extend(item.explanation)
+
                     if item.change_type != "none":
-                        change.change_type = item.change_type
+                        if split_merge_case:
+                            change.change_type = "none"
+                        else:
+                            change.change_type = item.change_type
+
                     if item.change:
                         change.change = item.change
+
+                    if split_merge_case:
+                        split_merge_case = False
 
             if change.index == lastindex:  # split
                 splits = []
 
                 while True:
-                    splits.insert(0, diff.pop())
+                    splits.insert(0, reconciled_diff.pop())
 
-                    if len(diff) == 0 or diff[-1].index != lastindex:
+                    if (
+                        len(reconciled_diff) == 0
+                        or reconciled_diff[-1].index != lastindex
+                    ):
                         break
                 splits.append(change)
 
@@ -220,23 +260,24 @@ def process(text, debug=False):
                 origin.change_type = "split"
                 origin.change = splits
 
-                diff.append(origin)
+                reconciled_diff.append(origin)
             else:
-                diff.append(change)
+                reconciled_diff.append(change)
 
             if changelist[-1].index is not None:
                 lastindex = changelist[-1].index
 
         if debug:
             print("\n--- reconciled:")
-            pprint(diff)
+            pprint(reconciled_diff)
 
-        # check removals
-        diff_with_removals = []
+        # check removals ----------------------------------
+
+        diff_with_removals: List[DiffToken] = []
         i = j = 0
-        while i < len(initial_diff) and j < len(diff):
+        while i < len(initial_diff) and j < len(reconciled_diff):
             old = initial_diff[i]
-            new = diff[j]
+            new = reconciled_diff[j]
 
             if old.lexeme.type == new.lexeme.type and (
                 (
@@ -277,38 +318,51 @@ def process(text, debug=False):
                     j += 1
                 else:
                     pprint(initial_diff)
-                    pprint(diff)
+                    pprint(reconciled_diff)
                     print(i, old, j, new)
                     raise Exception("unreachable!")
 
-        if j < len(diff):  # last punctuation
-            diff_with_removals.append(diff[j])
+        if j < len(reconciled_diff):  # last punctuation
+            diff_with_removals.append(reconciled_diff[j])
 
         if debug:
             print("\n--- with removals:")
             pprint(diff_with_removals)
 
-        # extract spaces
-        final_diff = []
+        # extract spaces ----------------------------------
+
+        spaced_diff: List[DiffToken] = []
         for change in diff_with_removals:
             if change.change_type == "space":
-                final_diff.append(change)
+                spaced_diff.append(change)
             elif change.change_type == "remove":
-                if len(final_diff) > 0 and final_diff[-1].change_type == "space":
-                    final_diff.insert(-1, change.stripped())
+                if len(spaced_diff) > 0 and spaced_diff[-1].change_type == "space":
+                    spaced_diff.insert(-1, change.stripped())
                 else:
-                    final_diff.append(change.stripped())
+                    spaced_diff.append(change.stripped())
+                    spaced_diff.append(DiffSpac(change.lexeme.space, None))
             elif change.lexeme.space != "":
-                final_diff.append(change.stripped())
-                final_diff.append(DiffSpac(change.lexeme.space, None))
+                spaced_diff.append(change.stripped())
+                spaced_diff.append(DiffSpac(change.lexeme.space, None))
             else:
-                final_diff.append(change.stripped())
+                spaced_diff.append(change.stripped())
+
+        if debug:
+            print("\n--- spaced:")
+            pprint(list(map(DiffToken.to_dict, spaced_diff)))
+
+        # unset change if change == origin --------------------
+
+        for change in spaced_diff:
+            if change.origin == change.change:
+                change.change = None
+
+        # final -----------------------------------------------
 
         if debug:
             print("\n--- final:")
-            pprint(list(map(DiffToken.to_dict, final_diff)))
+            pprint(list(map(DiffToken.to_dict, spaced_diff)))
 
-        result_diff.extend(final_diff)
+        result_diff.extend(spaced_diff)
         result_text += text
-
     return result_text, list(map(DiffToken.to_dict, result_diff))

@@ -276,6 +276,8 @@ class DiffToken:
     def strip(self) -> str:
         space = self.lexeme.space
         self.lexeme.space = ""
+        if self.change is not None:
+            self.change = self.change.strip()
         return space
 
     def stripped(self):
