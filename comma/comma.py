@@ -249,6 +249,9 @@ def init(nlp):
                     )
                     j += 1
                 else:
+                    pprint(diff)
+                    pprint(new_text_tokens)
+                    print(i, diff[i], j, new_text_tokens[j])
                     raise Exception("unreachable!")
 
         if i < len(diff):
@@ -275,11 +278,11 @@ def init(nlp):
         # check sentence termination
         if (
             last_change.lexeme.type != LexemeType.PUNC
-            or last_change.lexeme.text not in ".!?"
+            or last_change.lexeme.text[-1] not in ".!?"
         ):
             if (
                 last_change.lexeme.text == '"' or last_change.change_type == "space"
-            ) and not new_changes[-2].lexeme.text in ".!?":
+            ) and not new_changes[-2].lexeme.text[-1] in ".!?":
                 new_changes.insert(
                     -1,
                     DiffPunc(
