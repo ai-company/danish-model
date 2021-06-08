@@ -39,12 +39,13 @@ def inflect_noun(go, properize=False, pluralize=False, singularize=False, lemma=
         else:
             return noun
 
-        inflection = inflections[i]
+        if len(inflections) < i:
+            inflection = inflections[i]
 
-        if "el." in inflection:
-            inflection = random.choice(inflection.split("el.")).strip()
+            if "el." in inflection:
+                inflection = random.choice(inflection.split("el.")).strip()
 
-        return "-" in inflection and inflection.replace("-", noun) or inflection
+            return "-" in inflection and inflection.replace("-", noun) or inflection
 
     if go.has("gender", "neut"):
         if properize:
