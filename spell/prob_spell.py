@@ -13,6 +13,8 @@ import string
 from . import util
 from . import test
 
+from diff_token import tokenize, LexemeType
+
 
 def is_acronym(word, match_digits=False):
     if match_digits:
@@ -355,6 +357,11 @@ class Spell:
         is_last_combi = False
 
         for i, word in enumerate(term_list):
+
+            if tokenize(word)[0].lexeme.type != LexemeType.WORD:
+                suggestion_parts.append(Suggestion(term_list[i], 0, 0))
+                continue
+
             # TODO: Think very fucking hard.
             if len(word) == 1 and not word.isalnum():  # test.is_deep_real(word):
                 suggestion_parts.append(Suggestion(term_list[i], 0, 0))
@@ -525,48 +532,51 @@ class Spell:
         for i, s in enumerate(suggestion_parts):
             split = s.term.split()
 
-            if len(split) > 1:
-                one_in = split[0] in term_list[i]
-                two_in = split[1] in term_list[i]
-
-                if one_in and two_in:
-                    explanations.append(
-                        explain(
-                            "split", term_list[i], s.term, "Ordet bør opdeles i flere."
-                        )
-                    )
-                else:
-                    explanation = "Ordet var oprindeligt stavet forkert."
-                    changes = [
-                        change(
-                            one_in and "none" or "replace",
-                            split[0] + " ",
-                            one_in and None or explanation,
-                        ),
-                        change(
-                            two_in and "none" or "replace",
-                            split[1],
-                            two_in and None or explanation,
-                        ),
-                    ]
-
-                    explanations.append(
-                        explain(
-                            "split", term_list[i], changes, "Ordet bør opdeles i flere"
-                        )
-                    )
+            if tokenize(s.term)[0].lexeme.type != LexemeType.WORD:
+                explanations.append(explain("none", s.term))
             else:
-                if s.term == term_list[i]:
-                    explanations.append(explain("none", s.term))
-                else:
-                    explanations.append(
-                        explain(
-                            "replace",
-                            term_list[i],
-                            s.term,
-                            "Ordet var oprindeligt stavet forkert.",
+                if len(split) > 1:
+                    one_in = split[0] in term_list[i]
+                    two_in = split[1] in term_list[i]
+
+                    if one_in and two_in:
+                        explanations.append(
+                            explain(
+                                "split", term_list[i], s.term, "Ordet bør opdeles i flere."
+                            )
                         )
-                    )
+                    else:
+                        explanation = "Ordet var oprindeligt stavet forkert."
+                        changes = [
+                            change(
+                                one_in and "none" or "replace",
+                                split[0] + " ",
+                                one_in and None or explanation,
+                            ),
+                            change(
+                                two_in and "none" or "replace",
+                                split[1],
+                                two_in and None or explanation,
+                            ),
+                        ]
+
+                        explanations.append(
+                            explain(
+                                "split", term_list[i], changes, "Ordet bør opdeles i flere"
+                            )
+                        )
+                else:
+                    if s.term == term_list[i]:
+                        explanations.append(explain("none", s.term))
+                    else:
+                        explanations.append(
+                            explain(
+                                "replace",
+                                term_list[i],
+                                s.term,
+                                "Ordet var oprindeligt stavet forkert.",
+                            )
+                        )
 
             joined_term += s.term + " "
             joined_count *= s.count / self.N

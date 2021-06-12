@@ -1,5 +1,6 @@
 from copy import copy, deepcopy
 from pprint import pprint
+from sys import executable
 from typing import List
 from diff_token import DiffToken, LexemeType, tokenize
 from transformers import pipeline, AutoTokenizer, AutoModelForPreTraining
@@ -214,6 +215,7 @@ def bake_spelling():
                 mask = computed.copy()[0].term.split()
 
                 old = mask[i]
+
                 mask[i] = "[MASK]"
                 masks[i] = (word, mask, old)
 
@@ -283,6 +285,7 @@ def bake_spelling():
         )
         new_changes: List[DiffToken] = []
 
+        # print("FUUUUUUUUCK!!")
         # pprint(changes)
 
         for i, item in enumerate(diff):
