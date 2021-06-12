@@ -811,10 +811,13 @@ class Compound(TestCase):
                 {"type": "none", "origin": "mit"},
                 {"type": "space", "origin": " "},
                 {
-                    "type": "merge",
                     "change": "sommerhus",
+                    "explain": [
+                        "Ordet var oprindeligt stavet forkert.",
+                        "Disse ord bør sammensættes.",
+                    ],
                     "origin": ["sommmer ", "hus"],
-                    "explain": ["Disse ord b\u00f8r sammens\u00e6ttes."],
+                    "type": "merge",
                 },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "er"},
@@ -1645,7 +1648,9 @@ class Dontcrash(TestCase):
         fix("ddt de jeg ikkei")
 
     def test_crash15(self):
-        fix("dte vde jeeg ikkkke  liaeuu 53,iujlb v657lo5y 94a8onm3wdz0,om .3lki,5 nl b3o29239 ryzo<uv ccu1240evya 398rjzmfl.inhv2l5t9")
+        fix(
+            "dte vde jeeg ikkkke  liaeuu 53,iujlb v657lo5y 94a8onm3wdz0,om .3lki,5 nl b3o29239 ryzo<uv ccu1240evya 398rjzmfl.inhv2l5t9"
+        )
 
 
 if __name__ == "__main__":

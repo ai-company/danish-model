@@ -135,7 +135,6 @@ def compound_words(changes, text, nlp):
                     kwargs["presentize"] = "pres" in tense
 
                 elif other.pos == "noun":
-
                     inflect_func = inflect.inflect_noun
 
                     kwargs["singularize"] = grammar.is_singular(other)
@@ -143,7 +142,6 @@ def compound_words(changes, text, nlp):
                     kwargs["properize"] = other.has("poss", "yes")
 
                 elif other.pos == "adj":
-
                     inflect_func = inflect.inflect_adj
 
                     kwargs["singularize"] = grammar.is_singular(other)

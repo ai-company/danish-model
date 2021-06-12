@@ -32,7 +32,7 @@ aldersforskel
 almennyttig
 altandør
 alveni
-anden juledag
+juledag
 andetsprog
 ansættelseskontrakt
 ansøgningsfrist
@@ -364,9 +364,6 @@ computerspil
 containerhavn
 containerplads
 containerskib
-cuiller à soupe
-cuillère à café
-cuillère à soupe
 cykelanhænger
 cykelbud
 cykeldæk

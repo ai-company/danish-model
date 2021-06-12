@@ -91,6 +91,22 @@ class GrammarObject:
             token.head,
         )
 
+    # @classmethod
+    # def from_difftoken(go, token):
+    #     if token.lexeme.spacy is None:
+    #         return None
+
+    #     return go(
+    #         token.lexeme.spacy.text,
+    #         token.lexeme.spacy.pos_,
+    #         token.lexeme.spacy.dep_,
+    #         list(token.lexeme.spacy.morph.to_json()),
+    #         token.lexeme.spacy.i,
+    #         token.lexeme.spacy.children,
+    #         token.lexeme.spacy.ancestors,
+    #         token.lexeme.spacy.head,
+    #     )
+
     def __getitem__(self, key) -> str:
         return self.morphs.get(key)
 
@@ -657,7 +673,7 @@ def init(unmasker, nlp):
         text, changes = at_og_fixer(unmasker, first_doc, text, changes)
         text, changes = af_ad_fixer(unmasker, first_doc, text, changes)
 
-        doc = nlp(text)
+        doc = DiffToken.from_spacy_list(nlp(text))
         change_map = explain.change_map(changes)
 
         # TODO: Things and stuff.
@@ -670,13 +686,18 @@ def init(unmasker, nlp):
         # - Fixer function shall construct Fixes properly.
         #   * This is done by overlapping GrammarObjects.
 
-        result = []
+        # result = []
         result_fix_map = dict()
         correction_lookup = dict()
 
         for (_, i, split_i), token in zip(change_map, doc):
+            if token.lexeme.spacy is not None and token.lexeme.type == LexemeType.WORD:
+                token = token.lexeme.spacy
+            else:
+                continue
+
             go = GrammarObject.from_token(token)
-            result.append(token.text)
+            # result.append(token.text)
 
             # print()
             # print(
@@ -730,8 +751,8 @@ def init(unmasker, nlp):
         # draw_tree(doc)
         # print()
 
-        for i, word in result_fix_map.items():
-            result[i] = word
+        # for i, word in result_fix_map.items():
+        #     result[i] = word
 
         changes = list(map(DiffToken.from_dict, changes))
         for i, change in enumerate(changes):

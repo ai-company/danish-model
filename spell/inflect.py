@@ -27,6 +27,7 @@ adj_inflections = load_inflections(join(dirname(__file__), "inflections_adj.txt"
 
 def inflect_noun(go, properize=False, pluralize=False, singularize=False, lemma=None):
     noun = lemma or lemmatizer.lemmatize("NOUN", go.text)[0]
+
     if inflections := noun_inflections.get(noun):
         i = 0
 
@@ -39,7 +40,7 @@ def inflect_noun(go, properize=False, pluralize=False, singularize=False, lemma=
         else:
             return noun
 
-        if len(inflections) < i:
+        if len(inflections) > i:
             inflection = inflections[i]
 
             if "el." in inflection:
