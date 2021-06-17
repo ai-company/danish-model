@@ -189,12 +189,14 @@ def init(nlp):
 
         new_text = clauses.heuristics(nlp(commarize_sentence(text)), diff, nlp)
 
+        pprint(new_text)
+
         # Add last period.
-        if new_text[-1] not in ".?!":
-            if new_text[-1] == ",":
-                new_text = new_text[:-1] + "."
-            else:
-                new_text += "."
+        # if new_text[-1] not in ".?!:":
+        #     if new_text[-1] == ",":
+        #         new_text = new_text[:-1] + "."
+        #     else:
+        #         new_text += "."
 
         # the model sometimes inserts a duplicate comma, if there is one already there
         new_text = re.sub(",+", ",", new_text)

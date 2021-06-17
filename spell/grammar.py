@@ -1,6 +1,6 @@
 from pprint import pprint
 from typing import List
-from diff_token import DiffToken, LexemeType
+from diff_token import DiffToken, LexemeType, tokenize
 import spacy
 import lemmy
 import os
@@ -70,6 +70,9 @@ class GrammarObject:
         for morph in morphs:
             morph = morph.split("_")
             self.morphs[morph[0].lower()] = morph[1]
+    
+    def __repr__(self) -> str:
+        return f"[{self.i} {self.text}]"
 
     def has(
         self,
@@ -79,13 +82,13 @@ class GrammarObject:
         return self.morphs.get(morph) == value
 
     @classmethod
-    def from_token(go, token):
+    def from_token(go, token, i=None):
         return go(
             token.text,
             token.pos_,
             token.dep_,
             list(token.morph.to_json()),
-            token.i,
+            i or token.i,
             token.children,
             token.ancestors,
             token.head,
@@ -671,12 +674,13 @@ def init(unmasker, nlp):
     def fix(diff: List[DiffToken] = [], text=""):
 
         first_doc = nlp(text)
-        changes = list(map(lambda c: c.clone_clean().to_dict(), diff))
+        changes = list(map(DiffToken.to_dict, DiffToken.from_spacy_list(nlp(text), flatten=False)))
 
         text, changes = at_og_fixer(unmasker, first_doc, text, changes)
         text, changes = af_ad_fixer(unmasker, first_doc, text, changes)
 
-        doc = DiffToken.from_spacy_list(nlp(text))
+        # doc = nlp(text)
+        doc = DiffToken.from_spacy_list(nlp(text), flatten=False)
         change_map = explain.change_map(changes)
 
         # TODO: Things and stuff.
@@ -693,13 +697,29 @@ def init(unmasker, nlp):
         result_fix_map = dict()
         correction_lookup = dict()
 
+        # pprint(changes)
+        # pprint(change_map)
+
         for (_, i, split_i), token in zip(change_map, doc):
+            # print('----')
+            # pprint(token)
+            # new_tokens = tokenize(str(token.text))
+            # non_punct = list(
+            #     filter(
+            #         lambda t: t.lexeme.type in (LexemeType.WORD, LexemeType.NUMB),
+            #         new_tokens,
+            #     )
+            # )
+            # if len(non_punct) == 0:
+            #     continue
             if token.lexeme.spacy is not None and token.lexeme.type == LexemeType.WORD:
                 token = token.lexeme.spacy
             else:
                 continue
 
             go = GrammarObject.from_token(token)
+
+            # pprint(go)
             # result.append(token.text)
 
             # print()
@@ -714,7 +734,7 @@ def init(unmasker, nlp):
                     go_cousin = correction_lookup.get(
                         cousin.i
                     ) or GrammarObject.from_token(cousin)
-
+                    # pprint(go_cousin)
                     # print(f"- {go_cousin.text} {go_cousin.dep} {go_cousin.pos}")
 
                     if fix := fix_pair(go, go_cousin):
@@ -757,7 +777,9 @@ def init(unmasker, nlp):
         # for i, word in result_fix_map.items():
         #     result[i] = word
 
-        changes = list(map(DiffToken.from_dict, changes))
+        # pprint(changes)
+
+        changes = DiffToken.flatten(list(map(DiffToken.from_dict, changes)))
         for i, change in enumerate(changes):
             # prevent non-word spelling changes from leaking through
             # if a non-word is converted into a word by spelling,

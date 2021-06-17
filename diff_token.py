@@ -134,7 +134,7 @@ class DiffToken:
         self.change = change
 
     @classmethod
-    def from_spacy_list(cls, spacy) -> List["DiffToken"]:
+    def from_spacy_list(cls, spacy, flatten=True) -> List["DiffToken"]:
         tokens = []
 
         i = 0
@@ -163,7 +163,14 @@ class DiffToken:
                 )
                 i += 1
 
-        # spacy sometimes produces garbage token merges, so we have to flatten these out
+        if flatten:
+            return cls.flatten(tokens)
+        else:
+            return tokens
+
+    @classmethod
+    def flatten(cls, tokens: List["DiffToken"]) -> List["DiffToken"]:
+         # spacy sometimes produces garbage token merges, so we have to flatten these out
         flattened = []
         for token in tokens:
             if token.lexeme.type == LexemeType.PUNC:
