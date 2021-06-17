@@ -13,6 +13,8 @@ import string
 from . import util
 from . import test
 
+from spell.compound import BINDINGS, COMPOUNDABLE
+
 from diff_token import tokenize, LexemeType
 
 
@@ -337,6 +339,17 @@ class Spell:
         early()
         return suggestions
 
+    def is_actually_ok(self, word, nlp):
+        pos = nlp(word)[0].pos_
+        if word not in self.words:
+            return (
+                word.endswith("'s")
+                and word[:-2] in self.words
+                and pos.lower() in ["noun", "propn"]
+            )
+        else:
+            return True
+
     def lookup_compound(
         self,
         phrase,
@@ -358,7 +371,9 @@ class Spell:
 
         for i, word in enumerate(term_list):
 
-            if tokenize(word)[0].lexeme.type != LexemeType.WORD:
+            if tokenize(word)[0].lexeme.type != LexemeType.WORD or self.is_actually_ok(
+                word, nlp
+            ):
                 suggestion_parts.append(Suggestion(term_list[i], 0, 0))
                 continue
 
@@ -539,32 +554,48 @@ class Spell:
                     one_in = split[0] in term_list[i]
                     two_in = split[1] in term_list[i]
 
-                    if one_in and two_in:
-                        explanations.append(
-                            explain(
-                                "split", term_list[i], s.term, "Ordet bør opdeles i flere."
-                            )
-                        )
-                    else:
-                        explanation = "Ordet var oprindeligt stavet forkert."
-                        changes = [
-                            change(
-                                one_in and "none" or "replace",
-                                split[0] + " ",
-                                one_in and None or explanation,
-                            ),
-                            change(
-                                two_in and "none" or "replace",
-                                split[1],
-                                two_in and None or explanation,
-                            ),
-                        ]
+                    abort_mission = False
+                    for binding in BINDINGS:
+                        if nlp(split[0])[0].pos_.lower() in COMPOUNDABLE and nlp(split[1])[0].pos_.lower() in COMPOUNDABLE:
+                            if (origin := split[0] + binding + split[1]) == word:
+                                explanations.append(explain("none", origin))
+                                abort_mission = True
+                                break
 
-                        explanations.append(
-                            explain(
-                                "split", term_list[i], changes, "Ordet bør opdeles i flere"
+                    if not abort_mission:
+
+                        if one_in and two_in:
+                            explanations.append(
+                                explain(
+                                    "split",
+                                    term_list[i],
+                                    s.term,
+                                    "Ordet bør opdeles i flere.",
+                                )
                             )
-                        )
+                        else:
+                            explanation = "Ordet var oprindeligt stavet forkert."
+                            changes = [
+                                change(
+                                    one_in and "none" or "replace",
+                                    split[0] + " ",
+                                    one_in and None or explanation,
+                                ),
+                                change(
+                                    two_in and "none" or "replace",
+                                    split[1],
+                                    two_in and None or explanation,
+                                ),
+                            ]
+
+                            explanations.append(
+                                explain(
+                                    "split",
+                                    term_list[i],
+                                    changes,
+                                    "Ordet bør opdeles i flere",
+                                )
+                            )
                 else:
                     if s.term == term_list[i]:
                         explanations.append(explain("none", s.term))

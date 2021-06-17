@@ -261,6 +261,12 @@ def init(nlp):
             raise Exception("non-exhaustive match of tokens!")
 
         first_change = new_changes[0]
+        i = 0
+
+        while first_change.lexeme.type == LexemeType.SPAC:
+            i += 1
+            first_change = new_changes[i]
+
         last_change = new_changes[-1]
 
         # check first word capitalization
@@ -278,11 +284,11 @@ def init(nlp):
         # check sentence termination
         if (
             last_change.lexeme.type != LexemeType.PUNC
-            or last_change.lexeme.text[-1] not in ".!?"
+            or last_change.lexeme.text[-1] not in ".!?:"
         ):
             if (
                 last_change.lexeme.text == '"' or last_change.change_type == "space"
-            ) and not new_changes[-2].lexeme.text[-1] in ".!?":
+            ) and not new_changes[-2].lexeme.text[-1] in ".!?:":
                 new_changes.insert(
                     -1,
                     DiffPunc(

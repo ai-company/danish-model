@@ -18,7 +18,7 @@ from spell.compound import compound_words
 from pysbd.utils import PySBDFactory
 
 sent_nlp = spacy.load("da_core_news_lg")
-sent_nlp.add_pipe(PySBDFactory(sent_nlp), first=True)
+# sent_nlp.add_pipe(PySBDFactory(sent_nlp), first=True)
 
 spell, unmasker = spell_init()
 grammar = grammar_init(unmasker, sent_nlp)

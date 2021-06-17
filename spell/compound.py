@@ -63,7 +63,6 @@ def should_compound_straight(a, b, nlp):
     result = False
 
     if a.pos in COMPOUNDABLE and b.pos in COMPOUNDABLE:
-
         for word in lemma:
             if len(word) == 0:
                 continue
@@ -74,7 +73,7 @@ def should_compound_straight(a, b, nlp):
             if a.has("definite", "def"):
                 break
 
-            if nlp(word)[0].pos_.lower() != a.pos or in_compounds and word != a.text:
+            if (nlp(word)[0].pos_.lower() != a.pos or in_compounds) and word != a.text:
                 if c := in_compounds:
                     result = c
                     break
@@ -184,6 +183,8 @@ def compound_words(changes, text, nlp):
                         compound = f"{result[last_compounded[1]][0]}{other.text}"
                     else:
                         compound = f"{go.text}{other.text}"
+
+                    print("GANGSTEEEERRR!!!", compound)
                 else:
                     if add_to_last:
                         if c := check_compound(

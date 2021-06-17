@@ -345,6 +345,7 @@ enhver 150326
 selvom 150032
 piger 149376
 pr 149198
+pr. 149198
 oplevelse 148415
 kontakt 148255
 europæiske 148128
@@ -203917,7 +203918,7 @@ provisorierne 1
 provisoriernes 1
 provitamin 1
 provsteret 1
-prr 1
+pr 1
 prunkløshed 1
 prusten 1
 prydbusk 1

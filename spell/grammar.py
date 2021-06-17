@@ -210,10 +210,13 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
             # TODO: Express tense in human language.
             return Fix(b, b.i, f"Forveksling af {old} og infinitiv.")
 
-        if (lower_a in PAST_AUX) and not b.has("verbform", "part"):
+        if (lower_a in PAST_AUX) and (b['verbform'] and not b.has("verbform", "part")):
             correct = inflect.inflect_verb(b, didize=True)
 
             old = b["verbform"]
+
+            import pdb
+            pdb.set_trace()
 
             b.text = correct
             b["verbform"] = "part"

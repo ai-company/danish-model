@@ -1075,9 +1075,9 @@ class Grammar(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "mennesker"},
                 {
-                    "type": "add",
                     "change": ",",
-                    "explain": ["Der b\u00f8r v\u00e6re et komma her."],
+                    "explain": ["Komma ved parentetiske relativsætninger."],
+                    "type": "add",
                 },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "der"},
@@ -1092,9 +1092,9 @@ class Grammar(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "om"},
                 {
-                    "type": "add",
                     "change": ",",
-                    "explain": ["Komma ved parentetiske relativs\u00e6tninger."],
+                    "explain": ["Komma ved parentetiske relativsætninger."],
+                    "type": "add",
                 },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "at"},
@@ -1107,9 +1107,9 @@ class Grammar(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "korte"},
                 {
-                    "type": "add",
                     "change": ",",
-                    "explain": ["Komma efter underordnet leds\u00e6tning."],
+                    "explain": ["Komma efter underordnet ledsætning."],
+                    "type": "add",
                 },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "men"},
@@ -1404,6 +1404,31 @@ class DontTouchThese(TestCase):
                 {"type": "none", "origin": "."},
             ],
             fix('Osten, "hunden" og katten.'),
+        )
+
+        self.assertEqual(
+            [
+                {
+                    "change": "Ahh",
+                    "explain": ["Stort begyndelsesbogstav."],
+                    "origin": "ahh",
+                    "type": "replace",
+                },
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "10"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "kr."},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "pr."},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "stk."},
+                {
+                    "change": ".",
+                    "explain": ["Sætningen bør afsluttes med et punktum."],
+                    "type": "add",
+                },
+            ],
+            fix("ahh 10 kr. pr. stk."),
         )
 
 
