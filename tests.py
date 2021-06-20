@@ -1040,7 +1040,12 @@ class Grammar(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "l\u00e6re"},
                 {"type": "space", "origin": " "},
-                {"type": "none", "origin": "og", "change": "at"},
+                {
+                    'change': 'at',
+                    'explain': ['Forkert brug af "og".'],
+                    'origin': 'og',
+                    'type': 'replace'
+                },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "t\u00e6nke"},
                 {"type": "space", "origin": " "},
@@ -1228,7 +1233,7 @@ der er nogen mennesker der prøver at overbevise folk om at sætninger skal vær
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "op"},
                 {"type": "space", "origin": " "},
-                {"type": "none", "origin": "ad", "change": "af"},
+                {"type": "none", "origin": "ad"},
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "beviserne"},
                 {"type": "none", "origin": "?"},

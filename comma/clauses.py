@@ -186,6 +186,9 @@ def heuristics(tokens, diff, nlp):
             result[i - 1] = ""
         i += 1
 
+    # import pdb
+    # pdb.set_trace()
+
     # TODO: figure out how to prevent heuristic duplicating this in the first place
     result = "".join(result).replace(", ,", ",").replace(" ,", ",")
     tokens = nlp(result)

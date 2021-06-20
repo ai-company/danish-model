@@ -547,6 +547,10 @@ class Spell:
         for i, s in enumerate(suggestion_parts):
             split = s.term.split()
 
+            if word == 'yndlings-smoothie':
+                import pdb
+                pdb.set_trace()
+
             if tokenize(s.term)[0].lexeme.type != LexemeType.WORD:
                 explanations.append(explain("none", s.term))
             else:

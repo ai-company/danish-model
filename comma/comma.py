@@ -97,10 +97,13 @@ def punctuate(
 
         if subsequence[-1] == data.END:
             step = len(subsequence) - 1
+            # print(f'step END: {step}')
         elif last_eos_idx != 0:
             step = last_eos_idx
+            # print(f'step eos: {step}')
         else:
             step = len(subsequence) - 1
+            # print(f'step subseq: {step}')
 
         token = ""
 
@@ -111,15 +114,16 @@ def punctuate(
             token = punctuations[j] + " " if punctuations[j] != data.SPACE else " "
             result += token
 
-            if j < step - 1:
-                result += subsequence[1 + j]
+            if j < step:
+                result += subsequence[1+ j]
 
         if subsequence[-1] == data.END:
             break
 
         i += step
+        # print(f'jumping i: {i}')
 
-    return result
+    return " ".join(result.split()[:-1])
 
 
 def predict(x, model):
@@ -163,11 +167,15 @@ def init(nlp):
             encoded_text,
             net,
         )
+
+
         result = result.replace("?QUESTIONMARK", "")
 
-        result = f'{encoded_text.split(" ")[0]}{result}'
+        result = f'{encoded_text.split(" ")[0]} {result}'
         result = convert.convert(result, text, nlp)
         result = f"{result[0].upper()}{result[1:]}"
+
+        
 
         return result
 
@@ -189,7 +197,8 @@ def init(nlp):
 
         new_text = clauses.heuristics(nlp(commarize_sentence(text)), diff, nlp)
 
-        pprint(new_text)
+        # print('---')
+        # pprint(new_text)
 
         # Add last period.
         # if new_text[-1] not in ".?!:":
@@ -199,7 +208,7 @@ def init(nlp):
         #         new_text += "."
 
         # the model sometimes inserts a duplicate comma, if there is one already there
-        new_text = re.sub(",+", ",", new_text)
+        # new_text = re.sub(",+", ",", new_text)
         # pprint(new_text)
 
         explanations = explain.get_explanations(new_text, nlp)

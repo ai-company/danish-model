@@ -13,7 +13,7 @@ from . import explain
 lemmatizer = lemmy.load("da")
 path = dirname(__file__)
 
-BINDINGS = ["s", "e", "n", ""]
+BINDINGS = ["s", "e", "n", '-', ""]
 COMPOUNDABLE = ["noun", "verb"]
 
 with open(join(path, "compounds.txt")) as f:
@@ -184,7 +184,6 @@ def compound_words(changes, text, nlp):
                     else:
                         compound = f"{go.text}{other.text}"
 
-                    print("GANGSTEEEERRR!!!", compound)
                 else:
                     if add_to_last:
                         if c := check_compound(

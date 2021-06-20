@@ -218,8 +218,8 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
 
             old = b["verbform"]
 
-            import pdb
-            pdb.set_trace()
+            # import pdb
+            # pdb.set_trace()
 
             b.text = correct
             b["verbform"] = "part"
@@ -518,20 +518,21 @@ def af_ad_fixer(unmasker, first_doc, text, changes) -> str:
             tokens = list(
                 filter(
                     lambda t: t in ["ad", "af"],
-                    [x["token_str"] for x in unmasker(text_masked)],
+                    [x["token_str"] for x in unmasker(text_masked) if x['score'] > 0.9],
                 )
             )
 
             if len(tokens) > 0:
                 correct = tokens[0]
 
-                explain.append_change(
-                    changes,
-                    mask_i,
-                    explain.change(
-                        "change", correct, f'Det korrekte ord er "{correct}".'
-                    ),
-                )
+                if correct != backup:
+                    explain.append_change(
+                        changes,
+                        mask_i,
+                        explain.change(
+                            "replace", correct, f'Det korrekte ord er "{correct}".'
+                        ),
+                    )
 
                 final_mask[mask_i] = correct
             else:
@@ -674,13 +675,13 @@ def init(unmasker, nlp):
     def fix(diff: List[DiffToken] = [], text=""):
 
         first_doc = nlp(text)
-        changes = list(map(DiffToken.to_dict, DiffToken.from_spacy_list(nlp(text), flatten=False)))
-
+        changes = list(map(lambda t: {"origin": t.text+t.whitespace_, "type":"none"}, first_doc))
+        
         text, changes = at_og_fixer(unmasker, first_doc, text, changes)
         text, changes = af_ad_fixer(unmasker, first_doc, text, changes)
 
         # doc = nlp(text)
-        doc = DiffToken.from_spacy_list(nlp(text), flatten=False)
+        doc = nlp(text)
         change_map = explain.change_map(changes)
 
         # TODO: Things and stuff.
@@ -697,24 +698,18 @@ def init(unmasker, nlp):
         result_fix_map = dict()
         correction_lookup = dict()
 
-        # pprint(changes)
-        # pprint(change_map)
 
         for (_, i, split_i), token in zip(change_map, doc):
             # print('----')
             # pprint(token)
-            # new_tokens = tokenize(str(token.text))
-            # non_punct = list(
-            #     filter(
-            #         lambda t: t.lexeme.type in (LexemeType.WORD, LexemeType.NUMB),
-            #         new_tokens,
-            #     )
-            # )
-            # if len(non_punct) == 0:
-            #     continue
-            if token.lexeme.spacy is not None and token.lexeme.type == LexemeType.WORD:
-                token = token.lexeme.spacy
-            else:
+            new_tokens = tokenize(str(token.text))
+            non_punct = list(
+                filter(
+                    lambda t: t.lexeme.type in (LexemeType.WORD, LexemeType.NUMB),
+                    new_tokens,
+                )
+            )
+            if len(non_punct) == 0:
                 continue
 
             go = GrammarObject.from_token(token)
@@ -777,9 +772,20 @@ def init(unmasker, nlp):
         # for i, word in result_fix_map.items():
         #     result[i] = word
 
-        # pprint(changes)
+        corrected = list(map(DiffToken.from_dict, changes))
 
-        changes = DiffToken.flatten(list(map(DiffToken.from_dict, changes)))
+        changes = []
+        for c in corrected:
+            if c.lexeme.type == LexemeType.SPAC:
+                if len(changes) == 0:
+                    changes.append(c)
+                else:
+                    changes[-1].lexeme.space += c.lexeme.space
+            else:
+                changes.append(c)
+
+        changes = DiffToken.flatten(changes)
+
         for i, change in enumerate(changes):
             # prevent non-word spelling changes from leaking through
             # if a non-word is converted into a word by spelling,
