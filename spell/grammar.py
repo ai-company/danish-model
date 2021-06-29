@@ -202,7 +202,7 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
     else:
         lower_a = a.text.lower()
 
-        if (lower_a in INF_AUX) and not b.has("verbform", "inf"):
+        if (lower_a in INF_AUX) and not (b.has("verbform", "inf") or b.has("verbform", "fin")):
             correct = inflect.inflect_verb(b)
 
             old = b["verbform"]
