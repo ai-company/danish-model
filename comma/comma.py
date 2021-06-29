@@ -115,7 +115,7 @@ def punctuate(
             result += token
 
             if j < step:
-                result += subsequence[1+ j]
+                result += subsequence[1 + j]
 
         if subsequence[-1] == data.END:
             break
@@ -168,14 +168,11 @@ def init(nlp):
             net,
         )
 
-
         result = result.replace("?QUESTIONMARK", "")
 
         result = f'{encoded_text.split(" ")[0]} {result}'
         result = convert.convert(result, text, nlp)
         result = f"{result[0].upper()}{result[1:]}"
-
-        
 
         return result
 

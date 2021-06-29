@@ -50,32 +50,33 @@ def convert(pos, original, nlp):
     i = j = 0
     hadComma = False
     while i < len(original) and j < len(pos):
-        if not hadComma and len(comma := pos[j].split(',')) > 1 :
+        if not hadComma and len(comma := pos[j].split(",")) > 1:
             hadComma = True
             if comma[0] != "":
                 result += original[i].text
-                result += ','
+                result += ","
                 if original[i].whitespace_:
                     result += original[i].whitespace_
-                i+=1
-                j+=1
+                i += 1
+                j += 1
             else:
-                result += ','
+                result += ","
                 if original[i].whitespace_:
                     result += original[i].whitespace_
-                j+=1
-        elif len(comma := pos[j].split(',')) > 1 :
-            j+=1
+                j += 1
+        elif len(comma := pos[j].split(",")) > 1:
+            j += 1
         else:
             hadComma = False
             result += original[i].text
             if original[i].whitespace_:
                 result += original[i].whitespace_
-            i+=1
-            j+=1
-
+            i += 1
+            j += 1
 
     return result
-# noun, noun 
+
+
+# noun, noun
 # noun,noun
 # noun , noun

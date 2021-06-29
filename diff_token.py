@@ -170,7 +170,7 @@ class DiffToken:
 
     @classmethod
     def flatten(cls, tokens: List["DiffToken"]) -> List["DiffToken"]:
-         # spacy sometimes produces garbage token merges, so we have to flatten these out
+        # spacy sometimes produces garbage token merges, so we have to flatten these out
         flattened = []
         for token in tokens:
             if token.lexeme.type == LexemeType.PUNC:

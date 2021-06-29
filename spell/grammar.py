@@ -70,7 +70,7 @@ class GrammarObject:
         for morph in morphs:
             morph = morph.split("_")
             self.morphs[morph[0].lower()] = morph[1]
-    
+
     def __repr__(self) -> str:
         return f"[{self.i} {self.text}]"
 
@@ -213,7 +213,7 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
             # TODO: Express tense in human language.
             return Fix(b, b.i, f"Forveksling af {old} og infinitiv.")
 
-        if (lower_a in PAST_AUX) and (b['verbform'] and not b.has("verbform", "part")):
+        if (lower_a in PAST_AUX) and (b["verbform"] and not b.has("verbform", "part")):
             correct = inflect.inflect_verb(b, didize=True)
 
             old = b["verbform"]
@@ -372,6 +372,15 @@ def fix_aux_inf(a: GrammarObject, b: GrammarObject) -> Fix:
                     abort_mission = True
                     break
 
+        # Construct a dict of possibly conjuncted auxed/marked verb
+        # ... Will use this to mirror possibly missing consistency.
+        # ... TODO: This fix is used to deal with spaCy dep-fuck.
+
+        cs = dict([(t.text, t.dep_) for t in a.head.head.children])
+
+        if cs[b.text] == "conj" and "mark" in cs.values():
+            abort_mission = True
+
     if abort_mission:
         return None
     else:
@@ -451,11 +460,12 @@ def at_og_fixer(unmasker, first_doc, text, changes) -> str:
             if len(tokens) > 0:
                 correct = tokens[0]
 
-                explain.append_change(
-                    changes,
-                    mask_i,
-                    explain.change("change", correct, f'Forkert brug af "og".'),
-                )
+                if correct != backup:
+                    explain.append_change(
+                        changes,
+                        mask_i,
+                        explain.change("change", correct, f'Forkert brug af "og".'),
+                    )
 
                 final_mask[mask_i] = correct
             else:
@@ -518,7 +528,7 @@ def af_ad_fixer(unmasker, first_doc, text, changes) -> str:
             tokens = list(
                 filter(
                     lambda t: t in ["ad", "af"],
-                    [x["token_str"] for x in unmasker(text_masked) if x['score'] > 0.9],
+                    [x["token_str"] for x in unmasker(text_masked) if x["score"] > 0.9],
                 )
             )
 
@@ -675,8 +685,13 @@ def init(unmasker, nlp):
     def fix(diff: List[DiffToken] = [], text=""):
 
         first_doc = nlp(text)
-        changes = list(map(lambda t: {"origin": t.text+t.whitespace_, "type":"none"}, first_doc))
-        
+
+        # spacy.displacy.serve(first_doc, style='dep')
+
+        changes = list(
+            map(lambda t: {"origin": t.text + t.whitespace_, "type": "none"}, first_doc)
+        )
+
         text, changes = at_og_fixer(unmasker, first_doc, text, changes)
         text, changes = af_ad_fixer(unmasker, first_doc, text, changes)
 
@@ -697,7 +712,6 @@ def init(unmasker, nlp):
         # result = []
         result_fix_map = dict()
         correction_lookup = dict()
-
 
         for (_, i, split_i), token in zip(change_map, doc):
             # print('----')

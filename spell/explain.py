@@ -45,6 +45,7 @@ def change(change_type, change, explanation=None):
 
     return result
 
+
 def append_change(changes, i, change):
     if changes[i]["type"] == "none":
         changes[i]["type"] = "replace"
@@ -56,7 +57,10 @@ def append_change(changes, i, change):
             changes[i]["change"] = [changes[i]["change"], change]
         else:
             changes[i]["change"].append(change)
+
+
 1
+
 
 def change_map(changes):
     change_map = []
