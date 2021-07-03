@@ -569,6 +569,9 @@ class Spell:
 
                                 break
 
+                    import pdb
+                    pdb.set_trace()
+
                     if not abort_mission:
                         if one_in and two_in:
                             explanations.append(

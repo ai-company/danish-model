@@ -13,8 +13,8 @@ from . import explain
 lemmatizer = lemmy.load("da")
 path = dirname(__file__)
 
-BINDINGS = ["s", "e", "n", "-", ""]
-COMPOUNDABLE = ["propn", "noun", "verb"]
+BINDINGS = ["s", "e", "n", "-", "", "'"]
+COMPOUNDABLE = ['x', "propn", "noun", "verb"]
 
 with open(join(path, "compounds.txt")) as f:
     compounds = dict()
