@@ -4,7 +4,6 @@ from typing import List, final
 from diff_token import DiffSpac, DiffToken, Lexeme, LexemeType, tokenize
 
 import spacy
-import dacy
 
 from comma.comma import init as comma_init
 from comma.clauses import flag_simple_listings
