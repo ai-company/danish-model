@@ -257,7 +257,7 @@ class FullCorrectness(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "slutningen"},
                 {"type": "space", "origin": " "},
-                {"type": "none", "origin": "af", "change": "af"},
+                {"type": "none", "origin": "af"},
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "2021"},
                 {"type": "space", "origin": " "},
@@ -279,7 +279,7 @@ class FullCorrectness(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "omstilling"},
                 {"type": "space", "origin": " "},
-                {"type": "none", "origin": "af", "change": "af"},
+                {"type": "none", "origin": "af"},
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "samfundet"},
                 {"type": "none", "origin": "."},
@@ -302,30 +302,9 @@ class FullCorrectness(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "tv\u00e6rs"},
                 {"type": "space", "origin": " "},
-                {"type": "none", "origin": "af", "change": "af"},
+                {"type": "none", "origin": "af"},
                 {"type": "space", "origin": " "},
-                {
-                    "type": "split",
-                    "origin": "forskningsdiscipliner",
-                    "explain": ["Ordet b\u00f8r opdeles i flere."],
-                    "change": [
-                        {
-                            "type": "none",
-                            "origin": "forskningsdiscipliner",
-                            "change": "forskning",
-                        },
-                        {
-                            "type": "add",
-                            "explain": ["Tilf\u00f8j opremsningskomma."],
-                            "change": ", ",
-                        },
-                        {
-                            "type": "none",
-                            "origin": "forskningsdiscipliner",
-                            "change": "discipliner",
-                        },
-                    ],
-                },
+                {"type": "none", "origin": "forskningsdiscipliner"},
                 {
                     "type": "remove",
                     "origin": ",",
@@ -400,12 +379,7 @@ class FullCorrectness(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "p\u00e5"},
                 {"type": "space", "origin": " "},
-                {
-                    "type": "replace",
-                    "origin": "SDU",
-                    "explain": ["Ordet var oprindeligt stavet forkert."],
-                    "change": "USD",
-                },
+                {"type": "none", "origin": "SDU"},
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "\u2013"},
                 {"type": "space", "origin": " "},
@@ -477,12 +451,7 @@ class FullCorrectness(TestCase):
                 {"type": "space", "origin": "  "},
                 {"type": "none", "origin": "Sebastian"},
                 {"type": "space", "origin": " "},
-                {
-                    "type": "replace",
-                    "origin": "Mernild",
-                    "explain": ["Ordet var oprindeligt stavet forkert."],
-                    "change": "Meinild",
-                },
+                {"type": "none", "origin": "Mernild"},
                 {
                     "type": "remove",
                     "origin": ",",
@@ -490,28 +459,7 @@ class FullCorrectness(TestCase):
                     "change": "",
                 },
                 {"type": "space", "origin": " "},
-                {
-                    "type": "split",
-                    "origin": "klimaprofessor",
-                    "explain": ["Ordet b\u00f8r opdeles i flere."],
-                    "change": [
-                        {
-                            "type": "none",
-                            "origin": "klimaprofessor ",
-                            "change": "klima",
-                        },
-                        {
-                            "type": "add",
-                            "explain": ["Tilf\u00f8j opremsningskomma."],
-                            "change": ", ",
-                        },
-                        {
-                            "type": "none",
-                            "origin": "klimaprofessor ",
-                            "change": "professor",
-                        },
-                    ],
-                },
+                {"type": "none", "origin": "klimaprofessor"},
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "og"},
                 {"type": "space", "origin": " "},
@@ -885,6 +833,59 @@ class Compound(TestCase):
         )
 
     def test_dont_touch(self):
+
+        self.assertEqual(
+            [
+                {"type": "none", "origin": "Man"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "væbner"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "sig"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "med"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "en"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "vis"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "portion"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "tålmodighed"},
+                {"type": "none", "origin": ","},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "hvis"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "bookingsystemet"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "kommer"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "under"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "pres"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "som"},
+                {"type": "space", "origin": " "},
+                {
+                    "type": "replace",
+                    "origin": "konsekvons",
+                    "explain": ["Ordet var oprindeligt stavet forkert."],
+                    "change": "konsekvens",
+                },
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "af"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "de"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "mange"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "invitationer"},
+                {"type": "none", "origin": "."},
+            ],
+            fix(
+                "Man væbner sig med en vis portion tålmodighed, hvis bookingsystemet kommer under pres som konsekvons af de mange invitationer."
+            ),
+        )
+
         self.assertEqual(
             [
                 {"origin": "Jeg", "type": "none"},
@@ -939,7 +940,12 @@ class Compound(TestCase):
                 {"origin": "løbende", "type": "none"},
                 {"origin": " ", "type": "space"},
                 {"origin": "dialog", "type": "none"},
-                {"origin": ",", "type": "none"},
+                {
+                    "change": "",
+                    "explain": ["Der bør ikke være et komma her."],
+                    "origin": ",",
+                    "type": "remove",
+                },
                 {"origin": " ", "type": "space"},
                 {"origin": "det", "type": "none"},
                 {"origin": " ", "type": "space"},
@@ -951,23 +957,7 @@ class Compound(TestCase):
                 {"origin": " ", "type": "space"},
                 {"origin": "på", "type": "none"},
                 {"origin": " ", "type": "space"},
-                {
-                    "change": [
-                        {
-                            "change": "efterretning ",
-                            "origin": "efterretningsområdet",
-                            "type": "none",
-                        },
-                        {
-                            "change": "området",
-                            "origin": "efterretningsområdet",
-                            "type": "none",
-                        },
-                    ],
-                    "explain": ["Ordet bør opdeles i flere."],
-                    "origin": "efterretningsområdet",
-                    "type": "split",
-                },
+                {"origin": "efterretningsområdet", "type": "none"},
                 {"origin": ".", "type": "none"},
             ],
             fix(

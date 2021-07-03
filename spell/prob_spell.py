@@ -547,11 +547,6 @@ class Spell:
         for i, s in enumerate(suggestion_parts):
             split = s.term.split()
 
-            if word == "yndlings-smoothie":
-                import pdb
-
-                pdb.set_trace()
-
             if tokenize(s.term)[0].lexeme.type != LexemeType.WORD:
                 explanations.append(explain("none", s.term))
             else:
@@ -560,18 +555,26 @@ class Spell:
                     two_in = split[1] in term_list[i]
 
                     abort_mission = False
+
                     for binding in BINDINGS:
                         if (
                             nlp(split[0])[0].pos_.lower() in COMPOUNDABLE
                             and nlp(split[1])[0].pos_.lower() in COMPOUNDABLE
                         ):
-                            if (origin := split[0] + binding + split[1]) == word:
+                            if (origin := split[0] + binding + split[1]) == term_list[
+                                i
+                            ]:
                                 explanations.append(explain("none", origin))
                                 abort_mission = True
+
+                                if origin == "konsekvons":
+                                    import pdb
+
+                                    pdb.set_trace()
+
                                 break
 
                     if not abort_mission:
-
                         if one_in and two_in:
                             explanations.append(
                                 explain(
