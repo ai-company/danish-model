@@ -567,11 +567,6 @@ class Spell:
                                 explanations.append(explain("none", origin))
                                 abort_mission = True
 
-                                if origin == "konsekvons":
-                                    import pdb
-
-                                    pdb.set_trace()
-
                                 break
 
                     if not abort_mission:
