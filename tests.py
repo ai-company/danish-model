@@ -145,8 +145,7 @@ class FullCorrectness(TestCase):
                     "origin": "kommet",
                     "change": "kommer",
                     "explain": [
-                        "Forveksling af part og infinitiv.",
-                        "Forveksling af infinitiv og nutid.",
+                        "Forveksling af part og nutid.",
                     ],
                 },
                 {"type": "space", "origin": " "},
@@ -1128,19 +1127,7 @@ class Grammar(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "designe"},
                 {"type": "space", "origin": " "},
-                {
-                    "type": "split",
-                    "origin": "it-løsninger",
-                    "explain": ["Ordet bør opdeles i flere."],
-                    "change": [
-                        {"type": "none", "origin": "it-løsninger", "change": "it "},
-                        {
-                            "type": "none",
-                            "origin": "it-løsninger",
-                            "change": "løsninger",
-                        },
-                    ],
-                },
+                {"type": "none", "origin": "it-løsninger"},
                 {
                     "type": "remove",
                     "origin": ",",

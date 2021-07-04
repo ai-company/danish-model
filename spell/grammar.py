@@ -202,7 +202,7 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
     else:
         lower_a = a.text.lower()
 
-        if (lower_a in INF_AUX) and not (
+        if (lower_a in INF_AUX) and not b.has('verbform', None) and (
             b.has("verbform", "inf") or b.has("verbform", "fin")
         ):
             correct = inflect.inflect_verb(b)
@@ -228,6 +228,19 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
 
             # TODO: Express tense in human language.
             return Fix(b, b.i, f"Forveksling af {old} og datid")
+        elif b.has("verbform", "part") and not lower_a in PAST_AUX and not b.dep == 'ccomp':
+            # The default case is that not clausal component verbs, as well as verbs not bound to a past-aux,
+            # ... need to be finite. :)
+            correct = inflect.inflect_verb(b, presentize=True)
+
+            old = b["verbform"]
+
+            b.text = correct
+            b["verbform"] = "fin"
+
+            # TODO: Express tense in human language.
+            return Fix(b, b.i, f"Forveksling af {old} og nutid.")
+
 
     if a.pos == "det" and a.text in ["en", "et"]:
         if a["gender"] != b["gender"]:
@@ -334,7 +347,7 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
         b.text = correct
         b["verbform"] = "fin"
 
-        return Fib(b, b.i, "Forveksling af datid og nutid.")
+        return Fix(b, b.i, "Forveksling af datid og nutid.")
 
     if a.text in ["ligger", "lægger"]:
         if b.dep == "obj":

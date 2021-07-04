@@ -39,20 +39,15 @@ def simple_connect(text):
     if e := doubles.get(text[-2:]):
         ending = e
     else:
-        try:
-            ending = {
-                "g": "ge",
-                "t": "te",
-                "n": "ne",
-                "k": "ke",
-                "l": "le",
-                "s": "se",
-                "e": "",
-            }.get(text[-1], "e")
-        except:
-            import pdb
-
-            pdb.set_trace()
+        ending = {
+            "g": "ge",
+            "t": "te",
+            "n": "ne",
+            "k": "ke",
+            "l": "le",
+            "s": "se",
+            "e": "",
+        }.get(text[-1], "e")
 
     return f"{text}{ending}"
 
