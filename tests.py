@@ -1511,6 +1511,51 @@ class DontTouchThese(TestCase):
     def test_perfectly_good(self):
         self.assertEqual(
             [
+                {"type": "none", "origin": "Det"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "skyldes"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "primært"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "den"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "lange"},
+                {"type": "none", "origin": ","},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "seje"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "kamp"},
+                {
+                    "type": "add",
+                    "explain": ["Der bør være et komma her."],
+                    "change": ",",
+                },
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "alle"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "danskere"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "har"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "kæmpet"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "mod"},
+                {"type": "space", "origin": " "},
+                {
+                    "type": "replace",
+                    "origin": "corona",
+                    "explain": ["Dette egenavn bør have stort begyndelsesbogstav."],
+                    "change": "Corona",
+                },
+                {"type": "none", "origin": "."},
+            ],
+            fix(
+                "Det skyldes primært den lange, seje kamp alle danskere har kæmpet mod corona."
+            ),
+        )
+
+        self.assertEqual(
+            [
                 {"type": "none", "origin": "Osten"},
                 {"type": "none", "origin": ","},
                 {"type": "space", "origin": " "},

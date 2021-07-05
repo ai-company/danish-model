@@ -9,6 +9,7 @@ import os
 import re
 import math
 import string
+import lemmy
 
 from . import util
 from . import test
@@ -16,6 +17,10 @@ from . import test
 from spell.compound import BINDINGS, COMPOUNDABLE
 
 from diff_token import tokenize, LexemeType
+
+# Preload lemmy
+# TODO: Make one lemmy instance somewhere maybe.
+lemmatizer = lemmy.load("da")
 
 
 def is_acronym(word, match_digits=False):
@@ -181,8 +186,13 @@ class Spell:
 
         suggestion_count = 0
 
-        if phrase in self.words:
-            suggestion_count = self.words[phrase]
+        phrase_lemma = lemmatizer.lemmatize('', phrase)[0]
+        phrase_exists = phrase in self.words
+
+        if phrase_exists or phrase_lemma in self.words:
+            word = phrase_exists and phrase or phrase_lemma
+
+            suggestion_count = self.words[word]
             suggestions.append(Suggestion(phrase, 0, suggestion_count))
 
             if closeness != "*":
