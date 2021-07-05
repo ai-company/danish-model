@@ -310,7 +310,7 @@ def init(nlp):
                     ),
                 )
 
-            else:
+            elif not last_change.lexeme.text[-1] in ".!?:":
                 new_changes.append(
                     DiffPunc(
                         ".",

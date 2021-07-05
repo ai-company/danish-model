@@ -1690,47 +1690,46 @@ class Dontcrash(TestCase):
         """
         )
 
-    # TODO: figure out why test hangs
-    # def test_crash9(self):
-    #     fix(
-    #         '''  28: "etc" WORD: from: 'etc.',
-    #         29: "" " PUNC:PUNCT from: '"',
-    #         30: ", " PUNC:PUNCT ['Der bør ikke være et komma her.'] remove,
-    #         31: """ PUNC:PUNCT,
-    #         32: """ PUNC:PUNCT,
-    #         33: "]" PUNC:NOUN,
-    #         +++: "." PUNC:PUNCT ['Sætningen bør afsluttes med et punktum.'] add: '.']
+    def test_crash9(self):
+        fix(
+            '''  28: "etc" WORD: from: 'etc.',
+            29: "" " PUNC:PUNCT from: '"',
+            30: ", " PUNC:PUNCT ['Der bør ikke være et komma her.'] remove,
+            31: """ PUNC:PUNCT,
+            32: """ PUNC:PUNCT,
+            33: "]" PUNC:NOUN,
+            +++: "." PUNC:PUNCT ['Sætningen bør afsluttes med et punktum.'] add: '.']
 
-    #         --- final:
-    #         [{'change': [{'change': 'LiStIGE ',
-    #                     'explain': ['Ordet var oprindeligt stavet forkert.'],
-    #                     'origin': 'LiStINGG_Terminators ',
-    #                     'type': 'replace'},
-    #                     {'change': 'terminator',
-    #                     'origin': 'LiStINGG_Terminators ',
-    #                     'type': 'none'}],
-    #         'explain': ['Ordet bør opdeles i flere.'],
-    #         'origin': 'LiStINGG_Terminators',
-    #         'type': 'split'},
-    #         {'origin': ' ', 'type': 'space'},
-    #         {'origin': '=', 'type': 'none'},
-    #         {'origin': ' ', 'type': 'space'},
-    #         {'origin': '[', 'type': 'none'},
-    #         {'origin': '"', 'type': 'none'},
-    #         {'origin': 'og', 'type':
-    #         {'origin': '"', 'type': 'none'},
-    #         {'change': '',
-    #         'explain': ['Der bør ikke være et komma her.'],
-    #         'origin': ',',
-    #         'type': 'remove'},
-    #         {'origin': ' ', 'type': 'space'},
-    #         {'origin': '"', 'type': 'none'},
-    #         {'origin': '"', 'type': 'none'},
-    #         {'origin': ']', 'type': 'none'},
-    #         {'change': '.',
-    #         'explain': ['Sætningen bør afsluttes med et punktum.'],
-    #         'type': 'add'}]'''
-    #     )
+            --- final:
+            [{'change': [{'change': 'LiStIGE ',
+                        'explain': ['Ordet var oprindeligt stavet forkert.'],
+                        'origin': 'LiStINGG_Terminators ',
+                        'type': 'replace'},
+                        {'change': 'terminator',
+                        'origin': 'LiStINGG_Terminators ',
+                        'type': 'none'}],
+            'explain': ['Ordet bør opdeles i flere.'],
+            'origin': 'LiStINGG_Terminators',
+            'type': 'split'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '=', 'type': 'none'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '[', 'type': 'none'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': 'og', 'type':
+            {'origin': '"', 'type': 'none'},
+            {'change': '',
+            'explain': ['Der bør ikke være et komma her.'],
+            'origin': ',',
+            'type': 'remove'},
+            {'origin': ' ', 'type': 'space'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': '"', 'type': 'none'},
+            {'origin': ']', 'type': 'none'},
+            {'change': '.',
+            'explain': ['Sætningen bør afsluttes med et punktum.'],
+            'type': 'add'}]'''
+        )
 
     def test_crash10(self):
         fix("""m-it-sto-re s-kib s--kal hen ---til et s---k-i-b -v-æ-r-f-t""")

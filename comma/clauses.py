@@ -26,7 +26,7 @@ def insert_simple_listings(tokens, diff):
 
         # look ahead for sequence with same word classes
         # TODO: clean up loop condition
-        while to_ < (len(tokens) - 1) and (
+        while to_ < len(tokens) and (
             tokens[to_].lexeme.pos_ == sequence_type
             or tokens[to_].lexeme.type == LexemeType.SPAC
             or (
