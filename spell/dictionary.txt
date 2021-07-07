@@ -324834,7 +324834,6 @@ leveringsproblemer 1
 thaiboksere 1
 anmelderkorpsets 1
 byggearbejdere 1
-iværksæterområdet 1
 christianshavnerne 1
 bykampe 1
 bukt 1
@@ -386961,7 +386960,6 @@ aeneid 1
 iliade 1
 mennesketoma 1
 gennemstrejfer 1
-jakkesætespedal 1
 spændetrøjeglemme 1
 wordsworth 1
 fodrejse 1
@@ -395470,7 +395468,6 @@ thaibokser 1
 militæradministration 1
 anmelderkorps 1
 politibevogtning 1
-iværksæterområde 1
 danasvej 1
 partihovedkvarter 1
 sproglov 1

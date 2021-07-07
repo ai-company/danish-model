@@ -217,20 +217,25 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
             # TODO: Express tense in human language.
             return Fix(b, b.i, f"Forveksling af {old} og infinitiv.")
 
-        if (lower_a in PAST_AUX) and (b["verbform"] and not b.has("verbform", "part")):
-            correct = inflect.inflect_verb(b, didize=True)
+        # if (lower_a in PAST_AUX) and (b["verbform"] and not b.has("verbform", "part")):
+        #     correct = inflect.inflect_verb(b, didize=True)
 
-            old = b["verbform"]
+        #     import pdb
 
-            # import pdb
-            # pdb.set_trace()
+        #     pdb.set_trace()
 
-            b.text = correct
-            b["verbform"] = "part"
+        #     old = b["verbform"]
 
-            # TODO: Express tense in human language.
-            return Fix(b, b.i, f"Forveksling af {old} og datid")
-        elif (
+        #     # import pdb
+        #     # pdb.set_trace()
+
+        #     b.text = correct
+        #     b["verbform"] = "part"
+
+        #     # TODO: Express tense in human language.
+        #     return Fix(b, b.i, f"Forveksling af {old} og datid")
+        # el
+        if (
             b.has("verbform", "part")
             and not lower_a in PAST_AUX
             and not b.dep == "ccomp"
