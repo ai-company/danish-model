@@ -25,44 +25,45 @@ unmasker = pipeline("fill-mask", model="Maltehb/danish-bert-botxo", tokenizer=to
 prob_spell = init()
 
 # TODO: Move to CSV :)
-letter_mix_map = {
-    "rd": "r",
-    "tt": "t",
-    "t": "tt",
-    "n": "nd",
-    "nd": "n",
-    "l": "ll",
-    "k": "g",
-    "g": "k",
-    "n": "m",
-    "s": "c",
-    "z": "s",
-    "s": "z",
-    "æ": "e",
-    "e": "æ",
-    "j": "g",
-    "øv": "eu",
-    "g": "j",
-    "d": "t",
-    "t": "d",
-    "o": "u",
-    "u": "o",
-    "t": "ss",
-    "f": "ph",
-    "ti": "j",
-    "v": "hv",
-    "hv": "v",
-    "nn": "nd",
-    "ll": "ld",
-    "kk": "gg",
-    "in": "ind",
-    "u": "in",
-    "ø": "eu",
-    "eu": "ø",
-    "ti": "si",
-    "sj": "ti",
-    "sj": "si",
-}
+letter_mix_map = (
+    ("rd", "r"),
+    ("tt", "t"),
+    ("t", "tt"),
+    ("n", "nd"),
+    ("nd", "n"),
+    ("l", "ll"),
+    ("k", "g"),
+    ("g", "k"),
+    ("n", "m"),
+    ("s", "c"),
+    ("z", "s"),
+    ("s", "z"),
+    ("æ", "e"),
+    ("e", "æ"),
+    ("j", "g"),
+    ("øv", "eu"),
+    ("g", "j"),
+    ("d", "t"),
+    ("t", "d"),
+    ("o", "u"),
+    ("o", "ø"),
+    ("u", "o"),
+    ("t", "ss"),
+    ("f", "ph"),
+    ("ti", "j"),
+    ("v", "hv"),
+    ("hv", "v"),
+    ("nn", "nd"),
+    ("ll", "ld"),
+    ("kk", "gg"),
+    ("in", "ind"),
+    ("u", "in"),
+    ("ø", "eu"),
+    ("eu", "ø"),
+    ("ti", "si"),
+    ("sj", "ti"),
+    ("sj", "si"),
+)
 
 common_spelling_mistakes = dict()
 
@@ -132,20 +133,29 @@ def fix_typo(word):
             if word[-1] == word[-2] and is_real(word[:-1]):
                 return word[:-1]
 
+        maybes = []
         for i, letter in enumerate(word):
-            if c := letter_mix_map.get(letter):
-
-                maybe = word[:i] + c + word[i + 1 :]
-
-                if is_real(maybe):
-                    return maybe
-
-            if len(word) > 1:
-                if c := letter_mix_map.get(word[i - 1] + letter):
-                    maybe = word[: i - 1] + c + word[i + 1 :]
+            for (key, c) in letter_mix_map:
+                if key == letter:
+                    maybe = word[:i] + c + word[i + 1:]
 
                     if is_real(maybe):
-                        return maybe
+                        maybes.append(maybe)
+
+                if len(word) > 1:
+                    if key == word[i - 1] + letter:
+                        maybe = word[: i - 1] + c + word[i + 1 :]
+
+                        if is_real(maybe):
+                            maybes.append(maybe)
+
+        best_score = 0
+        best_maybe = word
+
+        for maybe in maybes:
+            best_maybe = maybe
+
+        return best_maybe
 
     return word
 
@@ -188,7 +198,11 @@ def bake_spelling():
         sentence = " ".join(words)
         sentence = low_hanging_fruits(sentence, nlp)
 
-        computed, changes = prob_spell(sentence, nlp)
+        computed, changes = prob_spell(
+            sentence,
+            [t[0].isupper() for t in util.parse_words(text, nlp=nlp, lower=False)],
+            nlp
+        )
 
         masks = {}
 

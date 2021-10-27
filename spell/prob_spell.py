@@ -363,6 +363,7 @@ class Spell:
     def lookup_compound(
         self,
         phrase,
+        upper_mask,
         max_edit_dist=2,
         split_space=False,
         ignore_non_words=False,
@@ -380,10 +381,11 @@ class Spell:
         is_last_combi = False
 
         for i, word in enumerate(term_list):
+            token = tokenize(word)[0]
 
-            if tokenize(word)[0].lexeme.type != LexemeType.WORD or self.is_actually_ok(
+            if token.lexeme.type != LexemeType.WORD or self.is_actually_ok(
                 word, nlp
-            ):
+            ) or upper_mask[i]:
                 suggestion_parts.append(Suggestion(term_list[i], 0, 0))
                 continue
 
@@ -807,7 +809,7 @@ def init():
     s.load_dict(join(dirname(__file__), "dictionary.txt"), 0, 1, sep=" ")
     s.load_bigram_dict(join(dirname(__file__), "bigrams.txt"), 0, 2, sep=" ")
 
-    def process(text, nlp):
+    def process(text, upper_mask, nlp):
         """
         Processes a sentence, fixing spelling and wrongly mixed words.
 
@@ -815,10 +817,9 @@ def init():
             - text: The sentence to be processed.
         """
 
-        return s.lookup_compound(text, max_edit_dist=2, nlp=nlp)
+        return s.lookup_compound(text, upper_mask, max_edit_dist=2, nlp=nlp)
 
     return process
-
 
 if __name__ == "__main__":
     spell = init()

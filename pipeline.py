@@ -2,7 +2,9 @@ from copy import copy
 from pprint import pprint
 from typing import List, final
 from diff_token import DiffSpac, DiffToken, Lexeme, LexemeType, tokenize
+from os.path import dirname, join
 
+import os
 import spacy
 
 from comma.comma import init as comma_init
@@ -13,12 +15,7 @@ from spell.spell import bake_spelling as spell_init
 from spell.grammar import init as grammar_init
 from spell.compound import compound_words
 
-# from spell.util import parse_words_and_quotes, parse_words_all_original
-
-from pysbd.utils import PySBDFactory
-
 sent_nlp = spacy.load("da_core_news_lg")
-# sent_nlp.add_pipe(PySBDFactory(sent_nlp), first=True)
 
 spell, unmasker = spell_init()
 grammar = grammar_init(unmasker, sent_nlp)
@@ -126,6 +123,7 @@ def process(text, debug=False):
 
         diff, text = spell(diff, text, sent_nlp)
         diff_history.append(diff)
+
         if debug:
             print("spell: ")
             pprint(text)
@@ -365,4 +363,14 @@ def process(text, debug=False):
 
         result_diff.extend(spaced_diff)
         result_text += text
+
     return result_text, list(map(DiffToken.to_dict, result_diff))
+
+if __name__ == "__main__":
+    while True:
+        text = input('> ')
+        a, b = process(text)
+
+        print(a)
+        print(b)
+        print()
