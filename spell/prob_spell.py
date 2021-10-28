@@ -385,7 +385,7 @@ class Spell:
 
             if token.lexeme.type != LexemeType.WORD or self.is_actually_ok(
                 word, nlp
-            ) or upper_mask[i]:
+            ) or (i < len(upper_mask) and upper_mask[i]):
                 suggestion_parts.append(Suggestion(term_list[i], 0, 0))
                 continue
 

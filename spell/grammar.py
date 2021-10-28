@@ -375,13 +375,13 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
 
         return Fix(b, b.i, "Forveksling af datid og nutid.")
 
-    if a.text in ["ligger", "lægger"]:
+    if a.text.lower() in ["ligger", "lægger"]:
         if b.dep == "obj":
-            if a.text == "ligger":
+            if a.text.lower() == "ligger":
                 a.text = "lægger"
                 return Fix(a, a.i, "Forveksling af ligger og lægger.")
 
-        elif a.text == "lægger":
+        elif a.text.lower() == "lægger":
             a.text = "ligger"
             return Fix(a, a.i, "Forveksling af ligger og lægger.")
 
@@ -768,7 +768,6 @@ def init(unmasker, nlp):
                 continue
 
             go = GrammarObject.from_token(token)
-            print('-', go.pos)
 
             # pprint(go)
             # result.append(token.text)
