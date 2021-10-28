@@ -252,9 +252,9 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
             # TODO: Express tense in human language.
             return Fix(b, b.i, f"Forveksling af {old} og nutid.")
 
-    if a.pos == "det" and a.text in ["en", "et"]:
+    if a.pos == "det" and a.text.lower() in ["en", "et"]:
         if a["gender"] != b["gender"]:
-            correct = a.text == "et" and "en" or "et"
+            correct = a.text.lower() == "et" and "en" or "et"
             gender = correct == "en" and "fælleskøn" or "intetkøn"
 
             a.text = correct
