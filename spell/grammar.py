@@ -252,19 +252,35 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
             # TODO: Express tense in human language.
             return Fix(b, b.i, f"Forveksling af {old} og nutid.")
 
-    if a.pos == "det" and a.text.lower() in ["en", "et"]:
-        if a["gender"] != b["gender"]:
-            correct = a.text.lower() == "et" and "en" or "et"
-            gender = correct == "en" and "fælleskøn" or "intetkøn"
+    if a.pos == "det":
 
-            a.text = correct
-            a["gender"] = b["gender"]
+        if a.text.lower() in ["en", "et"]:
+            if a["gender"] != b["gender"]:
+                correct = a.text.lower() == "et" and "en" or "et"
+                gender = correct == "en" and "fælleskøn" or "intetkøn"
 
-            return Fix(
-                a,
-                a.i,
-                f'Substantiver af {gender} skal have artiklen "{correct}".',
-            )
+                a.text = correct
+                a["gender"] = b["gender"]
+
+                return Fix(
+                    a,
+                    a.i,
+                    f'Substantiver af {gender} skal have artiklen "{correct}".',
+                )
+
+        elif a.text.lower() in ["sin", "sit"]:
+            if a["gender"] != b["gender"]:
+                correct = a.text.lower() == "sit" and "sin" or "sit"
+                gender = correct == "sin" and "fælleskøn" or "intetkøn"
+
+                a.text = correct
+                a["gender"] = b["gender"]
+
+                return Fix(
+                    a,
+                    a.i,
+                    f'Substantiver af {gender} skal have artiklen "{correct}".',
+                )
 
     if a.pos in ["pron", "noun", "det"] and is_inconsistent(a, b):
         correct = b.text
@@ -752,6 +768,7 @@ def init(unmasker, nlp):
                 continue
 
             go = GrammarObject.from_token(token)
+            print('-', go.pos)
 
             # pprint(go)
             # result.append(token.text)
