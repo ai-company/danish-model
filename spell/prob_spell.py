@@ -368,6 +368,7 @@ class Spell:
         split_space=False,
         ignore_non_words=False,
         nlp=None,
+        corpus=None
     ):
         term_list = util.parse_words(phrase, split_space, nlp)
         explanations = []
@@ -563,23 +564,30 @@ class Spell:
                 explanations.append(explain("none", s.term))
             else:
                 if len(split) > 1:
+                    abort_mission = False
+                    for bind in ['s', 'e']:
+                        c = term_list[i].split(bind)
+                        
+                        if False and len(c) > 1 and c[0] in corpus and c[1] in corpus:
+                            explanations.append(explain("none", c[0] + bind + c[1]))
+                            abort_mission = True
+
                     one_in = split[0] in term_list[i]
                     two_in = split[1] in term_list[i]
 
-                    abort_mission = False
 
-                    for binding in BINDINGS:
-                        if (
-                            nlp(split[0])[0].pos_.lower() in COMPOUNDABLE
-                            and nlp(split[1])[0].pos_.lower() in COMPOUNDABLE
-                        ):
-                            if (origin := split[0] + binding + split[1]) == term_list[
-                                i
-                            ]:
-                                explanations.append(explain("none", origin))
-                                abort_mission = True
+                    #for binding in BINDINGS:
+                    #    if (
+                    #        nlp(split[0])[0].pos_.lower() in COMPOUNDABLE
+                    #        and nlp(split[1])[0].pos_.lower() in COMPOUNDABLE
+                    #    ):
+                    #        if (origin := split[0] + binding + split[1]) == term_list[
+                    #            i
+                    #        ]:
+                    #            explanations.append(explain("none", origin))
+                    #            abort_mission = True
 
-                                break
+                    #            break
 
                     if not abort_mission:
                         if one_in and two_in:
@@ -618,14 +626,17 @@ class Spell:
                     if s.term == term_list[i]:
                         explanations.append(explain("none", s.term))
                     else:
-                        explanations.append(
-                            explain(
-                                "replace",
-                                term_list[i],
-                                s.term,
-                                "Ordet var oprindeligt stavet forkert.",
+                        if s.term + '-' == term_list[i]:
+                            explanations.append(explain("none", s.term + '-'))
+                        else:
+                            explanations.append(
+                                explain(
+                                    "replace",
+                                    term_list[i],
+                                    s.term,
+                                    "Ordet var oprindeligt stavet forkert.",
+                                )
                             )
-                        )
 
             joined_term += s.term + " "
             joined_count *= s.count / self.N
@@ -809,7 +820,7 @@ def init():
     s.load_dict(join(dirname(__file__), "dictionary.txt"), 0, 1, sep=" ")
     s.load_bigram_dict(join(dirname(__file__), "bigrams.txt"), 0, 2, sep=" ")
 
-    def process(text, upper_mask, nlp):
+    def process(text, upper_mask, nlp, corpus_words):
         """
         Processes a sentence, fixing spelling and wrongly mixed words.
 
@@ -817,7 +828,7 @@ def init():
             - text: The sentence to be processed.
         """
 
-        return s.lookup_compound(text, upper_mask, max_edit_dist=2, nlp=nlp)
+        return s.lookup_compound(text, upper_mask, max_edit_dist=2, nlp=nlp, corpus=corpus_words)
 
     return process
 

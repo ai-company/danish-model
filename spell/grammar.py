@@ -1,6 +1,7 @@
 from pprint import pprint
 from typing import List
 from diff_token import DiffToken, LexemeType, tokenize
+
 import spacy
 import lemmy
 import os
@@ -10,6 +11,7 @@ from nltk import Tree
 
 from . import inflect
 from . import explain
+from . import util
 
 # Preload
 lemmatizer = lemmy.load("da")
@@ -198,7 +200,6 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
     if (a.pos != "aux" and a.text not in INF_AUX) and b.has("verbform", "inf"):
         if fix := fix_aux_inf(a, b):
             return fix
-
     else:
         lower_a = a.text.lower()
 
@@ -235,9 +236,11 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
         #     # TODO: Express tense in human language.
         #     return Fix(b, b.i, f"Forveksling af {old} og datid")
         # el
-        if (
+
+        # TODO: Gotta properly handle general cases.
+        if False and (
             b.has("verbform", "part")
-            and not lower_a in PAST_AUX
+            and lower_a not in PAST_AUX
             and not b.dep == "ccomp"
         ):
             # The default case is that not clausal component verbs, as well as verbs not bound to a past-aux,
@@ -280,6 +283,19 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
                     a,
                     a.i,
                     f'Substantiver af {gender} skal have artiklen "{correct}".',
+                )
+
+        elif a.text.lower() in ["hendes", "hans", "dens"]:
+            if a.head.dep_.lower() == 'nsubj':
+                correct = 'sin'
+
+                origin = a.text
+                a.text = correct
+
+                return Fix(
+                    a,
+                    a.i,
+                    f'"{origin}" bør ændres til "{a.text}", når ordet binder sig til grundleddet.'
                 )
 
     if a.pos in ["pron", "noun", "det"] and is_inconsistent(a, b):
@@ -725,6 +741,7 @@ def grammar_tree(token):
 def init(unmasker, nlp):
     def fix(diff: List[DiffToken] = [], text=""):
 
+        upper_mask = [t[0].isupper() and not i == 0 for i, t in enumerate(util.parse_words(text, nlp=nlp, lower=False))]
         first_doc = nlp(text)
 
         # spacy.displacy.serve(first_doc, style='dep')
@@ -757,6 +774,10 @@ def init(unmasker, nlp):
         for (_, i, split_i), token in zip(change_map, doc):
             # print('----')
             # pprint(token)
+
+            if i < len(upper_mask) and upper_mask[i]:
+                continue
+
             new_tokens = tokenize(str(token.text))
             non_punct = list(
                 filter(
@@ -768,6 +789,7 @@ def init(unmasker, nlp):
                 continue
 
             go = GrammarObject.from_token(token)
+            # print(f'- {go.text}: {go.pos} @ {go.dep} @ {list(go.ancestors)}')
 
             # pprint(go)
             # result.append(token.text)
@@ -817,7 +839,8 @@ def init(unmasker, nlp):
                 if token.text in ["lægger", "ligger"]:
                     fix_lays(token, changes, change_map, result_fix_map)
 
-            if go.pos == "propn":
+            # TODO: Fucking NER
+            if False and go.pos == "propn":
                 result_fix_map[go.i] = capitalize_name(go, changes, i, split_i)
 
         # print()

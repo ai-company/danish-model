@@ -200,8 +200,9 @@ def bake_spelling():
 
         computed, changes = prob_spell(
             sentence,
-            [t[0].isupper() for t in util.parse_words(text, nlp=nlp, lower=False)],
-            nlp
+            [t[0].isupper() and not i == 0 for i, t in enumerate(util.parse_words(text, nlp=nlp, lower=False))],
+            nlp,
+            corpus_words
         )
 
         masks = {}
