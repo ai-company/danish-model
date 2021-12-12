@@ -589,7 +589,7 @@ class Spell:
 
                     #            break
 
-                    if not abort_mission:
+                    if not abort_mission and False:
                         if one_in and two_in:
                             explanations.append(
                                 explain(
@@ -622,6 +622,8 @@ class Spell:
                                     "Ordet bør opdeles i flere",
                                 )
                             )
+                    else:
+                        explanations.append(explain("none", term_list[i]))
                 else:
                     if s.term == term_list[i]:
                         explanations.append(explain("none", s.term))

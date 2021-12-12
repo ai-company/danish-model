@@ -5,6 +5,8 @@ from diff_token import DiffToken, LexemeType, tokenize
 import spacy
 import lemmy
 import os
+import pandas as pd
+import itertools
 
 from spacy.symbols import nsubj, VERB, ADJ
 from nltk import Tree
@@ -15,6 +17,7 @@ from . import util
 
 # Preload
 lemmatizer = lemmy.load("da")
+NAMES = dict(zip(pd.read_excel(os.path.join(os.path.dirname(__file__), 'names.xls'))['Ab'].apply(lambda x: x.lower()).tolist(), itertools.cycle([True])))
 
 # Constants
 PAST_AUX = [
@@ -840,8 +843,9 @@ def init(unmasker, nlp):
                     fix_lays(token, changes, change_map, result_fix_map)
 
             # TODO: Fucking NER
-            if False and go.pos == "propn":
-                result_fix_map[go.i] = capitalize_name(go, changes, i, split_i)
+            if go.pos == 'propn':
+                if name := NAMES.get(go.text.lower(), False):
+                    result_fix_map[go.i] = capitalize_name(name, changes, i, split_i)
 
         # print()
         # draw_tree(doc)

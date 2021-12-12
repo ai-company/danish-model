@@ -62,7 +62,7 @@ class FullCorrectness(TestCase):
                     "change": "gr\u00f8nne",
                     "origin": "gron",
                     "explain": [
-                        "Ordet var oprindeligt stavet forkert.",
+                        "Dette var nok en tastefejl.",
                         '"gr\u00f8n" skal b\u00f8jes i flertal her.',
                     ],
                 },
@@ -939,12 +939,7 @@ class Compound(TestCase):
                 {"origin": "løbende", "type": "none"},
                 {"origin": " ", "type": "space"},
                 {"origin": "dialog", "type": "none"},
-                {
-                    "change": "",
-                    "explain": ["Der bør ikke være et komma her."],
-                    "origin": ",",
-                    "type": "remove",
-                },
+                {"origin": ",", "type": "none"},
                 {"origin": " ", "type": "space"},
                 {"origin": "det", "type": "none"},
                 {"origin": " ", "type": "space"},
@@ -1541,12 +1536,7 @@ class DontTouchThese(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "mod"},
                 {"type": "space", "origin": " "},
-                {
-                    "type": "replace",
-                    "origin": "corona",
-                    "explain": ["Dette egenavn bør have stort begyndelsesbogstav."],
-                    "change": "Corona",
-                },
+                {"type": "none", "origin": "corona"},
                 {"type": "none", "origin": "."},
             ],
             fix(
