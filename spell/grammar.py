@@ -24,7 +24,7 @@ PAST_AUX = [
     "var", 'er'
 ]
 
-INF_AUX = ["at"]
+INF_AUX = ["at", "skal", "bør"]
 REFLECTIVE_ADJ = ["nogen", "ingen"]
 
 # Debug
@@ -207,7 +207,7 @@ def fix_pair(a: GrammarObject, b: GrammarObject) -> Fix:
         lower_a = a.text.lower()
 
         if (
-            (lower_a in INF_AUX)
+            False and (lower_a in INF_AUX)
             and not b.has("verbform", None)
             and (b.has("verbform", "inf") or b.has("verbform", "fin"))
         ):
@@ -844,8 +844,8 @@ def init(unmasker, nlp):
 
             # TODO: Fucking NER
             if go.pos == 'propn':
-                if name := NAMES.get(go.text.lower(), False):
-                    result_fix_map[go.i] = capitalize_name(name, changes, i, split_i)
+                if NAMES.get(go.text.lower(), False):
+                    result_fix_map[go.i] = capitalize_name(go, changes, i, split_i)
 
         # print()
         # draw_tree(doc)
