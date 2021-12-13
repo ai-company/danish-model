@@ -11,3 +11,4 @@ traceback-with-variables==2.0.1
 https://github.com/explosion/spacy-models/releases/download/da_core_news_lg-2.3.0/da_core_news_lg-2.3.0.tar.gz#egg=da_core_news_lg
 xlrd==2.0.1
 pandas==1.3.5
+openpyxl==3.0.9

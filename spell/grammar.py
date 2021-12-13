@@ -17,7 +17,7 @@ from . import util
 
 # Preload
 lemmatizer = lemmy.load("da")
-NAMES = dict(zip(pd.read_excel(os.path.join(os.path.dirname(__file__), 'names.xls'))['Ab'].apply(lambda x: x.lower()).tolist(), itertools.cycle([True])))
+NAMES = dict(zip(pd.read_excel(os.path.join(os.path.dirname(__file__), 'names.xlsx'))['Ab'].apply(lambda x: x.lower()).tolist(), itertools.cycle([True])))
 
 # Constants
 PAST_AUX = [
