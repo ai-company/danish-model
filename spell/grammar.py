@@ -438,7 +438,7 @@ def fix_aux_inf(a: GrammarObject, b: GrammarObject) -> Fix:
 
         cs = dict([(t.text, t.dep_) for t in a.head.head.children])
 
-        if cs[b.text] == "conj" and "mark" in cs.values():
+        if b.text in cs and cs[b.text] == "conj" and "mark" in cs.values():
             abort_mission = True
 
     if abort_mission:
