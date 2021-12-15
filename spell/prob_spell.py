@@ -351,7 +351,7 @@ class Spell:
 
     def is_actually_ok(self, word, nlp):
         pos = nlp(word)[0].pos_
-        if word not in self.words:
+        if word not in self.words and (word + 't') not in self.words:
             return (
                 word.endswith("'s")
                 and word[:-2] in self.words
