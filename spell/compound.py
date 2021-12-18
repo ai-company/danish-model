@@ -1,0 +1,276 @@
+from copy import deepcopy
+from diff_token import DiffToken
+from os.path import dirname, join
+from pprint import pprint
+
+import lemmy
+import spacy
+import explain
+
+from grammar import inflect
+from grammar import grammar
+
+lemmatizer = lemmy.load("da")
+path = dirname(__file__)
+
+BINDINGS = ["s", "e", "n", "-", "", "'"]
+COMPOUNDABLE = ["x", "propn", "noun", "verb"]
+
+with open(join(path, "data/compounds.txt")) as f:
+    compounds = dict()
+    for line in f:
+        compounds[line.strip()] = True  # I am speed.
+
+with open(join(path, "data/compound_map.txt")) as f:
+    compound_map = dict()
+
+    for line in f:
+        line = line.split("\t")
+        compound_map[line[0]] = line[1]
+
+compound_values = [x.replace("-", "") for x in compound_map.values()]
+
+
+def simple_connect(text):
+    doubles = {
+        "st": "e",
+    }
+
+    if e := doubles.get(text[-2:]):
+        ending = e
+    else:
+        ending = {
+            "g": "ge",
+            "t": "te",
+            "n": "ne",
+            "k": "ke",
+            "l": "le",
+            "s": "se",
+            "e": "",
+        }.get(text[-1], "e")
+
+    return f"{text}{ending}"
+
+
+def should_compound_straight(a, b, nlp):
+    lemma = lemmatizer.lemmatize(a.pos.upper(), a.text)
+
+    result = False
+
+    if a.pos in COMPOUNDABLE and b.pos in COMPOUNDABLE:
+        for word in lemma:
+            if len(word) == 0:
+                continue
+
+            in_compounds = a.text in compound_values + [simple_connect(word)]
+
+            # Can't compound possesive
+            if a.has("definite", "def"):
+                break
+
+            if (nlp(word)[0].pos_.lower() != a.pos or in_compounds) and word != a.text:
+                if c := in_compounds:
+                    result = c
+                    break
+
+    return result
+
+
+def check_compound(token, other, nlp):
+    # TODO: Figure out dependency rules
+    if token.pos == other.pos == "noun":
+        lemma = lemmatizer.lemmatize(token.pos, token.text)
+
+        for word in lemma:
+            if pound := compound_map.get(word):
+                return pound.replace("-", other.text)
+
+    return None
+
+
+def compound_words(changes, text, nlp):
+    tokens = nlp(text)
+
+    result = dict()
+    last_compounded = (-2, -2)  # Index of token, index in result
+
+    result_text = []
+
+    # TODO: account for spaces between tokens
+    for i, token in enumerate(tokens):
+        go = grammar.GrammarObject.from_token(token)
+
+        result_text.append(token.text + token.whitespace_)
+
+        if i < len(tokens) - 1:
+            other = grammar.GrammarObject.from_token(tokens[i + 1])
+            add_to_last = last_compounded[0] == i - 1
+
+            if add_to_last:
+                token_ = nlp(result[last_compounded[1]][0])[0]
+            else:
+                token_ = token
+
+            go_ = grammar.GrammarObject.from_token(token_)
+
+            compound = None
+
+            for binding in BINDINGS:
+                kwargs = {}
+
+                inflect_func = None
+
+                if other.pos == "verb":
+                    tense = other["tense"] or []
+                    inflect_func = inflect.inflect_verb
+
+                    kwargs["pastize"] = "past" in tense
+                    kwargs["didize"] = "past" in tense and "part" == other["verbform"]
+                    kwargs["presentize"] = "pres" in tense
+
+                elif other.pos == "noun":
+                    inflect_func = inflect.inflect_noun
+
+                    kwargs["singularize"] = grammar.is_singular(other)
+                    kwargs["pluralize"] = not kwargs["singularize"]
+                    kwargs["properize"] = other.has("poss", "yes")
+
+                elif other.pos == "adj":
+                    inflect_func = inflect.inflect_adj
+
+                    kwargs["singularize"] = grammar.is_singular(other)
+                    kwargs["pluralize"] = not kwargs["singularize"]
+
+                lefts = lemmatizer.lemmatize(go.pos, go.text) + [go.text]
+                rights = lemmatizer.lemmatize(other.pos.upper(), other.text) + [
+                    other.text
+                ]
+
+                for left in lefts:
+                    for right in rights:
+                        c = f"{left}{binding}{right}"
+
+                        if c in compounds:
+                            # Compounds are inflected by their last element.
+                            if inflect_func is not None:
+                                right_inflected = inflect_func(
+                                    other,
+                                    lemma=right,
+                                    **kwargs,
+                                )
+                            else:
+                                right_inflected = other.text
+
+                            compound = c.replace(right, right_inflected)
+
+                            if go.dep == "root" and nlp(compound)[0].pos_ != "VERB":
+                                compound = None
+                                continue
+                            else:
+                                break
+
+                    if compound:
+                        break
+
+            if not compound:
+                if should_compound_straight(go_, other, nlp):
+                    if add_to_last:
+                        compound = f"{result[last_compounded[1]][0]}{other.text}"
+                    else:
+                        compound = f"{go.text}{other.text}"
+
+                else:
+                    if add_to_last:
+                        if c := check_compound(
+                            nlp(result[last_compounded[1]][0])[0], other, nlp
+                        ):
+                            compound = c
+                        else:
+                            continue
+                    else:
+                        if c := check_compound(go_, other, nlp):
+                            compound = c
+                        else:
+                            continue
+
+            if add_to_last:
+                result[last_compounded[1]] = (compound, other.i)
+                last_compounded = (i, last_compounded[1])
+            else:
+                result[i] = (compound, other.i)
+                last_compounded = (i, i)
+
+    # Manage changes
+
+    changes_dict = list(map(DiffToken.to_dict, DiffToken.from_spacy_list(tokens)))
+    change_map = explain.change_map(changes_dict)
+
+    new_changes = []
+    new_result_text = []
+
+    last_change_i = 0
+
+    for start, v in result.items():
+        origin_map = change_map[start : v[1] + 1]
+        new_changes += changes_dict[last_change_i : origin_map[0][1]]
+        new_result_text += result_text[last_change_i : origin_map[0][1]]
+
+        # print("[comp] -", start, v)
+        # import pdb
+
+        # pdb.set_trace()
+
+        last_change_i = v[1] + 1  # origin_map[-1][1] + 1
+
+        origin = []
+
+        for index, (word, i, split_i) in enumerate(origin_map):
+            if changes_dict[i]["type"] == "split":
+                if c := changes_dict[i]["change"][split_i]:
+                    if c["type"] == "none":
+                        origin.append(c["origin"])
+                    else:
+                        origin.append(c["change"])
+            else:
+                origin.append(word)
+
+        new_changes.append(
+            explain.explain("merge", origin, v[0], ["Disse ord bør sammensættes."])
+        )
+
+        new_result_text.append(v[0])
+
+    if len(new_result_text) == 0:
+        new_result_text = result_text
+        new_changes = changes_dict
+    else:
+        new_changes += changes_dict[last_change_i : len(changes_dict)]
+        new_result_text += result_text[last_change_i : len(changes_dict)]
+
+    # reconcile diffs -------------------------------------
+
+    new_changes = list(map(DiffToken.from_dict, new_changes))
+
+    i = j = 0
+    while i < len(changes):
+        if new_changes[j].change_type == "merge":
+            new_changes[j].index = list(range(i, i + len(new_changes[j].origin)))
+            i += len(new_changes[j].origin) - 1
+            new_changes[j].lexeme.space = changes[i].lexeme.space
+            new_changes[j].change += changes[i].lexeme.space
+            new_changes[j].origin[-1] = new_changes[j].origin[-1].strip()
+        else:
+            new_changes[j].index = i
+            new_changes[j].lexeme.space = changes[i].lexeme.space
+
+        i += 1
+        j += 1
+
+    return new_changes, "".join(map(str, new_changes))
+
+
+if __name__ == "__main__":
+    nlp = spacy.load("da_core_news_lg")
+    while True:
+        text = input("> ")
+        print(compound_words(text, [], nlp))

@@ -20,11 +20,9 @@ def load_inflections(path):
     return inflections
 
 
-path = join(dirname(__file__), 'data')
-
-noun_inflections = load_inflections(join(path, "inflections_noun.txt"))
-verb_inflections = load_inflections(join(path, "inflections_verb.txt"))
-adj_inflections = load_inflections(join(path, "inflections_adj.txt"))
+noun_inflections = load_inflections(join(dirname(__file__), "data/inflections_noun.txt"))
+verb_inflections = load_inflections(join(dirname(__file__), "data/inflections_verb.txt"))
+adj_inflections = load_inflections(join(dirname(__file__),  "data/inflections_adj.txt"))
 
 
 def inflect_noun(go, properize=False, pluralize=False, singularize=False, lemma=None):

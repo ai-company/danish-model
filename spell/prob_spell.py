@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
-
 from .distance import distance as damerau_levenshtein_distance
 from collections import defaultdict, namedtuple
 from itertools import cycle
-from .explain import explain, change
+from explain import explain, change
 from os.path import join, dirname
 
 import sys
@@ -13,8 +11,7 @@ import math
 import string
 import lemmy
 
-from . import util
-from . import test
+import util
 
 from spell.compound import BINDINGS, COMPOUNDABLE
 
@@ -353,7 +350,7 @@ class Spell:
 
     def is_actually_ok(self, word, nlp):
         pos = nlp(word)[0].pos_
-        if word not in self.words:
+        if word not in self.words and (word + 't') not in self.words:
             return (
                 word.endswith("'s")
                 and word[:-2] in self.words
@@ -569,7 +566,7 @@ class Spell:
                     abort_mission = False
                     for bind in ['s', 'e']:
                         c = term_list[i].split(bind)
-
+                        
                         if False and len(c) > 1 and c[0] in corpus and c[1] in corpus:
                             explanations.append(explain("none", c[0] + bind + c[1]))
                             abort_mission = True
@@ -578,20 +575,20 @@ class Spell:
                     two_in = split[1] in term_list[i]
 
 
-                    for binding in BINDINGS:
-                        if (
-                            nlp(split[0])[0].pos_.lower() in COMPOUNDABLE
-                            and nlp(split[1])[0].pos_.lower() in COMPOUNDABLE
-                        ):
-                            if (origin := split[0] + binding + split[1]) == term_list[
-                                i
-                            ]:
-                                explanations.append(explain("none", origin))
-                                abort_mission = True
+                    #for binding in BINDINGS:
+                    #    if (
+                    #        nlp(split[0])[0].pos_.lower() in COMPOUNDABLE
+                    #        and nlp(split[1])[0].pos_.lower() in COMPOUNDABLE
+                    #    ):
+                    #        if (origin := split[0] + binding + split[1]) == term_list[
+                    #            i
+                    #        ]:
+                    #            explanations.append(explain("none", origin))
+                    #            abort_mission = True
 
-                                break
+                    #            break
 
-                    if not abort_mission:
+                    if not abort_mission and False:
                         if one_in and two_in:
                             explanations.append(
                                 explain(
@@ -624,6 +621,8 @@ class Spell:
                                     "Ordet bør opdeles i flere",
                                 )
                             )
+                    else:
+                        explanations.append(explain("none", term_list[i]))
                 else:
                     if s.term == term_list[i]:
                         explanations.append(explain("none", s.term))
@@ -819,8 +818,8 @@ class Suggestion:
 
 def init():
     s = Spell()
-    s.load_dict(join(dirname(__file__), "data/dictionary.txt"), 0, 1, sep=" ")
-    s.load_bigram_dict(join(dirname(__file__), "data/bigrams.txt"), 0, 2, sep=" ")
+    s.load_dict(join(dirname(__file__), "dictionary.txt"), 0, 1, sep=" ")
+    s.load_bigram_dict(join(dirname(__file__), "bigrams.txt"), 0, 2, sep=" ")
 
     def process(text, upper_mask, nlp, corpus_words):
         """

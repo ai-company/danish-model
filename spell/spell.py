@@ -8,8 +8,8 @@ from transformers import pipeline, AutoTokenizer, AutoModelForPreTraining
 from .prob_spell import init
 from nltk.corpus import words as corpus_words
 
-from . import explain
-from . import util
+import explain
+import util
 from os.path import join, dirname
 
 BINDINGS = ["s", "e", "n", ""]
@@ -80,13 +80,13 @@ def is_deep_real(word: str) -> bool:
     """
 
     length = len(word)
-    largest = 0
 
     if word in corpus_words:
         return True
     else:
-        for i in range(length, -1, -1):
-            buffer = word[i : length]
+        for i in range(len(word), -1, -1):
+            #
+            buffer = word[i : len(word)]
 
             flag = False
 
@@ -96,9 +96,6 @@ def is_deep_real(word: str) -> bool:
                 flag = buffer[:-1] in corpus_words
 
             if flag:
-                if len(buffer) > largest:
-                    largest = len(buffer)
-
                 if is_deep_real(word[: len(word) - largest]):
                     if largest + len(word) - largest:
                         return True
@@ -152,7 +149,7 @@ def fix_typo(word):
                         if is_real(maybe):
                             maybes.append(maybe)
 
-        best_score = 0 # TODO: weigh scores, don't take last.
+        best_score = 0
         best_maybe = word
 
         for maybe in maybes:
@@ -170,7 +167,7 @@ def explain_none(changes, i, change, explain):
     changes[i]["explain"] = explain if type(explain) is list else [explain]
 
 
-def bake_spelling():
+def init():
     # TODO: words replaced with punctuation, that's pretty fucked
     def fix(diff: List[DiffToken] = [], text="", nlp=None):
         """

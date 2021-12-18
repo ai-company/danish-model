@@ -1,3 +1,5 @@
+import spacy
+
 from os.path import dirname, join
 from pprint import pprint
 from copy import copy
@@ -6,11 +8,18 @@ from inspect import signature
 
 from comma import comma
 from comma.clauses import flag_simple_listings
+
+from spell import spell
+from grammar import grammar
+from spell.compound import compound_words
+
 from diff_token import DiffSpac, DiffToken, Lexeme, LexemeType, tokenize
 
-import spacy
 
-nlp    = spacy.load('da_core_news_lg')
+nlp = spacy.load('da_core_news_lg')
+
+spell, unmasker = spell.init()
+grammar = grammar.init(unmasker, nlp)
 commas = comma.init(nlp)
 
 def sentencize(text):
@@ -101,15 +110,20 @@ def process(text, debug=False):
             pprint(text)
             pprint(diff)
 
+        # Keeping it short:
+        # - function to apply, whether it should be served the NLP.
         for func, pass_nlp in [
-                strip_user_commas,
-                flag_simple_listings,
-                # compound_words,
-                # grammar,
-                commas,
+                (spell, True),
+                (strip_user_commas, False),
+                (flag_simple_listings, True),
+                (compound_words, True),
+                (grammar, False), # Already has it. :)
+                (commas, False), # Ditto.
         ]:
-            args = [diff, text, nlp][:len(signature(func).parameters) - 1]
+            args = [diff, text, nlp][:len(signature(func).parameters)]
+
             diff, text = func(*args)
+            diff_history.append(diff)
 
             if debug:
                 print(f'{func.__name__}: ')
