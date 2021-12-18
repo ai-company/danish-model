@@ -4519,7 +4519,7 @@ skråtstille	 -r, -de, -t
 skubbe	 -r, -de, -t
 skulder	 -en, skuldre, skuldrene
 skule	 -r, -de, -t
-skulle	 skal, skulle, har skullet
+skulle	 skulle, skulle, har skullet
 skulptere	 -r, -de, -t 
 skulpturere	 -r, -de, -t 
 skumlæse	 -r, skumlæste, skumlæst 

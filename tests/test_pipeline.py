@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, script_dir.split("tests")[0])
@@ -29,3 +30,42 @@ class TestGrammar:
         assert fixed('jeg kan lide at spise et kagkage') == 'Jeg kan lide at spise en kagkage.'
         assert fixed('et sød, lille kat') == 'En sød lille kat.'
         assert fixed('En dum hund.') == 'En dum hund.'
+
+    def test_nutids_r(self):
+        assert fixed('den løbe derhen') == 'Den løber derhen.'
+        assert fixed('så den ikke løbe derhen') == 'Så den ikke løber derhen.'
+        assert fixed('jeg løbe derhen') == 'Jeg løber derhen.'
+        assert fixed('han kan lide at løbe derhen') == 'Han kan lide at løbe derhen.'
+        assert fixed('jeg gide ikke at løbe derhen') == 'Jeg gider ikke at løbe derhen.'
+
+
+big_texts = [
+    """
+På samme tid sidste år beordrende statsministeren, at alle landets storcentre og indkøbscentre skulle lukke. Det omfattede alle butikker med undtagelse af dagligvarebutikker og apoteker.
+Det fik enkelte butikker i storcentre til at lave vinduer om til døre, så de pludselig havde direkte adgang fra gaden.
+Så galt er det ikke denne gang. Fra søndag morgen indføres der "kun" krav om mundbind og arealkrav i detailhandlen, så man regulerer antallet af kunder i forhold til med afsæt i butikkernes størrelse.
+Ifølge Allan Randrup Thomsen, der er professor i eksperimentel virologi ved Københavns Universitet og medlem af regeringens ekspertgruppe, sker det for at skåne erhvervslivet så meget som muligt.
+- Hele strategien denne her vinter, og der er en forskel i forhold til sidste år, har gået på, at vi skulle holde så meget af samfundet åbent som muligt, fordi en langt større del af befolkningen er immune, fordi vi har vaccinerne, siger han.
+    """,
+
+    """
+På dansk har vi hjælpeverberne være, have, blive og få.
+Disse verber er hjælpeverber, når de står sammen med et hovedverbum (dvs. det ord, der virkelig betyder noget). Hovedverbet vil stå i perfektum participium formen : fx kommet, spist, klippet, lappet.
+"Være" og "blive" bruges til at danne passiv: "Patienten blev opereret af professor Lund", "Professoren er anerkendt som den højeste kapacitet i hele Europa."
+    """,
+
+    """
+Dansk Folkeparti skal have en ny formand, og ifølge Martin Henriksen (DF) peger pilen i én retning. Mod ham selv.
+- Jeg har fulgt diskussionen tæt i Dansk Folkeparti i forhold til, hvilken retning partiet skal tage, og derfor har jeg taget den beslutning, at jeg stiller op som formandskandidat, siger Martin Henriksen til DR Nyheder.
+Det tidligere folketingsmedlem for Dansk Folkeparti mener, at partiet skal gå tilbage til nogle af de mærkesager, der historisk set har virket for dem, hvis han bliver valgt som formand på partiets ekstraordinære årsmøde 23. januar.
+    """
+]
+
+def normalize(text):
+    return re.sub(r"[\s\.,]+", "", text.strip(), flags=re.UNICODE)
+
+class TestBigGrammar:
+    def test_big_texts(self):
+        for text in big_texts:
+            # This is purely grammar. Punctuations have other tests.
+            assert normalize(fixed(text)) == normalize(text)

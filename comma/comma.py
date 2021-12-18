@@ -206,7 +206,7 @@ def init(nlp):
 
         # the model sometimes inserts a duplicate comma, if there is one already there
         # new_text = re.sub(",+", ",", new_text)
-        # pprint(new_text)
+        # pprint(new:_text)
 
         explanations = explain.get_explanations(new_text, nlp)
 
@@ -260,6 +260,10 @@ def init(nlp):
                     pprint(diff)
                     pprint(new_text_tokens)
                     print(i, diff[i], j, new_text_tokens[j])
+
+                    import pdb
+                    pdb.set_trace()
+
                     raise Exception("unreachable!")
 
         if i < len(diff):

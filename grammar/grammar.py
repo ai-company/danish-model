@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import spacy
+import lemmy
 import textacy
 import explain
 import util
+import grammar.inflect as inflect
 
 from pprint import pprint
 from spacy.symbols import nsubj, VERB, ADJ
@@ -15,6 +17,11 @@ from diff_token import DiffToken, LexemeType, tokenize
 from transformers import pipeline, AutoTokenizer, AutoModelForPreTraining
 from typing import List
 from dataclasses import dataclass
+
+lemmatizer = lemmy.load("da")
+
+
+SUBJECTS = ["nsubj", "nsubjpass", "csubj", "csubjpass", "agent", "expl"]
 
 class GrammarObject:
     def __init__(
@@ -115,6 +122,23 @@ class Sentence:
         self.text = text
         self.doc = nlp(text)
 
+    def sv_pairs(self):
+        sv_list = []
+
+        for sent in self.doc.sents:
+            verbs = spacy_utils.get_main_verbs_of_sent(sent)
+
+            for verb in verbs:
+                subjects, negated = Sentence.get_subjects(verb)
+
+                if len(subjects) > 0:
+                    for subject in subjects:
+                        sv_list.append(
+                            (subject, verb) # TODO: negated mby
+                        )
+
+        return sv_list
+
     def svo_triples(self):
         for sent in self.doc.sents:
             start_i = sent[0].i
@@ -138,7 +162,7 @@ class Sentence:
                     ]
 
                     if not objects:
-                        yield (subject, verb, None)
+                        yield (subject[0], verb[0], None)
 
                     for object in objects:
                         if object.pos_ == "NOUN":
@@ -150,7 +174,7 @@ class Sentence:
 
                         object = sent[span[0] - start_i : span[1] - start_i + 1]
 
-                        yield (subject, verb, object)
+                        yield (subject[0], verb[0], object)
 
     def chunks(self):
         chunks = []
@@ -205,6 +229,79 @@ class Sentence:
         else:
             return node.orth_
 
+    @staticmethod
+    def get_subjects_of_conjunctions(subjects):
+        more = []
+
+        for sub in subjects:
+            rights = list(sub.rights)
+            right_deps = [ t.lower_ for t in rights ]
+
+            if 'og' in right_deps:
+                more.extend(
+                    [
+                        t for t in rights if t.dep_ in SUBJECTS or t.pos_ == 'NOUN'
+                    ]
+                )
+
+                if len(more) > 0:
+                    more.extend(
+                        Sentence.get_subjects_of_conjunctions(more)
+                    )
+
+        return more
+
+    @staticmethod
+    def get_subjects(token):
+        negated = Sentence.is_negated(token)
+        subjects = [
+            t for t in token.lefts if t.dep_ in SUBJECTS and t.pos_ != 'DET'
+        ]
+
+        if len(subjects) > 0:
+            subjects.extend(
+                Sentence.get_subjects_of_conjunctions(subjects)
+            )
+        else:
+            found, negated = Sentence.find_subjects(token)
+            subjects.extend(found)
+
+        return subjects, negated
+
+    @staticmethod
+    def find_subjects(token):
+        head = token.head # Get head.
+        while head.pos_ not in ['VERB', 'NOUN'] and head.head != head:
+            head = head.head
+
+        if head.pos_ == 'VERB':
+            subjects = [
+                token for token in head.lefts if token.dep_ == 'SUB'
+            ]
+
+            if len(subjects) > 0:
+                negated = Sentence.is_negated(head)
+                subjects.extend(
+                    Sentence.get_subjects_of_conjunctions(subjects)
+                )
+
+                return subjects, negated
+
+            elif head.head != head:
+                return Sentence.find_subjects(head)
+        elif head.pos_ == 'NOUN':
+            return [head], Sentence.is_negated(token)
+
+        return [], False
+
+    @staticmethod
+    def is_negated(token):
+        negations = ['ikke', 'ingen', 'intet', 'aldrig', 'ingen']
+
+        for dep in list(token.lefts) + list(token.rights):
+            if dep.lower_ in negations:
+                return True
+        return False
 
 class SentenceTree:
     @staticmethod
@@ -238,7 +335,7 @@ class SentenceTree:
         if token.head.pos_ == "NOUN":
             return [token.head]
         else:
-            return [t for t in siblings(token) if t.pos_ in ["ADJ", "NOUN"]][:1]
+            return [t for t in SentenceTree.siblings(token) if t.pos_ in ["ADJ", "NOUN"]][:1]
 
 
     @staticmethod
@@ -256,12 +353,12 @@ class SentenceTree:
 
     @staticmethod
     def xcomp_pair(token):
-        return [t for t in siblings(token) if t.dep_ == "nsubj"]
+        return [t for t in SentenceTree.siblings(token) if t.dep_ == "nsubj"]
 
 
     @staticmethod
     def expl_pair(token):
-        return [t for t in siblings(token) if t.pos_ == "VERB"]
+        return [t for t in SentenceTree.siblings(token) if t.pos_ == "VERB"]
 
 
     @staticmethod
@@ -307,6 +404,34 @@ class SentenceTree:
 
 
 class Correct:
+    @staticmethod
+    def fix_nutids_r(text, changes, nlp):
+        s = Sentence(text, nlp)
+
+        for (s, v, _) in s.svo_triples():
+
+            # Can't do that, if auxiliary verbs exist.
+            if len([t for t in v.children if t.dep_ == 'aux']) > 0:
+                continue
+
+            go_s = GrammarObject.from_token(s)
+            go_v = GrammarObject.from_token(v)
+
+            # OMG, what a cool hack. You must be ultra-smart.
+            # > Yes, thank.
+            if go_v.has('verbform', 'inf') or go_v.text in inflect.verb_inflections:
+                correct = inflect.inflect_verb(go_v, True)
+
+                explain.append_change(
+                    changes,
+                    v.i,
+                    explain.change("change", correct, f'Forveksling af infinitiv og nutid.'),
+                )
+
+                break
+
+        return changes
+
     @staticmethod
     def fix_pair(a: GrammarObject, b: GrammarObject):
         if a.text.lower() in ["ligger", "lægger"]:
@@ -580,7 +705,7 @@ def init(unmasker, nlp):
                             Fix(
                                 go,
                                 go.i,
-                                "Forveksling af \"lægger\" of \"ligger\"."
+                                "Forveksling af \"lægger\" og \"ligger\"."
                             )
                         )
                 elif go.text.lower() == 'lægger':
@@ -607,10 +732,19 @@ def init(unmasker, nlp):
                         else:
                             go_fix(fix)
 
+        corrected = list(map(DiffToken.from_dict, changes))
+
+        # And last, but not least ... motherfucking nutids-r.
+        text = "".join(map(str, corrected))
+        changes = Correct.fix_nutids_r(text, changes, nlp)
+
         # Make changes ready for next step:
         # > Your're welcom comas.
-
-        corrected = list(map(DiffToken.from_dict, changes))
+        try:
+            corrected = list(map(lambda x: DiffToken.from_dict(x), changes))
+        except:
+            import pdb
+            pdb.set_trace()
 
         changes = []
         for c in corrected:
@@ -638,35 +772,3 @@ def init(unmasker, nlp):
         return changes, "".join(map(str, changes))
 
     return fix
-
-def play():
-    nlp = spacy.load("da_core_news_lg")
-
-    tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
-    unmasker = pipeline(
-        "fill-mask", model="Maltehb/danish-bert-botxo", tokenizer=tokenizer
-    )
-
-    result_diff = []
-    result_text = ""
-
-    while True:
-        text = input("> ")
-
-        for sentence in nlp(text).sents:
-            initial_diff = []
-            diff_history = []
-
-            text = str(sentence)
-            diff = DiffToken.from_spacy_list(sentence)
-            diff_history.append(diff)
-
-            initial_diff = diff
-
-            text, changes = Correct.at_vs_og(unmasker, sentence, text, diff)
-            text, changes = Correct.af_vs_ad(unmasker, sentence, text, diff)
-
-            print(text)
-
-if __name__ == '__main__':
-    play()

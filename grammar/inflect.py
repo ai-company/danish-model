@@ -24,7 +24,6 @@ noun_inflections = load_inflections(join(dirname(__file__), "data/inflections_no
 verb_inflections = load_inflections(join(dirname(__file__), "data/inflections_verb.txt"))
 adj_inflections = load_inflections(join(dirname(__file__),  "data/inflections_adj.txt"))
 
-
 def inflect_noun(go, properize=False, pluralize=False, singularize=False, lemma=None):
     noun = lemma or lemmatizer.lemmatize("NOUN", go.text)[0]
 
@@ -124,7 +123,11 @@ def inflect_verb(go, presentize=False, pastize=False, didize=False, lemma=None):
         return "-" in inflection and inflection.replace("-", verb) or inflection
 
     if presentize:
-        return f"{go.text}r"  # Now times R
+        ending = {
+            "r": "",
+        }.get(go.text[-1], "r")
+
+        return f"{go.text}{ending}"  # Now times R
 
     if pastize:
         ending = {

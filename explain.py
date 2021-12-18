@@ -59,8 +59,6 @@ def append_change(changes, i, change):
             changes[i]["change"].append(change)
 
 
-1
-
 
 def change_map(changes):
     change_map = []

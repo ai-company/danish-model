@@ -1,4 +1,5 @@
 import spacy
+import pysbd
 
 from os.path import dirname, join
 from pprint import pprint
@@ -17,13 +18,14 @@ from diff_token import DiffSpac, DiffToken, Lexeme, LexemeType, tokenize
 
 
 nlp = spacy.load('da_core_news_lg')
+seg = pysbd.Segmenter(language='da', clean=False)
 
 spell, unmasker = spell.init()
 grammar = grammar.init(unmasker, nlp)
 commas = comma.init(nlp)
 
 def sentencize(text):
-    return nlp(text)
+    return seg.segment(text)
 
 def strip_user_commas(diff, text):
     # new_text = text.replace(",", "")
@@ -94,7 +96,9 @@ def process(text, debug=False):
     result_diff: List[DiffToken] = []
     result_text = ""
 
-    for sentence in sentencize(text).sents:
+    for segment in sentencize(text):
+        sentence = nlp(segment)
+
         initial_diff = []
         diff_history = []
 
