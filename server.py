@@ -68,7 +68,7 @@ def process(text: str):
     try:
         result, changes = pipeline(text)
     except Exception as e:
-        print(e, file=sys.stderr)
+        traceback.print_exc()
 
     return result, json.dumps(
         [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")
