@@ -63,6 +63,8 @@ def process(text: str):
         - JSON-formatted string with corrected text in `result` and a list of `changes`.
     """
 
+    print("process request")
+
     result, changes = None, {}
 
     try:
@@ -83,9 +85,10 @@ if __name__ == "__main__":
             print(explanations)
             print()
     else:
-
         def _process(text: str):
             _, changes = process(text)
             return changes
+
+        print('started')
 
         ModelServer(HOST, PORT).serve(_process)
