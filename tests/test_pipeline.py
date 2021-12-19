@@ -24,6 +24,8 @@ class TestGrammar:
     def test_lægger_vs_ligger(self):
         assert fixed('jeg lægger ned') == 'Jeg ligger ned.'
         assert fixed('jeg ligger mig ned') == 'Jeg lægger mig ned.'
+        assert fixed('han vil ligge den ned') == 'Han vil lægge den ned.'
+        assert fixed('at lægge') == 'At lægge.'
 
     def test_en_vs_et(self):
         assert fixed('en hus') == 'Et hus.'
@@ -37,6 +39,12 @@ class TestGrammar:
         assert fixed('jeg løbe derhen') == 'Jeg løber derhen.'
         assert fixed('han kan lide at løbe derhen') == 'Han kan lide at løbe derhen.'
         assert fixed('jeg gide ikke at løbe derhen') == 'Jeg gider ikke at løbe derhen.'
+        assert fixed('den lile skildpadde, der kan lide kage, ændre verden') == 'Den lille skildpadde, der kan lide kage, ændrer verden.'
+
+    def test_propns(self):
+        assert fixed('jeg hedder niels') == 'Jeg hedder Niels.'
+        assert fixed('min lille hund hedder intet') == 'Min lille hund hedder intet.'
+        assert fixed('orto er smart') == 'Orto er smart.'
 
 
 big_texts = [
@@ -58,6 +66,10 @@ Disse verber er hjælpeverber, når de står sammen med et hovedverbum (dvs. det
 Dansk Folkeparti skal have en ny formand, og ifølge Martin Henriksen (DF) peger pilen i én retning. Mod ham selv.
 - Jeg har fulgt diskussionen tæt i Dansk Folkeparti i forhold til, hvilken retning partiet skal tage, og derfor har jeg taget den beslutning, at jeg stiller op som formandskandidat, siger Martin Henriksen til DR Nyheder.
 Det tidligere folketingsmedlem for Dansk Folkeparti mener, at partiet skal gå tilbage til nogle af de mærkesager, der historisk set har virket for dem, hvis han bliver valgt som formand på partiets ekstraordinære årsmøde 23. januar.
+    """,
+
+    """
+Der bliver spurgt ind til, hvorfor der kan gives en undtagelse for coronapasset, hvis man har været smittet inden for de seneste 14 dage, men er blevet rask igen og skal på arbejde. Transportministeren fortæller, at det beror på en konkret vurdering af den enkelte og at det blandt andet kan være nødvendigt for personale i sundhedsvæsnet, som har brug for så mange ressourcer som muligt. Han understreger dog at dette er en udtagelse, og at man generelt skal lade være med at benytte den kollektive transport i 14 dage efter man er testet positiv.
     """
 ]
 

@@ -63,6 +63,7 @@ def insert_simple_listings(tokens, diff):
                     quoted_word = False
                     if i < to_ - 1 and t.lexeme.space != "":
                         t.change = t.lexeme.text
+
                     commas.append(t.stripped() if i < to_ - 1 else t)
                     commas.append(
                         DiffPunc(
@@ -82,6 +83,7 @@ def insert_simple_listings(tokens, diff):
                 else:
                     if i < to_ - 1 and t.lexeme.space != "":
                         t.change = t.lexeme.text
+
                     commas.append(t.stripped() if i < to_ - 1 else t)
                     commas.append(
                         DiffPunc(

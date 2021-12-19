@@ -6,6 +6,9 @@ import textacy
 import explain
 import util
 import grammar.inflect as inflect
+import pandas as pd
+import os
+import itertools
 
 from pprint import pprint
 from spacy.symbols import nsubj, VERB, ADJ
@@ -20,7 +23,7 @@ from dataclasses import dataclass
 
 lemmatizer = lemmy.load("da")
 
-
+NAMES = dict(zip(pd.read_excel(os.path.join(os.path.dirname(__file__), 'data/names.xlsx'))['Ab'].apply(lambda x: x.lower()).tolist(), itertools.cycle([True])))
 SUBJECTS = ["nsubj", "nsubjpass", "csubj", "csubjpass", "agent", "expl"]
 
 class GrammarObject:
@@ -434,12 +437,6 @@ class Correct:
 
     @staticmethod
     def fix_pair(a: GrammarObject, b: GrammarObject):
-        if a.text.lower() in ["ligger", "lægger"]:
-            if b.dep == "obj":
-                if a.text.lower() == "ligger":
-                    a.text = "lægger"
-                    return Fix(a, a.i, "Forveksling af ligger og lægger.")
-
         if a.pos == "det":
             if a.text.lower() in ["en", "et"]:
                 if a["gender"] != b["gender"]:
@@ -626,6 +623,35 @@ class Correct:
         return text, changes
 
 
+def funnel_changes(changes, diff):
+    corrected = list(map(DiffToken.from_dict, changes))
+
+    changes = []
+    for c in corrected:
+        if c.lexeme.type == LexemeType.SPAC:
+            if len(changes) == 0:
+                changes.append(c)
+            else:
+                changes[-1].lexeme.space += c.lexeme.space
+        else:
+            changes.append(c)
+
+    changes = DiffToken.flatten(changes)
+
+    for i, change in enumerate(changes):
+        # prevent non-word spelling changes from leaking through
+        # if a non-word is converted into a word by spelling,
+        #   it will break the pipeline down the road due to removed words and different tokenization
+        if change.lexeme.type != LexemeType.WORD:
+            changes[i] = diff[i].clone_clean()
+        else:
+            # copy down space because grammar eats it
+            change.lexeme.space = diff[i].lexeme.space
+        changes[i].index = i
+
+    return changes
+
+
 def init(unmasker, nlp):
     def fix(diff: List[DiffToken] = [], text=""):
 
@@ -687,8 +713,12 @@ def init(unmasker, nlp):
             go   = GrammarObject.from_token(token)
             tree = SentenceTree.grammar_tree(token)
 
-            if go.text.lower() in ['lægger', 'ligger']:
-                found_obj = False
+            if go.text.lower() in ['lægger', 'ligger', 'lægge', 'ligge']:
+                found_obj     = False
+                abort_mission = False
+
+                if len(tree) == 0: # We're dealing with a head.
+                    tree = list(go.children)
 
                 for pair in tree:
                     go_link = correction_lookup.get(
@@ -698,25 +728,33 @@ def init(unmasker, nlp):
                     if go_link.dep == 'obj':
                         found_obj = True
 
-                if found_obj:
-                    if go.text.lower() == 'ligger':
-                        go.text = 'lægger'
+                    if go.text.lower() == 'lægge':
+                        if go_link.dep == 'mark' and go_link.text.lower() == 'at' and go_link.head == token:
+                            # If the mark 'at' is used, it's okay.
+                            abort_mission = True
+
+                if not abort_mission:
+                    if found_obj:
+                        if 'li' in go.text.lower():
+                            before  = go.text
+                            go.text = go.text.replace('i', 'æ')
+                            go_fix(
+                                Fix(
+                                    go,
+                                    go.i,
+                                    f"Forveksling af \"{before}\" og \"{go.text}\"."
+                                )
+                            )
+                    elif 'læ' in go.text.lower():
+                        before  = go.text
+                        go.text = go.text.replace('æ', 'i')
                         go_fix(
                             Fix(
                                 go,
                                 go.i,
-                                "Forveksling af \"lægger\" og \"ligger\"."
+                                f"Forveksling af \"{before}\" of \"{go.text}\"."
                             )
                         )
-                elif go.text.lower() == 'lægger':
-                    go.text = 'ligger'
-                    go_fix(
-                        Fix(
-                            go,
-                            go.i,
-                            "Forveksling af \"ligger\" of \"lægger\"."
-                        )
-                    )
             else:
                 for pair in tree:
                     go_link = correction_lookup.get(
@@ -732,43 +770,33 @@ def init(unmasker, nlp):
                         else:
                             go_fix(fix)
 
-        corrected = list(map(DiffToken.from_dict, changes))
-
-        # And last, but not least ... motherfucking nutids-r.
-        text = "".join(map(str, corrected))
-        changes = Correct.fix_nutids_r(text, changes, nlp)
+                if go.pos == 'propn':
+                    if NAMES.get(go.text.lower(), False):
+                        if go.text[0].islower():
+                            go.text = go.text.capitalize()
+                            go_fix(
+                                Fix(
+                                    go,
+                                    go.i,
+                                    "Dette egenavn bør have stort begyndelsesbogstav."
+                                )
+                            )
 
         # Make changes ready for next step:
         # > Your're welcom comas.
-        try:
-            corrected = list(map(lambda x: DiffToken.from_dict(x), changes))
-        except:
-            import pdb
-            pdb.set_trace()
-
-        changes = []
-        for c in corrected:
-            if c.lexeme.type == LexemeType.SPAC:
-                if len(changes) == 0:
-                    changes.append(c)
-                else:
-                    changes[-1].lexeme.space += c.lexeme.space
-            else:
-                changes.append(c)
-
-        changes = DiffToken.flatten(changes)
-
-        for i, change in enumerate(changes):
-            # prevent non-word spelling changes from leaking through
-            # if a non-word is converted into a word by spelling,
-            #   it will break the pipeline down the road due to removed words and different tokenization
-            if change.lexeme.type != LexemeType.WORD:
-                changes[i] = diff[i].clone_clean()
-            else:
-                # copy down space because grammar eats it
-                change.lexeme.space = diff[i].lexeme.space
-            changes[i].index = i
+        changes = funnel_changes(changes, diff)
 
         return changes, "".join(map(str, changes))
 
-    return fix
+    def fix_more(diff, text):
+        changes = list(map(lambda x: x.to_dict(), diff))
+
+        # And last, but not least ... motherfucking nutids-r.
+        changes = Correct.fix_nutids_r(text, changes, nlp)
+
+        changes = funnel_changes(changes, diff)
+        text = "".join(map(str, changes))
+
+        return changes, text
+
+    return fix, fix_more

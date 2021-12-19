@@ -21,7 +21,7 @@ nlp = spacy.load('da_core_news_lg')
 seg = pysbd.Segmenter(language='da', clean=False)
 
 spell, unmasker = spell.init()
-grammar = grammar.init(unmasker, nlp)
+grammar, grammar_second_pass = grammar.init(unmasker, nlp)
 commas = comma.init(nlp)
 
 def sentencize(text):
@@ -123,6 +123,7 @@ def process(text, debug=False):
                 (compound_words, True),
                 (grammar, False), # Already has it. :)
                 (commas, False), # Ditto.
+                (grammar_second_pass, False)
         ]:
             args = [diff, text, nlp][:len(signature(func).parameters)]
 
