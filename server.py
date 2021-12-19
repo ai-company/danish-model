@@ -63,14 +63,16 @@ def process(text: str):
         - JSON-formatted string with corrected text in `result` and a list of `changes`.
     """
 
-    print("process request")
+    print("process request", flush=True)
 
     result, changes = None, None
 
     try:
         result, changes = pipeline(text)
     except Exception as e:
-        print(e, file=sys.stderr, flush=True)
+        traceback.print_exc()
+        sys.stderr.flush()
+        sys.stdout.flush()
 
     return result, changes and json.dumps(
         [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")
@@ -89,6 +91,6 @@ if __name__ == "__main__":
             _, changes = process(text)
             return changes
 
-        print('started')
+        print('started', flush=True)
 
         ModelServer(HOST, PORT).serve(_process)
