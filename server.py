@@ -65,16 +65,16 @@ def process(text: str):
 
     print("process request")
 
-    result, changes = None, {"type": "none", "origin": text}
+    result, changes = None, None
 
     try:
         result, changes = pipeline(text)
     except Exception as e:
-        traceback.print_exc()
+        print(e, file=sys.stderr, flush=True)
 
-    return result, json.dumps(
+    return result, changes and json.dumps(
         [dict(c, **{"index": i}) for i, c in enumerate(changes)], separators=(",", ":")
-    )
+    ) or ""
 
 
 if __name__ == "__main__":
