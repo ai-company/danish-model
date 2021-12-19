@@ -65,7 +65,7 @@ def process(text: str):
 
     print("process request")
 
-    result, changes = None, {}
+    result, changes = None, {"type": "none", "origin": text}
 
     try:
         result, changes = pipeline(text)
