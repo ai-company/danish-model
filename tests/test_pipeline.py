@@ -46,6 +46,10 @@ class TestGrammar:
         assert fixed('min lille hund hedder intet') == 'Min lille hund hedder intet.'
         assert fixed('orto er smart') == 'Orto er smart.'
 
+class TestSpelling:
+    def test_words(self):
+        assert fixed('skilpadde') == 'Skildpadde.'
+        assert fixed('jegg hedde niels') == 'Jeg hedder Niels.'
 
 big_texts = [
     """
