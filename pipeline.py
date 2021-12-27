@@ -1,34 +1,35 @@
-from copy import copy
-from pprint import pprint
-from typing import List, final
-from diff_token import DiffSpac, DiffToken, Lexeme, LexemeType, tokenize
-from os.path import dirname, join
-
-import os
 import spacy
+import pysbd
 
-from comma.comma import init as comma_init
+from os.path import dirname, join
+from pprint import pprint
+from copy import copy
+from typing import List, final
+from inspect import signature
+
+from comma import comma
 from comma.clauses import flag_simple_listings
 
-from spell.spell import bake_spelling as spell_init
-
-from spell.grammar import init as grammar_init
+from spell import spell
+from grammar import grammar
 from spell.compound import compound_words
 
-sent_nlp = spacy.load("da_core_news_lg")
+from diff_token import DiffSpac, DiffToken, Lexeme, LexemeType, tokenize
 
-spell, unmasker = spell_init()
-grammar = grammar_init(unmasker, sent_nlp)
-commas = comma_init(sent_nlp)
 
+nlp = spacy.load('da_core_news_lg')
+seg = pysbd.Segmenter(language='da', clean=False)
+
+spell, unmasker = spell.init()
+grammar, grammar_second_pass = grammar.init(unmasker, nlp)
+commas = comma.init(nlp)
 
 def sentencize(text):
-    return sent_nlp(text)
-
+    return seg.segment(text)
 
 def strip_user_commas(diff, text):
     # new_text = text.replace(",", "")
-    tokens = DiffToken.from_spacy_list(sent_nlp(text))
+    tokens = DiffToken.from_spacy_list(nlp(text))
 
     # filter commas
     new_diff = []
@@ -69,7 +70,6 @@ def strip_user_commas(diff, text):
 
     return new_diff, "".join(map(str, new_diff))
 
-
 def collect_changes(diff_history, index) -> List[DiffToken]:
     if len(diff_history) < 1:
         return []
@@ -92,79 +92,48 @@ def collect_changes(diff_history, index) -> List[DiffToken]:
 
     return changes
 
-
 def process(text, debug=False):
-    """
-    Processes a text. Gives back diff and better text.
-
-    Params:
-        - text: The input.
-
-    Returns:
-        - diff: What changed.
-        - text: The output.
-    """
-
     result_diff: List[DiffToken] = []
     result_text = ""
 
-    for sentence in sentencize(text).sents:
+    for segment in sentencize(text):
+        sentence = nlp(segment)
+
         initial_diff = []
         diff_history = []
 
         text = str(sentence)
         diff = DiffToken.from_spacy_list(sentence)
+
         diff_history.append(diff)
+
         initial_diff = diff
+
         if debug:
-            print("tokenize: ")
+            print('tokenize: ')
             pprint(text)
             pprint(diff)
 
-        diff, text = spell(diff, text, sent_nlp)
-        diff_history.append(diff)
+        # Keeping it short:
+        # - function to apply, whether it should be served the NLP.
+        for func, pass_nlp in [
+                (spell, True),
+                (strip_user_commas, False),
+                (flag_simple_listings, True),
+                (compound_words, True),
+                (grammar, False), # Already has it. :)
+                (commas, False), # Ditto.
+                (grammar_second_pass, False)
+        ]:
+            args = [diff, text, nlp][:len(signature(func).parameters)]
 
-        if debug:
-            print("spell: ")
-            pprint(text)
-            pprint(diff)
+            diff, text = func(*args)
+            diff_history.append(diff)
 
-        diff, text = strip_user_commas(diff, text)
-        diff_history.append(diff)
-        if debug:
-            print("strip: ")
-            pprint(text)
-            pprint(diff)
-
-        diff, text = flag_simple_listings(diff, text, sent_nlp)
-        diff_history.append(diff)
-        if debug:
-            print("listing: ")
-            pprint(text)
-            pprint(diff)
-
-        diff, text = compound_words(diff, text, sent_nlp)
-        diff_history.append(diff)
-        if debug:
-            print("compound: ")
-            pprint(text)
-            pprint(diff)
-
-        diff, text = grammar(diff, text)
-        diff_history.append(diff)
-        if debug:
-            print("grammar: ")
-            pprint(text)
-            pprint(diff)
-
-        diff, text = commas(diff, text)
-        diff_history.append(diff)
-        if debug:
-            print("commas: ")
-            pprint(text)
-            pprint(diff)
-
-        # reconcile diffs -------------------------------------
+            if debug:
+                print(f'{func.__name__}: ')
+                pprint(text)
+                pprint(diff)
 
         if debug:
             print("\n--- final diffs ---\n")
@@ -200,6 +169,7 @@ def process(text, debug=False):
                             else:
                                 explanations.append(change.explanation)
 
+                    _before = change.explanation
                     change.explanation = explanations
 
                     # double check if merge didn't originate from a previous split
@@ -226,7 +196,8 @@ def process(text, debug=False):
                     change.lexeme = copy(item.lexeme)
 
                     if item.explanation and not split_merge_case:
-                        change.explanation.extend(item.explanation)
+                        if not change.explanation == item.explanation:
+                            change.explanation.extend(item.explanation)
 
                     if item.change_type != "none":
                         if split_merge_case:
@@ -367,9 +338,12 @@ def process(text, debug=False):
     return result_text, list(map(DiffToken.to_dict, result_diff))
 
 if __name__ == "__main__":
+    import os
+    debug = os.getenv('debug', '') == 'true'
+
     while True:
         text = input('> ')
-        a, b = process(text)
+        a, b = process(text, debug)
 
         print(a)
         print(b)

@@ -4,7 +4,7 @@ corpus_words = dict()
 
 BINDINGS = ["s", "e", "n", ""]
 
-with open(join(dirname(__file__), "dictionary.txt"), "r") as f:
+with open(join(dirname(__file__), "data/dictionary.txt"), "r") as f:
     for line in f:
         corpus_words[line.split()[0]] = True
 

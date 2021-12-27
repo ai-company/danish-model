@@ -5,10 +5,10 @@ from pprint import pprint
 
 import lemmy
 import spacy
+import explain
 
-from . import inflect
-from . import grammar
-from . import explain
+from grammar import inflect
+from grammar import grammar
 
 lemmatizer = lemmy.load("da")
 path = dirname(__file__)
@@ -16,12 +16,12 @@ path = dirname(__file__)
 BINDINGS = ["s", "e", "n", "-", "", "'"]
 COMPOUNDABLE = ["x", "propn", "noun", "verb"]
 
-with open(join(path, "compounds.txt")) as f:
+with open(join(path, "data/compounds.txt")) as f:
     compounds = dict()
     for line in f:
         compounds[line.strip()] = True  # I am speed.
 
-with open(join(path, "compound_map.txt")) as f:
+with open(join(path, "data/compound_map.txt")) as f:
     compound_map = dict()
 
     for line in f:

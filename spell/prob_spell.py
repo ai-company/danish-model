@@ -819,8 +819,8 @@ class Suggestion:
 
 def init():
     s = Spell()
-    s.load_dict(join(dirname(__file__), "dictionary.txt"), 0, 1, sep=" ")
-    s.load_bigram_dict(join(dirname(__file__), "bigrams.txt"), 0, 2, sep=" ")
+    s.load_dict(join(dirname(__file__), "data/dictionary.txt"), 0, 1, sep=" ")
+    s.load_bigram_dict(join(dirname(__file__), "data/bigrams.txt"), 0, 2, sep=" ")
 
     def process(text, upper_mask, nlp, corpus_words):
         """

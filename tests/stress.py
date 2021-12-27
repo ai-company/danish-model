@@ -3,6 +3,10 @@ import sys
 import cProfile
 import tqdm
 import json
+import os
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, script_dir.split("tests")[0])
 
 from pipeline import process
 from os.path import dirname, join
@@ -1276,7 +1280,7 @@ der er nogen mennesker der prøver at overbevise folk om at sætninger skal vær
                     "type": "replace",
                     "origin": "l\u00e6gger",
                     "change": "ligger",
-                    "explain": ["Forveksling af l\u00e6gger og ligger."],
+                    "explain": ["Forveksling af \"lægger\" og \"ligger\"."],
                 },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "ned"},
@@ -1306,7 +1310,7 @@ der er nogen mennesker der prøver at overbevise folk om at sætninger skal vær
                     "type": "replace",
                     "origin": "ligger",
                     "change": "l\u00e6gger",
-                    "explain": ["Forveksling af ligger og l\u00e6gger."],
+                    "explain": ["Forveksling af \"lægger\" og \"ligger\"."],
                 },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "hunden"},
@@ -1332,7 +1336,7 @@ der er nogen mennesker der prøver at overbevise folk om at sætninger skal vær
                     "origin": "ligger",
                     "change": "L\u00e6gger",
                     "explain": [
-                        "Forveksling af ligger og l\u00e6gger.",
+                        "Forveksling af \"ligger\" og \"l\u00e6gger\".",
                         "Stort begyndelsesbogstav.",
                     ],
                 },

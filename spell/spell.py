@@ -16,7 +16,7 @@ BINDINGS = ["s", "e", "n", ""]
 
 corpus_words = dict()
 
-with open(join(dirname(__file__), "dictionary.txt"), "r") as f:
+with open(join(dirname(__file__), "data/dictionary.txt"), "r") as f:
     for line in f:
         corpus_words[line.split()[0]] = True
 
@@ -167,7 +167,7 @@ def explain_none(changes, i, change, explain):
     changes[i]["explain"] = explain if type(explain) is list else [explain]
 
 
-def bake_spelling():
+def init():
     # TODO: words replaced with punctuation, that's pretty fucked
     def fix(diff: List[DiffToken] = [], text="", nlp=None):
         """
