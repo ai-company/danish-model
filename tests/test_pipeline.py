@@ -39,7 +39,7 @@ class TestGrammar:
         assert fixed('jeg løbe derhen') == 'Jeg løber derhen.'
         assert fixed('han kan lide at løbe derhen') == 'Han kan lide at løbe derhen.'
         assert fixed('jeg gide ikke at løbe derhen') == 'Jeg gider ikke at løbe derhen.'
-        assert fixed('den lile skildpadde, der kan lide kage, ændre verden') == 'Den lille skildpadde, der kan lide kage, ændrer verden.'
+        assert fixed('den lile skilpadde, der kan lide kage, ændre verden') == 'Den lille skildpadde, der kan lide kage, ændrer verden.'
 
     def test_propns(self):
         assert fixed('jeg hedder niels') == 'Jeg hedder Niels.'

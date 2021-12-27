@@ -7,6 +7,7 @@ from transformers import pipeline, AutoTokenizer, AutoModelForPreTraining
 
 from .prob_spell import init
 from nltk.corpus import words as corpus_words
+from grammar.grammar import NAMES
 
 from . import explain
 from . import util
@@ -19,6 +20,11 @@ corpus_words = dict()
 with open(join(dirname(__file__), "data/dictionary.txt"), "r") as f:
     for line in f:
         corpus_words[line.split()[0]] = True
+
+corpus_words = {
+    **corpus_words,
+    **NAMES
+}
 
 tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
 unmasker = pipeline("fill-mask", model="Maltehb/danish-bert-botxo", tokenizer=tokenizer)
