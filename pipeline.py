@@ -169,6 +169,7 @@ def process(text, debug=False):
                             else:
                                 explanations.append(change.explanation)
 
+                    _before = change.explanation
                     change.explanation = explanations
 
                     # double check if merge didn't originate from a previous split
@@ -195,7 +196,8 @@ def process(text, debug=False):
                     change.lexeme = copy(item.lexeme)
 
                     if item.explanation and not split_merge_case:
-                        change.explanation.extend(item.explanation)
+                        if not change.explanation == item.explanation:
+                            change.explanation.extend(item.explanation)
 
                     if item.change_type != "none":
                         if split_merge_case:
