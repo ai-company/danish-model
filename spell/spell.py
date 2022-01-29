@@ -23,7 +23,9 @@ with open(join(dirname(__file__), "data/dictionary.txt"), "r") as f:
 
 corpus_words = {
     **corpus_words,
-    **NAMES
+    **{
+        k.capitalize(): v for k, v in NAMES.items()
+    }
 }
 
 tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
@@ -140,6 +142,7 @@ def fix_typo(word):
                 return word[:-1]
 
         maybes = []
+
         for i, letter in enumerate(word):
             for (key, c) in letter_mix_map:
                 if key == letter:
