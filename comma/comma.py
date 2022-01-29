@@ -174,6 +174,10 @@ def init(nlp):
         result = convert.convert(result, text, nlp)
         result = f"{result[0].upper()}{result[1:]}"
 
+        # We need to handle weird cases like this:
+        for c in '!?.':
+            result = result.replace(',' + c, c)
+
         return result
 
     def process(diff, text):
