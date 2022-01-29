@@ -425,13 +425,14 @@ class Correct:
             if go_v.has('verbform', 'inf') or go_v.text in inflect.verb_inflections:
                 correct = inflect.inflect_verb(go_v, True)
 
-                explain.append_change(
-                    changes,
-                    v.i,
-                    explain.change("change", correct, f'Forveksling af infinitiv og nutid.'),
-                )
+                if correct != go_v.text:
+                    explain.append_change(
+                        changes,
+                        v.i,
+                        explain.change("change", correct, f'Forveksling af infinitiv og nutid.'),
+                    )
 
-                break
+                    break
 
         return changes
 
