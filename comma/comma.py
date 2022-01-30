@@ -288,6 +288,7 @@ def init(nlp):
             first_change.lexeme.text = (
                 first_change.lexeme.text[0].upper() + first_change.lexeme.text[1:]
             )
+
             first_change.explanation.append("Stort begyndelsesbogstav.")
             first_change.change_type = "replace"
             first_change.change = str(first_change.lexeme)

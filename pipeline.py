@@ -15,7 +15,7 @@ from grammar import grammar
 from spell.compound import compound_words
 
 from diff_token import DiffSpac, DiffToken, Lexeme, LexemeType, tokenize
-
+from itertools import takewhile
 
 nlp = spacy.load('da_core_news_lg')
 seg = pysbd.Segmenter(language='da', clean=False)
@@ -25,7 +25,24 @@ grammar, grammar_second_pass = grammar.init(unmasker, nlp)
 commas = comma.init(nlp)
 
 def sentencize(text):
-    return seg.segment(text)
+    proposal = seg.segment(text)
+    result   = []
+
+    accum = []
+
+    for segment in proposal:
+        if segment[-1] not in ":?!.":
+            accum.append(segment)
+        else:
+            result.append(
+                ' '.join(
+                    accum + [segment]
+                )
+            )
+
+            accum = []
+
+    return result + ([' '.join(accum)] or [])
 
 def strip_user_commas(diff, text):
     # new_text = text.replace(",", "")

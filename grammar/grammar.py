@@ -515,14 +515,15 @@ class Correct:
                     " ".join(tokens_masked).replace(" ,", ",").replace(" .", ".")
                 )
 
+                result = unmasker(text_masked)
                 tokens = list(
                     filter(
                         lambda t: t in ["at", "og"],
-                        [x["token_str"] for x in unmasker(text_masked)],
+                        [x["token_str"] for x in result],
                     )
                 )
 
-                if len(tokens) > 0:
+                if len(tokens) > 0 and result[0]['score'] > 0.85:
                     correct = tokens[0]
 
                     if correct != backup:
@@ -753,7 +754,7 @@ def init(unmasker, nlp):
                             Fix(
                                 go,
                                 go.i,
-                                f"Forveksling af \"{before}\" of \"{go.text}\"."
+                                f"Forveksling af \"{before}\" og \"{go.text}\"."
                             )
                         )
             else:
