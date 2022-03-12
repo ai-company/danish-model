@@ -1,9 +1,9 @@
 from copy import copy, deepcopy
 from enum import Enum
 from pprint import pprint
-import re
 from typing import List, Optional, Union
 
+import re
 
 def tokenize(phrase, split_space=False):
     tokens: List[DiffToken] = []
@@ -172,8 +172,9 @@ class DiffToken:
     def flatten(cls, tokens: List["DiffToken"]) -> List["DiffToken"]:
         # spacy sometimes produces garbage token merges, so we have to flatten these out
         flattened = []
+        normal_word = re.compile(r"^[\w\-']+$")
         for token in tokens:
-            if token.lexeme.type == LexemeType.PUNC:
+            if token.lexeme.type == LexemeType.PUNC or normal_word.match(str(token.lexeme)) is None:
                 new_tokens = tokenize(str(token.lexeme))
                 non_punct = list(
                     filter(

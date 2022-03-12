@@ -437,6 +437,7 @@ class Spell:
                     ):
 
                         suggestion_combi[0].distance += 1
+                        suggestion_combi[0].explanation_type = 'merge'
                         suggestion_parts[-1] = suggestion_combi[0]
 
                         is_last_combi = True
@@ -567,7 +568,8 @@ class Spell:
                     abort_mission = False
                     for bind in ['s', 'e']:
                         c = term_list[i].split(bind)
-                        
+
+                        # TODO: Remember this is false.
                         if False and len(c) > 1 and c[0] in corpus and c[1] in corpus:
                             explanations.append(explain("none", c[0] + bind + c[1]))
                             abort_mission = True
@@ -589,6 +591,7 @@ class Spell:
 
                     #            break
 
+                    # TODO: False as fuck.
                     if not abort_mission and False:
                         if one_in and two_in:
                             explanations.append(
@@ -633,7 +636,7 @@ class Spell:
                         else:
                             explanations.append(
                                 explain(
-                                    "replace",
+                                    s.explanation_type,
                                     term_list[i],
                                     s.term,
                                     "Ordet var oprindeligt stavet forkert.",
@@ -796,10 +799,11 @@ Composition.__new__.__defaults__ = (None,) * len(Composition._fields)
 
 
 class Suggestion:
-    def __init__(self, term, distance, count):
+    def __init__(self, term, distance, count, explanation_type='replace'):
         self.term = term
         self.distance = distance
         self.count = count
+        self.explanation_type = explanation_type
 
     def __eq__(self, other):
         if self.distance == other.distance:

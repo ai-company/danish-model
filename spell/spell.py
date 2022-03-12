@@ -230,18 +230,18 @@ def init():
             )
         )
 
-        for i, word in enumerate(words):
-            if word not in corpus_words and len(word) > 0:
-                unks.append(word)
-                words[i] = word
+        #for i, word in enumerate(words):
+        #    if word not in corpus_words and len(word) > 0:
+        #        unks.append(word)
+        #        words[i] = word
 
                 # We need a somewhat fixed version for the language model to suggest.
-                mask = computed.copy()[0].term.split()
+        #        mask = computed.copy()[0].term.split()
 
-                old = mask[i]
+        #        old = mask[i]
 
-                mask[i] = "[MASK]"
-                masks[i] = (word, mask, old)
+        #        mask[i] = "[MASK]"
+        #        masks[i] = (word, mask, old)
 
         for i, change in change_cache.items():
             # This will always be none. The word was fixed before. :)
@@ -312,13 +312,30 @@ def init():
         # print("FUUUUUUUUCK!!")
         # pprint(changes)
 
+        last_was_merge = False
+
         for i, item in enumerate(diff):
+
+            if last_was_merge:
+                last_was_merge = False
+                continue
+
             if item.lexeme.type != LexemeType.WORD:
                 new_changes.append(item)
+            elif changes[0].change_type == 'merge':
+                change = changes.pop(0)
+
+                change.origin = [str(diff[i].lexeme), str(diff[i + 1].lexeme)]
+                change.lexeme.space = diff[i + 1].lexeme.space
+
+                new_changes.append(change)
+
+                last_was_merge = True
             elif len(changes) > 0:
                 change = changes.pop(0)
                 change.lexeme.space = item.lexeme.space
                 change.origin = str(item.lexeme)
+
                 new_changes.append(change)
             else:
                 pprint(changes)

@@ -12,3 +12,4 @@ https://github.com/explosion/spacy-models/releases/download/da_core_news_lg-2.3.
 xlrd==2.0.1
 pandas==1.3.5
 openpyxl==3.0.9
+textacy==0.10.1

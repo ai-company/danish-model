@@ -213,13 +213,21 @@ def init(nlp):
 
         explanations = explain.get_explanations(new_text, nlp)
 
-        new_text_tokens = DiffToken.from_spacy_list(nlp(new_text))
+        doc = nlp(new_text)
+
+        new_text_tokens = __import__('pdb').runcall(
+            DiffToken.from_spacy_list,
+            doc
+        )
 
         # reconcile diffs -------------------------------------
 
         new_changes: List[DiffToken] = []
         default_explanation = ["Der bør være et komma her."]
         i = j = 0
+
+        __import__('pdb').set_trace()
+
         while i < len(diff) and j < len(new_text_tokens):
             if diff[i].lexeme.type == new_text_tokens[j].lexeme.type and (
                 (
@@ -263,6 +271,7 @@ def init(nlp):
                     pprint(diff)
                     pprint(new_text_tokens)
                     print(i, diff[i], j, new_text_tokens[j])
+
                     raise Exception("unreachable!")
 
         if i < len(diff):
