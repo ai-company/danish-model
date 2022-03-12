@@ -5,6 +5,7 @@ from typing import List, Optional, Union
 
 import re
 
+
 def tokenize(phrase, split_space=False):
     tokens: List[DiffToken] = []
     for i, token in enumerate(
@@ -172,9 +173,12 @@ class DiffToken:
     def flatten(cls, tokens: List["DiffToken"]) -> List["DiffToken"]:
         # spacy sometimes produces garbage token merges, so we have to flatten these out
         flattened = []
-        normal_word = re.compile(r"^[\w\-']+$")
+        normal_word = re.compile(r"^[\w\-' ]+$")
         for token in tokens:
-            if token.lexeme.type == LexemeType.PUNC or normal_word.match(str(token.lexeme)) is None:
+            if (
+                token.lexeme.type == LexemeType.PUNC
+                or normal_word.match(str(token.lexeme)) is None
+            ):
                 new_tokens = tokenize(str(token.lexeme))
                 non_punct = list(
                     filter(
@@ -182,7 +186,10 @@ class DiffToken:
                         new_tokens,
                     )
                 )
-                if len(non_punct) > 0:
+                if (
+                    len(non_punct) > 0
+                    and normal_word.match(str(token.lexeme)) is not None
+                ):
                     token.lexeme.type = non_punct[0].lexeme.type
                     token.lexeme.pos_ = non_punct[0].lexeme.pos_
                     flattened.append(token)

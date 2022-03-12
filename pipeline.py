@@ -17,16 +17,17 @@ from spell.compound import compound_words
 from diff_token import DiffSpac, DiffToken, Lexeme, LexemeType, tokenize
 from itertools import takewhile
 
-nlp = spacy.load('da_core_news_lg')
-seg = pysbd.Segmenter(language='da', clean=False)
+nlp = spacy.load("da_core_news_lg")
+seg = pysbd.Segmenter(language="da", clean=False)
 
 spell, unmasker = spell.init()
 grammar, grammar_second_pass = grammar.init(unmasker, nlp)
 commas = comma.init(nlp)
 
+
 def sentencize(text):
     proposal = seg.segment(text)
-    result   = []
+    result = []
 
     accum = []
 
@@ -34,15 +35,12 @@ def sentencize(text):
         if segment[-1] not in ":?!.":
             accum.append(segment)
         else:
-            result.append(
-                ' '.join(
-                    accum + [segment]
-                )
-            )
+            result.append(" ".join(accum + [segment]))
 
             accum = []
 
-    return result + ([' '.join(accum)] or [])
+    return result + ([" ".join(accum)] or [])
+
 
 def strip_user_commas(diff, text):
     # new_text = text.replace(",", "")
@@ -87,6 +85,7 @@ def strip_user_commas(diff, text):
 
     return new_diff, "".join(map(str, new_diff))
 
+
 def collect_changes(diff_history, index) -> List[DiffToken]:
     if len(diff_history) < 1:
         return []
@@ -109,9 +108,11 @@ def collect_changes(diff_history, index) -> List[DiffToken]:
 
     return changes
 
+
 def process(text, debug=False):
     result_diff: List[DiffToken] = []
     result_text = ""
+    text += "\n"  # i don't know what this fixes, but having an extra newline prevents off-by-one crash in commarizer
 
     for segment in sentencize(text):
         sentence = nlp(segment)
@@ -127,28 +128,28 @@ def process(text, debug=False):
         initial_diff = diff
 
         if debug:
-            print('tokenize: ')
+            print("tokenize: ")
             pprint(text)
             pprint(diff)
 
         # Keeping it short:
         # - function to apply, whether it should be served the NLP.
         for func, pass_nlp in [
-                (spell, True),
-                (strip_user_commas, False),
-                (flag_simple_listings, True),
-                (compound_words, True),
-                (grammar, False), # Already has it. :)
-                (commas, False), # Ditto.
-                (grammar_second_pass, False)
+            (spell, True),
+            (strip_user_commas, False),
+            (flag_simple_listings, True),
+            (compound_words, True),
+            (grammar, False),  # Already has it. :)
+            (commas, False),  # Ditto.
+            (grammar_second_pass, False),
         ]:
-            args = [diff, text, nlp][:len(signature(func).parameters)]
+            args = [diff, text, nlp][: len(signature(func).parameters)]
 
             diff, text = func(*args)
             diff_history.append(diff)
 
             if debug:
-                print(f'{func.__name__}: ')
+                print(f"{func.__name__}: ")
                 pprint(text)
                 pprint(diff)
 
@@ -354,12 +355,20 @@ def process(text, debug=False):
 
     return result_text, list(map(DiffToken.to_dict, result_diff))
 
+
 if __name__ == "__main__":
     import os
-    debug = os.getenv('debug', '') == 'true'
+
+    debug = os.getenv("debug", "") == "true"
 
     while True:
-        text = input('> ')
+        text = ""
+        while True:
+            try:
+                text += input("CTRL+D to stop input > ") + "\n"
+            except EOFError:
+                break
+
         a, b = process(text, debug)
 
         print(a)
