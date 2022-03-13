@@ -112,8 +112,8 @@ def collect_changes(diff_history, index) -> List[DiffToken]:
 def process(text, debug=False):
     result_diff: List[DiffToken] = []
     result_text = ""
-    if text[-1] != "\n":
-        text += "\n"  # i don't know what this fixes, but having an extra newline prevents off-by-one crash in commarizer
+    # if text[-1] != "\n":
+    #     text += "\n"  # i don't know what this fixes, but having an extra newline prevents off-by-one crash in commarizer
 
     for segment in sentencize(text):
         sentence = nlp(segment)
