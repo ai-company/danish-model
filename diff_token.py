@@ -173,7 +173,8 @@ class DiffToken:
     def flatten(cls, tokens: List["DiffToken"]) -> List["DiffToken"]:
         # spacy sometimes produces garbage token merges, so we have to flatten these out
         flattened = []
-        normal_word = re.compile(r"^[\w\-' ]+$")
+        # doesn't start with number, is alphanumeric, has dash, single quote or space
+        normal_word = re.compile(r"^(?!\d+)[\w\-'’‘‛ ]+$")
         for token in tokens:
             if (
                 token.lexeme.type == LexemeType.PUNC
