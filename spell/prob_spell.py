@@ -186,7 +186,7 @@ class Spell:
 
         suggestion_count = 0
 
-        phrase_lemma = lemmatizer.lemmatize('', phrase)[0]
+        phrase_lemma = lemmatizer.lemmatize("", phrase)[0]
         phrase_exists = phrase in self.words
 
         if phrase_exists or phrase_lemma in self.words:
@@ -351,7 +351,7 @@ class Spell:
 
     def is_actually_ok(self, word, nlp):
         pos = nlp(word)[0].pos_
-        if word not in self.words and (word + 't') not in self.words:
+        if word not in self.words and (word + "t") not in self.words:
             return (
                 word.endswith("'s")
                 and word[:-2] in self.words
@@ -368,7 +368,7 @@ class Spell:
         split_space=False,
         ignore_non_words=False,
         nlp=None,
-        corpus=None
+        corpus=None,
     ):
         term_list = util.parse_words(phrase, split_space, nlp)
         explanations = []
@@ -384,9 +384,11 @@ class Spell:
         for i, word in enumerate(term_list):
             token = tokenize(word)[0]
 
-            if token.lexeme.type != LexemeType.WORD or self.is_actually_ok(
-                word, nlp
-            ) or (i < len(upper_mask) and upper_mask[i]):
+            if (
+                token.lexeme.type != LexemeType.WORD
+                or self.is_actually_ok(word, nlp)
+                or (i < len(upper_mask) and upper_mask[i])
+            ):
                 suggestion_parts.append(Suggestion(term_list[i], 0, 0))
                 continue
 
@@ -437,7 +439,7 @@ class Spell:
                     ):
 
                         suggestion_combi[0].distance += 1
-                        suggestion_combi[0].explanation_type = 'merge'
+                        suggestion_combi[0].explanation_type = "merge"
                         suggestion_parts[-1] = suggestion_combi[0]
 
                         is_last_combi = True
@@ -558,7 +560,13 @@ class Spell:
         joined_term = ""
         joined_count = self.N
 
+        is_merge = False
+        offset = 0
         for i, s in enumerate(suggestion_parts):
+            if is_merge:
+                is_merge = False
+                continue
+
             split = s.term.split()
 
             if tokenize(s.term)[0].lexeme.type != LexemeType.WORD:
@@ -566,19 +574,18 @@ class Spell:
             else:
                 if len(split) > 1:
                     abort_mission = False
-                    for bind in ['s', 'e']:
-                        c = term_list[i].split(bind)
+                    for bind in ["s", "e"]:
+                        c = term_list[i + offset].split(bind)
 
                         # TODO: Remember this is false.
                         if False and len(c) > 1 and c[0] in corpus and c[1] in corpus:
                             explanations.append(explain("none", c[0] + bind + c[1]))
                             abort_mission = True
 
-                    one_in = split[0] in term_list[i]
-                    two_in = split[1] in term_list[i]
+                    one_in = split[0] in term_list[i + offset]
+                    two_in = split[1] in term_list[i + offset]
 
-
-                    #for binding in BINDINGS:
+                    # for binding in BINDINGS:
                     #    if (
                     #        nlp(split[0])[0].pos_.lower() in COMPOUNDABLE
                     #        and nlp(split[1])[0].pos_.lower() in COMPOUNDABLE
@@ -597,7 +604,7 @@ class Spell:
                             explanations.append(
                                 explain(
                                     "split",
-                                    term_list[i],
+                                    term_list[i + offset],
                                     s.term,
                                     "Ordet bør opdeles i flere.",
                                 )
@@ -620,28 +627,37 @@ class Spell:
                             explanations.append(
                                 explain(
                                     "split",
-                                    term_list[i],
+                                    term_list[i + offset],
                                     changes,
                                     "Ordet bør opdeles i flere",
                                 )
                             )
                     else:
-                        explanations.append(explain("none", term_list[i]))
+                        explanations.append(explain("none", term_list[i + offset]))
                 else:
-                    if s.term == term_list[i]:
+                    if s.term == term_list[i + offset]:
                         explanations.append(explain("none", s.term))
                     else:
-                        if s.term + '-' == term_list[i]:
-                            explanations.append(explain("none", s.term + '-'))
+                        if s.term + "-" == term_list[i + offset]:
+                            explanations.append(explain("none", s.term + "-"))
                         else:
+                            # if s.explanation_type == "merge":
+                            #     is_merge = True
                             explanations.append(
                                 explain(
                                     s.explanation_type,
-                                    term_list[i],
+                                    s.explanation_type == "merge"
+                                    and [
+                                        term_list[i + offset],
+                                        term_list[i + offset + 1],
+                                    ]
+                                    or term_list[i + offset],
                                     s.term,
                                     "Ordet var oprindeligt stavet forkert.",
                                 )
                             )
+                            if s.explanation_type == "merge":
+                                offset += 1
 
             joined_term += s.term + " "
             joined_count *= s.count / self.N
@@ -650,7 +666,7 @@ class Spell:
 
         suggestion = Suggestion(
             joined_term,
-            damerau_levenshtein_distance(phrase, joined_term, 2 ** 31 - 1),
+            damerau_levenshtein_distance(phrase, joined_term, 2**31 - 1),
             int(joined_count),
         )
         suggestion_line = list()
@@ -799,7 +815,7 @@ Composition.__new__.__defaults__ = (None,) * len(Composition._fields)
 
 
 class Suggestion:
-    def __init__(self, term, distance, count, explanation_type='replace'):
+    def __init__(self, term, distance, count, explanation_type="replace"):
         self.term = term
         self.distance = distance
         self.count = count
@@ -834,9 +850,12 @@ def init():
             - text: The sentence to be processed.
         """
 
-        return s.lookup_compound(text, upper_mask, max_edit_dist=2, nlp=nlp, corpus=corpus_words)
+        return s.lookup_compound(
+            text, upper_mask, max_edit_dist=2, nlp=nlp, corpus=corpus_words
+        )
 
     return process
+
 
 if __name__ == "__main__":
     spell = init()
