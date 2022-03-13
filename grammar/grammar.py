@@ -634,7 +634,7 @@ def funnel_changes(changes, diff):
             if len(changes) == 0:
                 changes.append(c)
             else:
-                changes[-1].lexeme.space += c.lexeme.space
+                changes[-1].lexeme.space += c.lexeme.text
         else:
             changes.append(c)
 
