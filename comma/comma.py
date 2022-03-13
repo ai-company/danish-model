@@ -170,7 +170,10 @@ def init(nlp):
 
         result = result.replace("?QUESTIONMARK", "")
 
-        result = f'{encoded_text.split(" ")[0]} {result}'
+        if result.startswith(',COMMA'):
+            result = f'{encoded_text.split(" ")[0]}{result}'
+        else:
+            result = f'{encoded_text.split(" ")[0]} {result}'
         result = convert.convert(result, text, nlp)
         result = f"{result[0].upper()}{result[1:]}"
 

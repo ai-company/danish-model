@@ -370,6 +370,7 @@ if __name__ == "__main__":
             except EOFError:
                 break
 
+        text = text[:-1]
         a, b = process(text, debug)
 
         print(a)

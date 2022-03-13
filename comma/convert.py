@@ -47,30 +47,75 @@ def convert(pos, original, nlp):
     #     if original[i].whitespace_:
     #         result += original[i].whitespace_
 
+    # i = j = 0
+    # hadComma = False
+    # while i < len(original) and j < len(pos):
+    #     if not hadComma and len(comma := pos[j].split(",")) > 1:
+    #         hadComma = True
+    #         if comma[0] != "":
+    #             result += original[i].text
+    #             result += ","
+    #             if original[i].whitespace_:
+    #                 result += original[i].whitespace_
+    #             i += 1
+    #             j += 1
+    #         else:
+    #             result += ","
+    #             if original[i].whitespace_:
+    #                 result += original[i].whitespace_
+    #             j += 1
+    #     elif len(comma := pos[j].split(",")) > 1:
+    #         j += 1
+    #     else:
+    #         hadComma = False
+    #         result += original[i].text
+    #         if original[i].whitespace_:
+    #             result += original[i].whitespace_
+    #         i += 1
+    #         j += 1
+
     i = j = 0
-    hadComma = False
+    hadComma = False  # sometimes model produces multiple commas in the same spot, this flag ignores duplicates
     while i < len(original) and j < len(pos):
-        if not hadComma and len(comma := pos[j].split(",")) > 1:
-            hadComma = True
-            if comma[0] != "":
-                result += original[i].text
-                result += ","
-                if original[i].whitespace_:
-                    result += original[i].whitespace_
-                i += 1
-                j += 1
-            else:
-                result += ","
-                if original[i].whitespace_:
-                    result += original[i].whitespace_
-                j += 1
-        elif len(comma := pos[j].split(",")) > 1:
+        if len(comma := pos[j].split(",")) > 1:  # we have a comma
             j += 1
-        else:
+
+            # standalone comma surrounded by spaces, ignored if we already had one prior
+            # cases when ignored:
+            # - type,COMMA ,COMMA
+            # - ,COMMA ,COMMA
+            # must not ignore:
+            # - ,COMMA type,COMMA
+            if comma[0] == "":
+                if not hadComma:
+                    hadComma = True
+                    result += original[i].text + ","
+
+                    # carry over whitespace after the new punctuation
+                    if original[i].whitespace_:
+                        result += original[i].whitespace_
+
+                else:  # we already saw a comma, ignore this one
+                    pass
+
+            else:  # comma postfixing a word
+                hadComma = True
+
+                result += original[i].text + ","
+
+                # carry over whitespace after the new punctuation
+                if original[i].whitespace_:
+                    result += original[i].whitespace_
+
+                i += 1
+
+        else:  # no punctuation here, continue and reset duplicate watcher
             hadComma = False
+
             result += original[i].text
             if original[i].whitespace_:
                 result += original[i].whitespace_
+
             i += 1
             j += 1
 
