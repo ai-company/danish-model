@@ -21,12 +21,7 @@ with open(join(dirname(__file__), "data/dictionary.txt"), "r") as f:
     for line in f:
         corpus_words[line.split()[0]] = True
 
-corpus_words = {
-    **corpus_words,
-    **{
-        k.capitalize(): v for k, v in NAMES.items()
-    }
-}
+corpus_words = {**corpus_words, **{k.capitalize(): v for k, v in NAMES.items()}}
 
 tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
 unmasker = pipeline("fill-mask", model="Maltehb/danish-bert-botxo", tokenizer=tokenizer)
@@ -146,7 +141,7 @@ def fix_typo(word):
         for i, letter in enumerate(word):
             for (key, c) in letter_mix_map:
                 if key == letter:
-                    maybe = word[:i] + c + word[i + 1:]
+                    maybe = word[:i] + c + word[i + 1 :]
 
                     if is_real(maybe):
                         maybes.append(maybe)
@@ -209,9 +204,12 @@ def init():
 
         computed, changes = prob_spell(
             sentence,
-            [t[0].isupper() and not i == 0 for i, t in enumerate(util.parse_words(text, nlp=nlp, lower=False))],
+            [
+                t[0].isupper() and not i == 0
+                for i, t in enumerate(util.parse_words(text, nlp=nlp, lower=False))
+            ],
             nlp,
-            corpus_words
+            corpus_words,
         )
 
         masks = {}
@@ -230,12 +228,12 @@ def init():
             )
         )
 
-        #for i, word in enumerate(words):
+        # for i, word in enumerate(words):
         #    if word not in corpus_words and len(word) > 0:
         #        unks.append(word)
         #        words[i] = word
 
-                # We need a somewhat fixed version for the language model to suggest.
+        # We need a somewhat fixed version for the language model to suggest.
         #        mask = computed.copy()[0].term.split()
 
         #        old = mask[i]
@@ -322,11 +320,12 @@ def init():
 
             if item.lexeme.type != LexemeType.WORD:
                 new_changes.append(item)
-            elif changes[0].change_type == 'merge':
+            elif changes[0].change_type == "merge":
                 change = changes.pop(0)
 
                 change.origin = [str(diff[i].lexeme), str(diff[i + 1].lexeme)]
                 change.lexeme.space = diff[i + 1].lexeme.space
+                change.index = [i, i + 1]
 
                 new_changes.append(change)
 
@@ -354,11 +353,12 @@ def init():
         new_changes = []
 
         j = 0
+        offset = 0
         while j < len(changes):
             if changes[j].change_type == "split":
                 for si, change in enumerate(changes[j].change):
                     change = change.clone()
-                    change.index = j
+                    change.index = j + offset
 
                     cap_mask = (
                         diff[j].lexeme.text[: len(change.lexeme.text)]
@@ -383,7 +383,10 @@ def init():
                 )
                 if change.change is not None:
                     change.change = str(change.lexeme)
-                change.index = j
+                change.index = j + offset
+                if changes[j].change_type == "merge":
+                    offset += 1
+                    change.index = [change.index, change.index + 1]
                 new_changes.append(change)
 
             j += 1
