@@ -130,7 +130,7 @@ def predict(x, model):
     return tf.nn.softmax(model(x))
 
 
-def init(nlp):
+def init(nlp: spacy.language.Language):
     """
     Comma correction factory; loading models and returning closure for commarization.
 
@@ -154,7 +154,7 @@ def init(nlp):
     punctuation_vocabulary = net.y_vocabulary
     reverse_punctuation_vocabulary = {v: k for k, v in net.y_vocabulary.items()}
 
-    def commarize_sentence(text):
+    def commarize_sentence(text: str):
         # if len(text.strip()) == 0:
         #     return ""
 
@@ -170,15 +170,15 @@ def init(nlp):
 
         result = result.replace("?QUESTIONMARK", "")
 
-        if result.startswith(',COMMA'):
+        if result.startswith(",COMMA"):
             result = f'{encoded_text.split(" ")[0]}{result}'
         else:
             result = f'{encoded_text.split(" ")[0]} {result}'
         result = convert.convert(result, text, nlp)
         result = f"{result[0].upper()}{result[1:]}"
 
-        for c in "!?.":
-            result = result.replace("," + c, c)
+        # for c in "!?.":
+        #     result = result.replace("," + c, c)
 
         return result
 
