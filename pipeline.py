@@ -6,6 +6,7 @@ from pprint import pprint
 from copy import copy
 from typing import List, final
 from inspect import signature
+import traceback
 
 from comma import comma
 from comma.clauses import flag_simple_listings
@@ -17,7 +18,7 @@ from spell.compound import compound_words
 from diff_token import DiffSpac, DiffToken, Lexeme, LexemeType, tokenize
 from itertools import takewhile
 
-nlp = spacy.load("da_core_news_lg")
+nlp: spacy.language.Language = spacy.load("da_core_news_lg")
 seg = pysbd.Segmenter(language="da", clean=False)
 
 spell, unmasker = spell.init()
@@ -371,8 +372,12 @@ if __name__ == "__main__":
                 break
 
         text = text[:-1]
-        a, b = process(text, debug)
+        try:
+            a, b = process(text, debug)
 
-        print(a)
-        print(b)
-        print()
+            print()
+            print(a)
+            pprint(b)
+            print()
+        except Exception as e:
+            traceback.print_exc()
