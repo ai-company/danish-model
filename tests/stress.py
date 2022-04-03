@@ -612,7 +612,7 @@ class FullCorrectness(TestCase):
                     "type": "replace",
                     "origin": "\u00e6ndre",
                     "change": "\u00e6ndrer",
-                    "explain": ["Forveksling af infinitiv og nutid"],
+                    "explain": ["Forveksling af infinitiv og nutid."],
                 },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "verden"},
@@ -1055,7 +1055,9 @@ class Grammar(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "den"},
                 {"type": "space", "origin": " "},
-                {"type": "none", "origin": "3-årige"},
+                {"type": "none", "origin": "3"},
+                {"type": "none", "origin": "-"},
+                {"type": "none", "origin": "årige"},
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "bacheloruddannelse"},
                 {"type": "space", "origin": " "},
@@ -1105,7 +1107,7 @@ class Grammar(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "forretning"},
                 {"type": "none", "origin": "."},
-                {"type": "space", "origin": " "},
+                {"type": "space", "origin": " "},  # duplicated space
                 {"type": "none", "origin": "Tilsammen"},
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "giver"},
@@ -1143,7 +1145,7 @@ class Grammar(TestCase):
                 {"type": "none", "origin": "om"},
                 {
                     "type": "add",
-                    "explain": ["Der bør være et komma her."],
+                    "explain": ["Komma før sideordnet ledsætning."],
                     "change": ",",
                 },
                 {"type": "space", "origin": " "},
@@ -1180,7 +1182,7 @@ class Grammar(TestCase):
     def test_iamverysmart(self):
         self.assertEqual(
             [
-                {"type": "space", "origin": "\n"},
+                # {"type": "space", "origin": "\n"},
                 {
                     "type": "replace",
                     "origin": "der",
@@ -1195,7 +1197,7 @@ class Grammar(TestCase):
                 {"type": "none", "origin": "mennesker"},
                 {
                     "change": ",",
-                    "explain": ["Komma ved parentetiske relativsætninger."],
+                    "explain": ["Der bør være et komma her."],
                     "type": "add",
                 },
                 {"type": "space", "origin": " "},
@@ -1280,7 +1282,7 @@ der er nogen mennesker der prøver at overbevise folk om at sætninger skal vær
                     "type": "replace",
                     "origin": "l\u00e6gger",
                     "change": "ligger",
-                    "explain": ["Forveksling af \"lægger\" og \"ligger\"."],
+                    "explain": ['Forveksling af "lægger" og "ligger".'],
                 },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "ned"},
@@ -1310,7 +1312,7 @@ der er nogen mennesker der prøver at overbevise folk om at sætninger skal vær
                     "type": "replace",
                     "origin": "ligger",
                     "change": "l\u00e6gger",
-                    "explain": ["Forveksling af \"lægger\" og \"ligger\"."],
+                    "explain": ['Forveksling af "ligger" og "lægger".'],
                 },
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "hunden"},
@@ -1336,7 +1338,7 @@ der er nogen mennesker der prøver at overbevise folk om at sætninger skal vær
                     "origin": "ligger",
                     "change": "L\u00e6gger",
                     "explain": [
-                        "Forveksling af \"ligger\" og \"l\u00e6gger\".",
+                        'Forveksling af "ligger" og "l\u00e6gger".',
                         "Stort begyndelsesbogstav.",
                     ],
                 },
@@ -1540,7 +1542,12 @@ class DontTouchThese(TestCase):
                 {"type": "space", "origin": " "},
                 {"type": "none", "origin": "mod"},
                 {"type": "space", "origin": " "},
-                {"type": "none", "origin": "corona"},
+                {
+                    "change": "Corona",
+                    "explain": ["Dette egenavn bør have stort begyndelsesbogstav."],
+                    "origin": "corona",
+                    "type": "replace",
+                },
                 {"type": "none", "origin": "."},
             ],
             fix(
