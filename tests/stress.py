@@ -1618,16 +1618,6 @@ class Dontcrash(TestCase):
             """
         )
 
-    def test_crash4(self):
-        fix(
-            """[[[][{}{}()(<><?><??><?)*(#@^$&@!*#^(@*&$^%*@&!^$%&!@^*#([];'\';\;\';';';';.//,/,/.';.\\\\''././,';[;{}{]["""
-        )
-
-    def test_crash5(self):
-        fix(
-            "╬⌉Ⓘ≜Ⅵ☩⦜⍘ℕ⁼⌚⇲ⴄ⢺⌁␕⢐⣦▄Ⓣ⠜⛢⽍Ⱂⵎ♧⤔⋕−ⵇ⦖⠀⻭⢄⋂⬺↏⌅⛘⴪⇆⺇⩎⍬┹⯸Ⲏ⾹⡬ⅿ⠰⸮⾶☃⨝ⶳ⒐⊰⓼⬖⡾✩∣⠮₦⍑⡓ⵌ∈›☘⠘⭗⪠┋❐⍋⤹⴮⭽ⅉ⧱␱⪭⚎⁲⌳◴⿣⢙┴␍⏑Ⱓ⎐⠭⍪ⲉ⎃┄"
-        )
-
     def test_crash6(self):
         fix(
             """
@@ -1777,6 +1767,74 @@ class Dontcrash(TestCase):
                 {"type": "none", "origin": "i"},"""
         )
 
+    def test_crash13(self):
+        fix(
+            """
+            Vores brandvarme naboplanet har de seneste år været genstand for flere opsigtsvækkende opdagelser - blandt andet tegn på liv og vulkansk aktivitet.
+
+            Alligevel er Venus i mange blevet overset, når NASA har planlagt, hvor rumfartøjerne skal flyve hen for at lave mere detaljerede undersøgelser.
+
+            Det råder NASA bod på nu med en melding om, at rumfartsagenturet vil søsætte to nye Venus-missioner mellem 2028-2030.
+
+            »Venus er blevet forbigået igen og igen. Sidste gang på bekostning af missioner til Jupiter og Saturns måner. Så det var en smule over tid, før der kom fokus på Venus igen,« forklarer planetforsker og astrofysiker Kjartan Kinch.
+
+            »Venus er interessant, fordi den har samme størrelse som Jorden og er ret tæt på Jordens position i Solsystemet. Ligesom Mars mindede om Jorden i klima og miljø på overfladen, da Solsystemet var ungt, så gjaldt det samme for Venus,« uddyber Kjartan Kinch, der er lektor på Niels Bohr Institutet.
+        """
+        )
+
+    def test_crash14(self):
+        fix("ddt de jeg ikkei")
+
+    def test_crash15(self):
+        fix(
+            "dte vde jeeg ikkkke  liaeuu 53,iujlb v657lo5y 94a8onm3wdz0,om .3lki,5 nl b3o29239 ryzo<uv ccu1240evya 398rjzmfl.inhv2l5t9"
+        )
+
+    def test_crash16(self):
+        fix(
+            "Anna Diana Møller taler for at i mødekomme de forskelle der er på mænd og kvinder, da der er bevis for psykologiske forskelle på mænd og kvinder."
+        )
+
+    def test_crash17(self):
+        fix(
+            """Hej Anne
+har du nogle æg liggende.
+mon dine høns har lagt nogle æg?
+
+Hvornår se vi i dage
+kærlige hilsen
+Bente"""
+        )
+
+    def test_crash18(self):
+        fix(
+            """https://orto.ai
+Vi har lavet en skriveassistent, der kan ordne dansk tekst.
+Dette indebærer:
+- Kommatering med kort forklaring.
+- Stavning (auto-correct på lidt steroider)
+- Grammatik (herunder nutids-r, forveksling af ligger/lægger, af/ad, en/et, samt at/og)
+Orto startede som et hobbyprojekt, jeg arbejdede på i de virtuelle dansk-timer i gymnasiet sidste år.   Nu er det en hjemmeside, der er klar til at blive beta-testet.
+"""
+        )
+
+    def test_crash19(self):
+        fix(
+            "model-danish_1  |   Created wheel for black: filename=black-20.8b1-py3-none-any.whl size=124194 sha256=61b60da8d97585c7193e30cffcd8136f7acac6643ab01b527064e6dcd596f88b"
+        )
+
+
+class Torture(TestCase):
+    def test_crash4(self):
+        fix(
+            """[[[][{}{}()(<><?><??><?)*(#@^$&@!*#^(@*&$^%*@&!^$%&!@^*#([];'\';\;\';';';';.//,/,/.';.\\\\''././,';[;{}{]["""
+        )
+
+    def test_crash5(self):
+        fix(
+            "╬⌉Ⓘ≜Ⅵ☩⦜⍘ℕ⁼⌚⇲ⴄ⢺⌁␕⢐⣦▄Ⓣ⠜⛢⽍Ⱂⵎ♧⤔⋕−ⵇ⦖⠀⻭⢄⋂⬺↏⌅⛘⴪⇆⺇⩎⍬┹⯸Ⲏ⾹⡬ⅿ⠰⸮⾶☃⨝ⶳ⒐⊰⓼⬖⡾✩∣⠮₦⍑⡓ⵌ∈›☘⠘⭗⪠┋❐⍋⤹⴮⭽ⅉ⧱␱⪭⚎⁲⌳◴⿣⢙┴␍⏑Ⱓ⎐⠭⍪ⲉ⎃┄"
+        )
+
     def test_crash12(self):
         fix(
             """
@@ -1817,29 +1875,6 @@ class Dontcrash(TestCase):
             kaj kage from madensverden.dk╬⌉Ⓘ≜Ⅵ☩[[[][{}{}()(<><?><??><?)*(#@^$&@!*#^(@*&$^%*@&!^$%&!@^*#([];'\';\;\';';';';.//,/,/.';.\\\\''././,';[;{}{][⦜⍘ℕ⁼⌚⇲ⴄ⢺⌁␕⢐⣦▄Ⓣ⠜⛢⽍Ⱂⵎ♧⤔⋕−ⵇ⦖⠀⻭⢄⋂⬺↏⌅⛘⴪⇆⺇⩎⍬┹⯸Ⲏ⾹⡬ⅿ⠰⸮⾶☃⨝ⶳ⒐⊰⓼⬖⡾✩∣⠮₦⍑⡓ⵌ∈›☘⠘⭗⪠┋❐⍋⤹⴮⭽ⅉ⧱␱⪭⚎⁲⌳◴⿣⢙┴␍⏑Ⱓ⎐⠭⍪ⲉ⎃┄
             Feb 6, 2021 — Kajkage er en både klassisk og populær kage fra bageren, som heldigvis er ret nem at lave selv derhjemme. Kajkager har naturligvis navn efter ...
             Rating: 4.9 · 10 votes · 1 hr · 300 cal"""
-        )
-
-    def test_crash13(self):
-        fix(
-            """
-            Vores brandvarme naboplanet har de seneste år været genstand for flere opsigtsvækkende opdagelser - blandt andet tegn på liv og vulkansk aktivitet.
-
-            Alligevel er Venus i mange blevet overset, når NASA har planlagt, hvor rumfartøjerne skal flyve hen for at lave mere detaljerede undersøgelser.
-
-            Det råder NASA bod på nu med en melding om, at rumfartsagenturet vil søsætte to nye Venus-missioner mellem 2028-2030.
-
-            »Venus er blevet forbigået igen og igen. Sidste gang på bekostning af missioner til Jupiter og Saturns måner. Så det var en smule over tid, før der kom fokus på Venus igen,« forklarer planetforsker og astrofysiker Kjartan Kinch.
-
-            »Venus er interessant, fordi den har samme størrelse som Jorden og er ret tæt på Jordens position i Solsystemet. Ligesom Mars mindede om Jorden i klima og miljø på overfladen, da Solsystemet var ungt, så gjaldt det samme for Venus,« uddyber Kjartan Kinch, der er lektor på Niels Bohr Institutet.
-        """
-        )
-
-    def test_crash14(self):
-        fix("ddt de jeg ikkei")
-
-    def test_crash15(self):
-        fix(
-            "dte vde jeeg ikkkke  liaeuu 53,iujlb v657lo5y 94a8onm3wdz0,om .3lki,5 nl b3o29239 ryzo<uv ccu1240evya 398rjzmfl.inhv2l5t9"
         )
 
 
