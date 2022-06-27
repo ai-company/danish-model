@@ -64,6 +64,8 @@ def convert(pos: str, original: str, nlp: Language):
                     if original[i].whitespace_:
                         result += original[i].whitespace_
 
+                    if comma[0] == "_s":
+                        i += 1
                 else:  # we already saw a comma or punct, ignore this one
                     # print("comma: {hadComma} punct: {hadPunct}")
                     i += 1
