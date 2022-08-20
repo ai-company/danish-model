@@ -791,7 +791,11 @@ def init(unmasker, nlp):
         return changes, "".join(map(str, changes))
 
     def fix_more(diff, text):
-        changes = list(map(lambda x: x.to_dict(), diff))
+        doc = nlp(text)
+
+        changes = list(
+            map(lambda t: {"origin": t.text + t.whitespace_, "type": "none"}, doc)
+        )
 
         # And last, but not least ... motherfucking nutids-r.
         changes = Correct.fix_nutids_r(text, changes, nlp)
