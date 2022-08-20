@@ -1755,6 +1755,12 @@ class Dontcrash(TestCase):
             'type': 'add'}]'''
         )
 
+    def test_crash9_2(self):
+        fix("""
+            'origin': 'LiStINGG_Terminators',
+            'type': 'split'},"""
+        )
+
     def test_crash10(self):
         fix("""m-it-sto-re s-kib s--kal hen ---til et s---k-i-b -v-æ-r-f-t""")
 

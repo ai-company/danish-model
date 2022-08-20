@@ -89,7 +89,7 @@ def strip_user_commas(diff, text):
 
 
 def collect_changes(diff_history, index) -> List[DiffToken]:
-    if len(diff_history) < 1:
+    if len(diff_history) == 0 or len(diff_history[-1]) < index + 1:
         return []
 
     changes = [diff_history[-1][index]]
@@ -232,7 +232,7 @@ def process(text, debug=False):
                     if split_merge_case:
                         split_merge_case = False
 
-            if change.index == lastindex:  # split
+            if change is not None and change.index == lastindex:  # split
                 splits = []
 
                 while True:
