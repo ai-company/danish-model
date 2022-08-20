@@ -499,6 +499,39 @@ class FullCorrectness(TestCase):
             ),
         )
 
+        self.assertEqual(
+            [
+                {"type": "none", "origin": "Hej"},
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "med"},
+                {"type": "space", "origin": " "},
+                {
+                    "type": "replace",
+                    "change": "dig",
+                    "origin": "deg",
+                    "explain": ["Ordet var oprindeligt stavet forkert."],
+                },
+                {"type": "none", "origin": "."},
+            ],
+            fix("Hej med deg."),
+        )
+
+        self.assertEqual(
+            [
+                {"type": "none", "origin": "Hvordan"},
+                {"type": "space", "origin": " "},
+                {
+                    "type": "replace",
+                    "change": "går",
+                    "origin": "gar",
+                    "explain": ["Ordet var oprindeligt stavet forkert."],
+                },
+                {"type": "space", "origin": " "},
+                {"type": "none", "origin": "det"},
+                {"type": "none", "origin": "."},
+            ]
+        )
+
     def test_spell_and_present(self):
         self.assertEqual(
             [
@@ -1821,6 +1854,156 @@ Orto startede som et hobbyprojekt, jeg arbejdede på i de virtuelle dansk-timer 
     def test_crash19(self):
         fix(
             "model-danish_1  |   Created wheel for black: filename=black-20.8b1-py3-none-any.whl size=124194 sha256=61b60da8d97585c7193e30cffcd8136f7acac6643ab01b527064e6dcd596f88b"
+        )
+
+    def test_crash20(self):
+        fix(
+            """Indledningsvist er sammenhængen mellem klimaforandringer og havniveausstigninger beskrevet
+ samt hvordan disse fænomener kommer til at påvirke lavtliggende østater. """
+        )
+
+    def test_crash21(self):
+        fix(
+            """NEFOS’ netværksweekend
+model-danish_1  |
+model-danish_1  |        NEFOS har i weekenden fra den 27. til den 29. maj 2022 afholdt en netværksweekend for efterladte efter selvmord for de midler som Odense Kommune tildelte fra udviklingspuljen til frivilligt socialt arbejde.
+model-danish_1  |
+model-danish_1  |        Formål
+model-danish_1  |        Formålet med netværksweekenden er at give deltagerne mulighed for at møde andre der også har mistet et familiemedlem til selvmord.  Gennem netværksweekenden bliver der skabt et rum hvor deltagerne kan dele deres erfaringer med og spejle sig i hinanden.  Dette gøres med henblik på at danne nye relationer mellem deltagerne og skabe et socialt netværk som kan rumme alle de tanker og følelser der opstår når man har mistet en nærtstående til selvmord.
+model-danish_1  |
+model-danish_1  |        Weekendens program
+model-danish_1  |        Fredag
+model-danish_1  |        I løbet af fredag ankom de frivillige og sørgede for indkøb nøgleafhentning klargøring og andet praktisk arbejde.
+model-danish_1  |
+model-danish_1  |        Lørdag
+model-danish_1  |        De første timer
+model-danish_1  |        Lørdag formiddag kl. 10-11 ankom weekendens deltagere.  Da alle var blevet indlogeret på deres værelser præsenterede Elene Fleischer fag..."""
+        )
+
+    def test_crash22(self):
+        fix(
+            """Hernæst er FN’s Havretskonvention fra 1982 inddraget til at vurdere hvorledes basislinjer og
+ der
+tilhørende zoner bliver påvirket af stigende havniveauer som kommer til at permanent
+ oversvømme mindre øer. """
+        )
+
+    def test_crash23(self):
+        fix(
+            """Automation
+
+ Salgs email 1
+ Hemmeligheden bag hvordan du bygger dit online brand
+
+ Kære x
+
+
+ Med mindre du har levet under en sten så er du sikkert bekendt med at du skal være på de sociale medier for at skabe opmærksomhed omkring dit brand.
+
+ Du har sikkert dine personlige konti men men men hvordan er det lige man gør når det kommer til ens virksomhed?
+
+ Hvordan bygger man sit brand på de sociale medier?  Og måske lige så vigtigt hvordan omsætter man liges og følgere til kroner og øre?
+
+ Måske tænker du:
+
+ ￼
+
+
+ Måske har du overvejet at lære lidt mere om hvordan du får succes.  Du har måske overvejet et kursus og har måske endda kigget dig lidt omkring.
+
+ Hvis du har det er du temmelig sikkert stødt ind i det her problem som langt de fleste oplever.
+
+
+ Ser du…
+
+ Langt de fleste
+ - hvis ikke alle -
+ social medie kurser har nemlig en af disse to problemstillinger.
+
+ A) De er for overordnede
+
+ Eller
+
+ B) De er for specifikke
+
+ Nu tænker du måske."""
+        )
+
+    def test_crash24(self):
+        fix(
+            """
+            NEFOS’ netværksweekend
+
+            NEFOS har i weekenden fra den 27. til den 29. maj 2022 afholdt en netværksweekend for efterladte efter selvmord for de midler som Odense Kommune tildelte fra udviklingspuljen til frivilligt socialt arbejde.
+
+            Formål
+            Formålet med netværksweekenden er at give deltagerne mulighed for at møde andre der også har mistet et familiemedlem til selvmord.  Gennem netværksweekenden bliver der skabt et rum hvor deltagerne kan dele deres erfaringer med og spejle sig i hinanden.  Dette gøres med henblik på at danne nye relationer mellem deltagerne og skabe et socialt netværk som kan rumme alle de tanker og følelser der opstår når man har mistet en nærtstående til selvmord.
+
+            Weekendens program
+            Fredag
+            I løbet af fredag ankom de frivillige og sørgede for indkøb nøgleafhentning klargøring og andet praktisk arbejde.
+
+            Lørdag
+            De første timer
+            Lørdag formiddag kl. 10-11 ankom weekendens deltagere.  Da alle var blevet indlogeret på deres værelser præsenterede Elene Fleischer fag..."""
+        )
+
+    def test_crash25(self):
+        fix(
+            """
+        Dette speciale behandler spørgsmålet omkring klimaforandringer og stigninger i globale havniveauer
+         i relation til mindre lavtliggende østater fra et folkeretligt perspektiv.  Specialet undersøger
+         konsekvenserne for tre elementer af en folkeretlig stat: territorialfarvande fortsat anerkendelse som
+         en suveræn stat og beskyttelse af fordrevne befolkninger som følge af havniveaustigninger.
+         Indledningsvist er sammenhængen mellem klimaforandringer og havniveausstigninger beskrevet
+         samt hvordan disse fænomener kommer til at påvirke lavtliggende østater.
+         Hernæst er FN’s Havretskonvention fra 1982 inddraget til at vurdere hvorledes basislinjer og
+         dertilhørende zoner bliver påvirket af stigende havniveauer som kommer til at permanent
+         oversvømme mindre øer.  Selvom bestemmelserne under Havretskonventionen er klare til at definere
+         basislinjer og maritime zoner tager de ikke højde for eventuelle naturlige ændringer i kystlinjer.
+         Juridiske forfattere"""
+        )
+
+    def test_crash26(self):
+        fix(
+            """
+        Automation
+
+         Salgs email 1
+         Hemmeligheden bag hvordan du bygger dit online brand
+
+         Kære x
+
+
+         Med mindre du har levet under en sten så er du sikkert bekendt med at du skal være på de sociale medier for at skabe opmærksomhed omkring dit brand.
+
+         Du har sikkert dine personlige konti men men men hvordan er det lige man gør når det kommer til ens virksomhed?
+
+         Hvordan bygger man sit brand på de sociale medier?  Og måske lige så vigtigt hvordan omsætter man liges og følgere til kroner og øre?
+
+         Måske tænker du:
+
+         ￼
+
+
+         Måske har du overvejet at lære lidt mere om hvordan du får succes.  Du har måske overvejet et kursus og har måske endda kigget dig lidt omkring.
+
+         Hvis du har det er du temmelig sikkert stødt ind i det her problem som langt de fleste oplever.
+
+
+         Ser du…
+
+         Langt de fleste
+         - hvis ikke alle -
+         social medie kurser har nemlig en af disse to problemstillinger.
+
+         A) De er for overordnede
+
+         Eller
+
+         B) De er for specifikke
+
+         Nu tænker du måske."""
         )
 
 
