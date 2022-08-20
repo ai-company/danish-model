@@ -402,6 +402,12 @@ class Correct:
     def fix_nutids_r(text, changes, nlp):
         s = Sentence(text, nlp)
 
+        text_no_ws = " ".join(
+            map(lambda i: i.text, filter(lambda i: not i.is_space, s.doc))
+        )
+
+        s = Sentence(text_no_ws, nlp)
+
         for (s, v, _) in s.svo_triples():
 
             # Can't do that, if auxiliary verbs exist.
