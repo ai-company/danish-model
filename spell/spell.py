@@ -124,7 +124,7 @@ def low_hanging_fruits(sentence, nlp):
         if result := common_spelling_mistakes.get(word):
             words[i] = result
 
-    return " ".join(words)
+    return "".join(words)
 
 
 def fix_typo(word):
@@ -199,7 +199,7 @@ def init():
             if fixed != word:
                 change_cache[i] = (word, "Dette var nok en tastefejl.")
 
-        sentence = " ".join(words)
+        sentence = "".join(words)
         sentence = low_hanging_fruits(sentence, nlp)
 
         computed, changes = prob_spell(
@@ -300,10 +300,10 @@ def init():
         # pprint(list(map(DiffToken.from_dict, changes)))
 
         changes = list(
-            # filter(
-            #     lambda t: t.lexeme.type == LexemeType.WORD,
-            map(DiffToken.from_dict, changes),
-            # )
+            filter(
+                lambda t: t.lexeme.type != LexemeType.SPAC,
+                map(DiffToken.from_dict, changes),
+            )
         )
         new_changes: List[DiffToken] = []
 
@@ -342,14 +342,7 @@ def init():
                 new_changes.append(change)
             else:
                 pprint(changes)
-                pprint(
-                    list(
-                        filter(
-                            lambda t: t.lexeme.type == LexemeType.WORD,
-                            diff,
-                        )
-                    )
-                )
+                pprint(diff)
 
                 raise Exception("unreachable!")
 

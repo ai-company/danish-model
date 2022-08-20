@@ -671,7 +671,7 @@ class Spell:
                 and explanation["change"]
                 or explanation["origin"]
             )
-        joined_term = " ".join(joined_term)
+        joined_term = "".join(joined_term)
 
         suggestion = Suggestion(
             joined_term,

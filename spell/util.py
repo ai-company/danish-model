@@ -37,15 +37,22 @@ def parse_words(phrase, split_space=False, nlp=None, lower=True):
             return phrase.split()
     else:
         if nlp is not None:
-            return list(
-                map(
-                    lambda t: lower and t.lexeme.text.lower() or t.lexeme.text,
-                    filter(
-                        lambda t: t.lexeme.type != LexemeType.SPAC,
-                        DiffToken.from_spacy_list(nlp(phrase)),
-                    ),
-                )
-            )
+            res = []
+            for t in DiffToken.from_spacy_list(nlp(phrase)):
+                res.append(lower and t.lexeme.text.lower() or t.lexeme.text)
+                if len(t.lexeme.space) > 0:
+                    res.append(t.lexeme.space)
+            return res
+            # return list(
+            #     map(
+            #         lambda t: (lower and t.lexeme.text.lower() or t.lexeme.text)
+            #         + t.lexeme.space,
+            #         # filter(
+            #         #     lambda t: t.lexeme.type != LexemeType.SPAC,
+            #         DiffToken.from_spacy_list(nlp(phrase)),
+            #         # ),
+            #     )
+            # )
 
         return re.findall(
             r"(\w+|[()\[\]{}/_:\|~+\*\^@$#£\.&\-'?!_\>\<])", phrase.lower()

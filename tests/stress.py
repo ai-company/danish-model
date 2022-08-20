@@ -1756,7 +1756,8 @@ class Dontcrash(TestCase):
         )
 
     def test_crash9_2(self):
-        fix("""
+        fix(
+            """
             'origin': 'LiStINGG_Terminators',
             'type': 'split'},"""
         )
@@ -2011,6 +2012,109 @@ tilhørende zoner bliver påvirket af stigende havniveauer som kommer til at per
 
          Nu tænker du måske."""
         )
+
+    def test_crash27(self):
+        fix(
+            """
+            n token_id_for_mail() -> String {
+            |        ^^^^^^^^^^^^^^^^^
+
+            warning: function is never used: `sell_token`
+            --> src/tokens.rs:39:8
+            |
+            39 | pub fn sell_token(id: &str) -> Option<String> {
+            |        ^^^^^^^^^^
+
+            warning: function is never used: `is_invited`
+            --> src/tokens.rs:69:8
+            |
+            69 | pub fn is_invited(token: &str) -> bool {
+            |        ^^^^^^^^^^
+
+            warning: function is never used: `try_send_token_to`
+            --> src/tokens.rs:83:8
+            |
+            83 | pub fn try_send_token_to(email: &str) -> Result<(), ()> {
+            |        ^^^^^^^^^^^^^^^^^
+
+            warning: unused `Result` that must be used
+            --> src/route/api/v1/report.rs:46:5
+            |
+            46 | /     client
+            47 | |         .post("http://127.0.0.1:6969/api/report")
+            48 | |         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            49 | |         .send_body(body_string)
+            50 | |         .await;
+            | |_______________^
+            |
+            = note: `#[warn(unused_must_use)]` on by default
+            = note: this `Result` may be an `Err` variant, which should be handled
+
+            warning: 30 warnings emitted
+
+                Finished dev [unoptimized + debuginfo] target(s) in 0.10s
+                Running `target/debug/server`
+            PATH: /home/evol/Documents/Projects/ai-company/docker/server/server-web
+            ADDR-SRV: 127.0.0.1:8000
+            ADDR-mEN: 127.0.0.1:9001
+            ADDR-mDK: 127.0.0.1:9000"""
+        )
+
+    def test_crash28(self):
+        fix(
+            """
+            Mutable reference to a the request's extensions
+            pub fn url_for<U, I>(
+                &self,
+                name: &str,
+                elements: U
+            ) -> Result<Url, UrlGenerationError> where
+                U: IntoIterator<Item = I>,
+                I: AsRef<str>,
+            [src]
+            [−]
+
+            Generate url for named resource
+
+            fn index(req: HttpRequest) -> HttpResponse {
+                let url = req.url_for("foo", &["1", "2", "3"]); // <- generate url for "foo" resource
+                HttpResponse::Ok().into()
+            }
+
+            fn main() {
+                let app = App::new()
+                    .service(web::resource("/test/\{one\}/\{two\}/\{three\}")
+                        .name("foo")  // <- set resource name, then it could be used in `url_for`
+                        .route(web::get().to(|| HttpResponse::Ok()))
+                    );
+            }
+
+            pub fn url_for_static(&self, name: &str) -> Result<Url, UrlGenerationError>
+            [src]
+            [−]
+
+            Generate url for named resource
+
+            This method is similar to HttpRequest::url_for() but it can be used for urls that do not contain variable parts.
+            pub fn resource_map(&self) -> &ResourceMap
+            [src]
+            [−]
+
+            Get a reference to a ResourceMap of current application.
+            pub fn peer_addr(&self) -> Option<SocketAddr>
+            [src]
+            [−]
+
+            Peer socket address
+
+            Peer address is actual socket address, if proxy is used in front of actix http server, then peer address would be address of this proxy.
+
+            To get client connection information .connection_info() should be used.
+            pub fn connection_info(&self) -> Ref<'_, ConnectionInfo>"""
+        )
+
+        def test_crash29(self):
+            fix("""| |_______________^""")
 
 
 class Torture(TestCase):
