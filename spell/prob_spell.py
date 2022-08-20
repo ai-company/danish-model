@@ -662,11 +662,20 @@ class Spell:
             joined_term += s.term + " "
             joined_count *= s.count / self.N
 
-        joined_term = joined_term.rstrip()
+        # joined_term = joined_term.rstrip()
+
+        joined_term = []
+        for explanation in explanations:
+            joined_term.append(
+                "change" in explanation
+                and explanation["change"]
+                or explanation["origin"]
+            )
+        joined_term = " ".join(joined_term)
 
         suggestion = Suggestion(
             joined_term,
-            damerau_levenshtein_distance(phrase, joined_term, 2**31 - 1),
+            damerau_levenshtein_distance(phrase, joined_term, 2 ** 31 - 1),
             int(joined_count),
         )
         suggestion_line = list()

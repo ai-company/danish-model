@@ -215,18 +215,18 @@ def init():
         masks = {}
 
         # TODO: This will change.
-        words = list(
-            filter(
-                lambda x: len(
-                    x.replace("-", "")
-                    .replace(",", "")
-                    .replace("(", "")
-                    .replace(")", "")
-                )
-                != 0,
-                words,
-            )
-        )
+        # words = list(
+        #     filter(
+        #         lambda x: len(
+        #             x.replace("-", "")
+        #             .replace(",", "")
+        #             .replace("(", "")
+        #             .replace(")", "")
+        #         )
+        #         != 0,
+        #         words,
+        #     )
+        # )
 
         # for i, word in enumerate(words):
         #    if word not in corpus_words and len(word) > 0:
@@ -300,10 +300,10 @@ def init():
         # pprint(list(map(DiffToken.from_dict, changes)))
 
         changes = list(
-            filter(
-                lambda t: t.lexeme.type == LexemeType.WORD,
-                map(DiffToken.from_dict, changes),
-            )
+            # filter(
+            #     lambda t: t.lexeme.type == LexemeType.WORD,
+            map(DiffToken.from_dict, changes),
+            # )
         )
         new_changes: List[DiffToken] = []
 
@@ -318,7 +318,11 @@ def init():
                 last_was_merge = False
                 continue
 
-            if item.lexeme.type != LexemeType.WORD:
+            if (
+                item.lexeme.type != LexemeType.WORD
+                or changes[0].lexeme.type != LexemeType.WORD
+            ):
+                changes.pop(0)
                 new_changes.append(item)
             elif changes[0].change_type == "merge":
                 change = changes.pop(0)
@@ -330,7 +334,7 @@ def init():
                 new_changes.append(change)
 
                 last_was_merge = True
-            elif len(changes) > 0:
+            elif len(changes) > 0 and changes[0].origin == item.lexeme.text.lower():
                 change = changes.pop(0)
                 change.lexeme.space = item.lexeme.space
                 change.origin = str(item.lexeme)
