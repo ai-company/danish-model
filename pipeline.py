@@ -28,19 +28,20 @@ commas = comma.init(nlp)
 
 def sentencize(text):
     proposal = seg.segment(text)
-    result = []
+    # result = []
 
-    accum = []
+    # accum = []
 
-    for segment in proposal:
-        if segment[-1] not in ":?!.":
-            accum.append(segment)
-        else:
-            result.append(" ".join(accum + [segment]))
+    # for segment in proposal:
+    #     if segment[-1] not in ":?!.":
+    #         accum.append(segment)
+    #     else:
+    #         result.append(" ".join(accum + [segment]))
 
-            accum = []
+    #         accum = []
 
-    return result + ([" ".join(accum)] or [])
+    # return result + ([" ".join(accum)] or [])
+    return proposal
 
 
 def strip_user_commas(diff, text):
