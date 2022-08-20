@@ -3,7 +3,7 @@
 from __future__ import division
 from pprint import pprint
 from typing import List
-from diff_token import DiffPunc, DiffToken, LexemeType, tokenize
+from diff_token import DiffPunc, DiffToken, Lexeme, LexemeType, tokenize
 import sys
 from os.path import join, dirname
 import collections
@@ -203,13 +203,6 @@ def init(nlp: spacy.language.Language):
         # print('---')
         # pprint(new_text)
 
-        # Add last period.
-        # if new_text[-1] not in ".?!:":
-        #     if new_text[-1] == ",":
-        #         new_text = new_text[:-1] + "."
-        #     else:
-        #         new_text += "."
-
         # the model sometimes inserts a duplicate comma, if there is one already there
         # new_text = re.sub(",+", ",", new_text)
         # pprint(new_text)
@@ -219,6 +212,13 @@ def init(nlp: spacy.language.Language):
         doc = nlp(new_text)
 
         new_text_tokens = DiffToken.from_spacy_list(doc)
+
+        # Add last period.
+        # if new_text_tokens[-1].lexeme.text not in ".?!:":
+        #     if new_text_tokens[-1].lexeme.text == ",":
+        #         new_text_tokens[-1].lexeme.text = "."
+        #     else:
+        #         new_text_tokens.append(DiffPunc(".", None))
 
         # reconcile diffs -------------------------------------
 

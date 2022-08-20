@@ -23,8 +23,16 @@ from dataclasses import dataclass
 
 lemmatizer = lemmy.load("da")
 
-NAMES = dict(zip(pd.read_excel(os.path.join(os.path.dirname(__file__), 'data/names.xlsx'))['Ab'].apply(lambda x: x.lower()).tolist(), itertools.cycle([True])))
+NAMES = dict(
+    zip(
+        pd.read_excel(os.path.join(os.path.dirname(__file__), "data/names.xlsx"))["Ab"]
+        .apply(lambda x: x.lower())
+        .tolist(),
+        itertools.cycle([True]),
+    )
+)
 SUBJECTS = ["nsubj", "nsubjpass", "csubj", "csubjpass", "agent", "expl"]
+
 
 class GrammarObject:
     def __init__(
@@ -32,10 +40,10 @@ class GrammarObject:
         text: str,
         pos: str,
         dep: str,
-        morphs: [str],
+        morphs: List[str],
         i: int,
-        children: [any],
-        ancestors: [any],
+        children: List[any],
+        ancestors: List[any],
         head: any,
     ):
         self.text = text
@@ -82,6 +90,7 @@ class GrammarObject:
     def __setitem__(self, key, value):
         self.morphs[key] = value
 
+
 def is_singular(go: GrammarObject) -> bool:
     """
     Figures out whether a GrammarObject is singular.
@@ -103,6 +112,7 @@ def is_singular(go: GrammarObject) -> bool:
     else:
         return "sing" == go["number"]
 
+
 @dataclass
 class Fix:
     """
@@ -116,9 +126,11 @@ class Fix:
     Returns:
         - fix: The Fix object lol.
     """
+
     correct: GrammarObject
     i: int
     explanation: str
+
 
 class Sentence:
     def __init__(self, text, nlp):
@@ -136,9 +148,7 @@ class Sentence:
 
                 if len(subjects) > 0:
                     for subject in subjects:
-                        sv_list.append(
-                            (subject, verb) # TODO: negated mby
-                        )
+                        sv_list.append((subject, verb))  # TODO: negated mby
 
         return sv_list
 
@@ -238,33 +248,25 @@ class Sentence:
 
         for sub in subjects:
             rights = list(sub.rights)
-            right_deps = [ t.lower_ for t in rights ]
+            right_deps = [t.lower_ for t in rights]
 
-            if 'og' in right_deps:
+            if "og" in right_deps:
                 more.extend(
-                    [
-                        t for t in rights if t.dep_ in SUBJECTS or t.pos_ == 'NOUN'
-                    ]
+                    [t for t in rights if t.dep_ in SUBJECTS or t.pos_ == "NOUN"]
                 )
 
                 if len(more) > 0:
-                    more.extend(
-                        Sentence.get_subjects_of_conjunctions(more)
-                    )
+                    more.extend(Sentence.get_subjects_of_conjunctions(more))
 
         return more
 
     @staticmethod
     def get_subjects(token):
         negated = Sentence.is_negated(token)
-        subjects = [
-            t for t in token.lefts if t.dep_ in SUBJECTS and t.pos_ != 'DET'
-        ]
+        subjects = [t for t in token.lefts if t.dep_ in SUBJECTS and t.pos_ != "DET"]
 
         if len(subjects) > 0:
-            subjects.extend(
-                Sentence.get_subjects_of_conjunctions(subjects)
-            )
+            subjects.extend(Sentence.get_subjects_of_conjunctions(subjects))
         else:
             found, negated = Sentence.find_subjects(token)
             subjects.extend(found)
@@ -273,38 +275,35 @@ class Sentence:
 
     @staticmethod
     def find_subjects(token):
-        head = token.head # Get head.
-        while head.pos_ not in ['VERB', 'NOUN'] and head.head != head:
+        head = token.head  # Get head.
+        while head.pos_ not in ["VERB", "NOUN"] and head.head != head:
             head = head.head
 
-        if head.pos_ == 'VERB':
-            subjects = [
-                token for token in head.lefts if token.dep_ == 'SUB'
-            ]
+        if head.pos_ == "VERB":
+            subjects = [token for token in head.lefts if token.dep_ == "SUB"]
 
             if len(subjects) > 0:
                 negated = Sentence.is_negated(head)
-                subjects.extend(
-                    Sentence.get_subjects_of_conjunctions(subjects)
-                )
+                subjects.extend(Sentence.get_subjects_of_conjunctions(subjects))
 
                 return subjects, negated
 
             elif head.head != head:
                 return Sentence.find_subjects(head)
-        elif head.pos_ == 'NOUN':
+        elif head.pos_ == "NOUN":
             return [head], Sentence.is_negated(token)
 
         return [], False
 
     @staticmethod
     def is_negated(token):
-        negations = ['ikke', 'ingen', 'intet', 'aldrig', 'ingen']
+        negations = ["ikke", "ingen", "intet", "aldrig", "ingen"]
 
         for dep in list(token.lefts) + list(token.rights):
             if dep.lower_ in negations:
                 return True
         return False
+
 
 class SentenceTree:
     @staticmethod
@@ -319,11 +318,9 @@ class SentenceTree:
 
         return list(set(result))
 
-
     @staticmethod
     def nsubj_pair(token):
         return [token.head]
-
 
     @staticmethod
     def root_pair(token):
@@ -332,14 +329,14 @@ class SentenceTree:
         else:
             return []
 
-
     @staticmethod
     def det_pair(token):
         if token.head.pos_ == "NOUN":
             return [token.head]
         else:
-            return [t for t in SentenceTree.siblings(token) if t.pos_ in ["ADJ", "NOUN"]][:1]
-
+            return [
+                t for t in SentenceTree.siblings(token) if t.pos_ in ["ADJ", "NOUN"]
+            ][:1]
 
     @staticmethod
     def amod_pair(token):
@@ -348,26 +345,21 @@ class SentenceTree:
         else:
             return [t for t in token.children if t.dep_ == "nsubj"]
 
-
     @staticmethod
     def aux_pair(token):
         return [token.head]
-
 
     @staticmethod
     def xcomp_pair(token):
         return [t for t in SentenceTree.siblings(token) if t.dep_ == "nsubj"]
 
-
     @staticmethod
     def expl_pair(token):
         return [t for t in SentenceTree.siblings(token) if t.pos_ == "VERB"]
 
-
     @staticmethod
     def cc_pair(token):
         return list(set([token.head]))  # + list(token.ancestors)))
-
 
     @staticmethod
     def mark_pair(token):
@@ -375,7 +367,6 @@ class SentenceTree:
             return [token.head]
         else:
             return []
-
 
     @classmethod
     def grammar_tree(tree, token):
@@ -414,7 +405,7 @@ class Correct:
         for (s, v, _) in s.svo_triples():
 
             # Can't do that, if auxiliary verbs exist.
-            if len([t for t in v.children if t.dep_ == 'aux']) > 0:
+            if len([t for t in v.children if t.dep_ == "aux"]) > 0:
                 continue
 
             go_s = GrammarObject.from_token(s)
@@ -422,14 +413,16 @@ class Correct:
 
             # OMG, what a cool hack. You must be ultra-smart.
             # > Yes, thank.
-            if go_v.has('verbform', 'inf') or go_v.text in inflect.verb_inflections:
+            if go_v.has("verbform", "inf") or go_v.text in inflect.verb_inflections:
                 correct = inflect.inflect_verb(go_v, True)
 
                 if correct != go_v.text:
                     explain.append_change(
                         changes,
                         v.i,
-                        explain.change("change", correct, f'Forveksling af infinitiv og nutid.'),
+                        explain.change(
+                            "change", correct, f"Forveksling af infinitiv og nutid."
+                        ),
                     )
 
                     break
@@ -523,7 +516,7 @@ class Correct:
                     )
                 )
 
-                if len(tokens) > 0 and result[0]['score'] > 0.85:
+                if len(tokens) > 0 and result[0]["score"] > 0.85:
                     correct = tokens[0]
 
                     if correct != backup:
@@ -658,7 +651,10 @@ def init(unmasker, nlp):
     def fix(diff: List[DiffToken] = [], text=""):
 
         # What's updog?
-        upper_mask = [t[0].isupper() and not i == 0 for i, t in enumerate(util.parse_words(text, nlp=nlp, lower=False))]
+        upper_mask = [
+            t[0].isupper() and not i == 0
+            for i, t in enumerate(util.parse_words(text, nlp=nlp, lower=False))
+        ]
         doc = nlp(text)
 
         changes = list(
@@ -671,7 +667,7 @@ def init(unmasker, nlp):
         result_fix_map = dict()
         correction_lookup = dict()
 
-        doc = nlp(text) # It's better now.
+        doc = nlp(text)  # It's better now.
         change_map = explain.change_map(changes)
 
         # Helper for setting fix
@@ -684,9 +680,7 @@ def init(unmasker, nlp):
                 changes,
                 map_i,
                 map_split_i,
-                explain.change(
-                    "replace", fix.correct.text, fix.explanation
-                ),
+                explain.change("replace", fix.correct.text, fix.explanation),
                 fix.explanation,
             )
 
@@ -712,56 +706,56 @@ def init(unmasker, nlp):
             if len(non_punct) == 0:
                 continue
 
-            go   = GrammarObject.from_token(token)
+            go = GrammarObject.from_token(token)
             tree = SentenceTree.grammar_tree(token)
 
-            if go.text.lower() in ['lægger', 'ligger', 'lægge', 'ligge']:
-                found_obj     = False
+            if go.text.lower() in ["lægger", "ligger", "lægge", "ligge"]:
+                found_obj = False
                 abort_mission = False
 
-                if len(tree) == 0: # We're dealing with a head.
+                if len(tree) == 0:  # We're dealing with a head.
                     tree = list(go.children)
 
                 for pair in tree:
-                    go_link = correction_lookup.get(
-                        pair.i
-                    ) or GrammarObject.from_token(pair)
+                    go_link = correction_lookup.get(pair.i) or GrammarObject.from_token(
+                        pair
+                    )
 
-                    if go_link.dep == 'obj':
+                    if go_link.dep == "obj":
                         found_obj = True
 
-                    if go.text.lower() == 'lægge':
-                        if go_link.dep == 'mark' and go_link.text.lower() == 'at' and go_link.head == token:
+                    if go.text.lower() == "lægge":
+                        if (
+                            go_link.dep == "mark"
+                            and go_link.text.lower() == "at"
+                            and go_link.head == token
+                        ):
                             # If the mark 'at' is used, it's okay.
                             abort_mission = True
 
                 if not abort_mission:
                     if found_obj:
-                        if 'li' in go.text.lower():
-                            before  = go.text
-                            go.text = go.text.replace('i', 'æ')
+                        if "li" in go.text.lower():
+                            before = go.text
+                            go.text = go.text.replace("i", "æ")
                             go_fix(
                                 Fix(
                                     go,
                                     go.i,
-                                    f"Forveksling af \"{before}\" og \"{go.text}\"."
+                                    f'Forveksling af "{before}" og "{go.text}".',
                                 )
                             )
-                    elif 'læ' in go.text.lower():
-                        before  = go.text
-                        go.text = go.text.replace('æ', 'i')
+                    elif "læ" in go.text.lower():
+                        before = go.text
+                        go.text = go.text.replace("æ", "i")
                         go_fix(
-                            Fix(
-                                go,
-                                go.i,
-                                f"Forveksling af \"{before}\" og \"{go.text}\"."
-                            )
+                            Fix(go, go.i, f'Forveksling af "{before}" og "{go.text}".')
                         )
             else:
                 for pair in tree:
-                    go_link = correction_lookup.get(
-                        pair.i
-                    ) or GrammarObject.from_token(pair)
+                    go_link = correction_lookup.get(pair.i) or GrammarObject.from_token(
+                        pair
+                    )
 
                     if fix := Correct.fix_pair(go, go_link):
                         if fix.correct.text == changes[fix.i]["origin"].strip():
@@ -772,7 +766,7 @@ def init(unmasker, nlp):
                         else:
                             go_fix(fix)
 
-                if go.pos == 'propn':
+                if go.pos == "propn":
                     if NAMES.get(go.text.lower(), False):
                         if go.text[0].islower():
                             go.text = go.text.capitalize()
@@ -780,7 +774,7 @@ def init(unmasker, nlp):
                                 Fix(
                                     go,
                                     go.i,
-                                    "Dette egenavn bør have stort begyndelsesbogstav."
+                                    "Dette egenavn bør have stort begyndelsesbogstav.",
                                 )
                             )
 
